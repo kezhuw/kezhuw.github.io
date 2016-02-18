@@ -1,0 +1,384 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>彙整 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">彙整</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2016-02-18T10:47:36.000Z"><a href="/2016/02/18/go-memory-leak-in-background-goroutine/">Feb 18 2016</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2016/02/18/go-memory-leak-in-background-goroutine/">Go memory leak in background goroutine</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>People coming from C or C++ may think that there is no <a href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues" target="_blank" rel="external">memory leak</a> in languages with <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="external">garbage collection</a>. But the truth is:</p>
+<p><strong>Memory leak does exist in languages with automatic garbage collection.</strong></p>
+<p>In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t
+understand this. Computer uses a concept [<em>unreachable</em>] to detect whether
+an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.</p>
+<p>Here, I show you a memory leak case using <a href="https://golang.org/doc/effective_go.html" target="_blank" rel="external">Go</a>. Also, it can happen in other garbage collection language, like Java.
+Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.
+Suppose, I write following code for a database library:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">package main&#10;&#10;import (&#10;&#9;&#34;fmt&#34;&#10;&#9;&#34;runtime&#34;&#10;&#9;&#34;sync&#34;&#10;&#9;&#34;time&#34;&#10;)&#10;&#10;type Request struct &#123;&#10;&#125;&#10;&#10;type DB struct &#123;&#10;&#9;closed bool&#10;&#9;reqC   chan Request&#10;&#9;mutex  sync.Mutex&#10;&#125;&#10;&#10;func (db *DB) Close() &#123;&#10;&#9;db.mutex.Lock()&#10;&#9;if db.closed &#123;&#10;&#9;&#9;db.mutex.Unlock()&#10;&#9;&#9;return&#10;&#9;&#125;&#10;&#9;db.closed = true&#10;&#9;db.mutex.Unlock()&#10;&#10;&#9;fmt.Println(&#34;db closing&#34;)&#10;&#9;close(db.reqC)&#10;&#9;runtime.SetFinalizer(db, nil)&#10;&#125;&#10;&#10;func backgroundWork(db *DB) &#123;&#10;&#9;for range db.reqC &#123;&#10;&#9;&#125;&#10;&#9;fmt.Println(&#34;db channel closed&#34;)&#10;&#125;&#10;&#10;func Open(address string, name string) (*DB, error) &#123;&#10;&#9;db := &#38;DB&#123;reqC: make(chan Request, 100)&#125;&#10;&#9;runtime.SetFinalizer(db, (*DB).Close)&#10;&#9;go backgroundWork(db)&#10;&#9;return db, nil&#10;&#125;&#10;&#10;func test() &#123;&#10;&#9;Open(&#34;tcp://127.0.0.1:4444&#34;, &#34;test&#34;)&#10;&#125;&#10;&#10;func main() &#123;&#10;&#9;test()&#10;&#9;for &#123;&#10;&#9;&#9;time.Sleep(5)&#10;&#9;&#125;&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>You may find that, database object created in function <code>test</code> is a garbage, but it never and will never got collected.
+The object is reachable from function <code>backgroundWork</code> called in goroutine fired by <code>go backgroundWork(db)</code> in <code>Open</code>.</p>
+<p><strong>If we want garbage collector to collect object for us, we should not reference the object in any case.</strong> In above code,
+we should not reference database object in <code>backgroundWork</code>. Let us make some changes:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">func backgroundWork(reqC chan Request) &#123;&#10;&#9;for range reqC &#123;&#10;&#9;&#125;&#10;&#9;fmt.Println(&#34;db channel closed&#34;)&#10;&#125;&#10;&#10;func Open(address string, name string) (*DB, error) &#123;&#10;&#9;db := &#38;DB&#123;reqC: make(chan Request, 100)&#125;&#10;&#9;runtime.SetFinalizer(db, (*DB).Close)&#10;&#9;go backgroundWork(db.reqC)&#10;&#9;return db, nil&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>Now, we run the programm and find that the database object got collected.</p>
+<p>I recommend three principles when you use thread or goroutine as background workhorse for API objects:</p>
+<ul>
+<li>Don’t reference, directly or indirectly, API objects in background threads or goroutines</li>
+<li>Shutdown background threads or goroutines in API objects’ finalizer/closer function</li>
+<li>Care about “double free” issue, including manual-manual, manual-automatic gc</li>
+</ul>
+<p>If you do want reference API object in background workhorse, use its <a href="https://en.wikipedia.org/wiki/Weak_reference" target="_blank" rel="external">weak reference</a>.</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-12-08T12:29:06.000Z"><a href="/2015/12/08/desired-cpp-build-system/">Dec 8 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/12/08/desired-cpp-build-system/">C++ 编译系统</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近尝试了几款 C++ 编译系统。</p>
+<ul>
+<li><p><a href="https://cmake.org/cmake/help/v3.4/index.html" target="_blank" rel="external">CMake</a> 对于一个编译系统来说，个人觉得过于复杂了。项目依赖不好解决，可能我姿势不对，用不好 ExternalProject 。</p>
+</li>
+<li><p><a href="https://github.com/iauns/cpm" target="_blank" rel="external">CPM</a> 基于 CMake ，对项目结构以及名字空间有额外要求。我写我的代码，导出我的接口，你还想管我怎么写？</p>
+</li>
+<li><p><a href="http://docs.biicode.com/c++/building/biicode_building.html" target="_blank" rel="external">biicode</a> 自动生成了很多隐式配置，用的时候很大可能要修改这些配置，作者脑洞有点大。不推荐。</p>
+</li>
+<li><p><a href="https://github.com/mesonbuild/meson" target="_blank" rel="external">meson</a> 很轻量的一个编译系统，配置语言很好用。依赖可以在系统软件包和源码之间切换。对现有项目提供的 patch 支持很不错，不需要对上游做破坏性更新。文档还是比较少的，有些东西估计得读下代码才知道怎么用。值得一试。</p>
+</li>
+<li><p><a href="http://bazel.io/" target="_blank" rel="external">bazel</a> Google 出品，离 1.0 还很远，不过已经可以用了。很合适 <a href="http://www.wired.com/2015/09/google-2-billion-lines-codeand-one-place/" target="_blank" rel="external">Google 那种集中式的代码库</a>，根目录一个 WORKSPACE ，其他的项目都只是一个 BUILD ，项目间的依赖也很好指定。和系统软件包的配合不好，连 <code>make install</code> 都没有。patch 支持，一个 BUILD 文件就可以搞定，复杂的话，可能比较麻烦。文档很不错。推荐。</p>
+</li>
+</ul>
+<p>这几款编译系统都没能解决一个问题：<strong>编译时第三方依赖的源码和软件包之间的一致性</strong>。举例来说：</p>
+<p>如果 packageA 的头文件 <code>header.hpp</code> 通过 <code>make install</code> 或其他的包管理工具安装在 <code>packageA/header.hpp</code> ，那么 packageB 一定可以通过 <code>#include &lt;packageA/header.hpp&gt;</code> 引用到这个文件，不论 packageB 依赖的是 packageA 的源码还是系统软件包。<code>header.hpp</code> 可以在 packageA 的任意位置，甚至可能是编译时生成的头文件。</p>
+<p>要做到这一点，我的想法是：在编译 packageB 时，如果依赖的是 packageA 的源码，则先编译 packageA，将其安装在私有的目录，之后通过修改编译参数指定头文件包含目录和链接目录。如果依赖的是 packageA 的软件包，则直接用系统的头文件包含目录和链接目录。这样的话，就可以通过配置语言 packageA 的源码和软件包之间切换。</p>
+<p>meson 可以在依赖的源码和软件包之间切换，但是需要根据源码结构和包结构之间的差异做特别的定制。bazel 就是一集中化的代码仓库，包含路径只能相对根目录和当前目录。</p>
+<p>也许得自己撸一个？Damnit!</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-04-25T11:43:12.000Z"><a href="/2015/04/25/split-read-write-events-in-epoll/">Apr 25 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/04/25/split-read-write-events-in-epoll/">epoll 的读写分离</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>直接上代码，简单明了，无错误处理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// initialization</span></span><br><span class="line"><span class="keyword">int</span> epfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> readfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> writefd = epoll_create(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> epoll_event event;</span><br><span class="line">event.events = EPOLLIN;</span><br><span class="line"></span><br><span class="line">event.data.fd = readfd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, readfd, &amp;event);</span><br><span class="line"></span><br><span class="line">event.data.fd = writefd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, writefd, &amp;event);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// wait read event</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event ev;</span><br><span class="line">ev.events = EPOLLIN; <span class="comment">// with possible other flags.</span></span><br><span class="line">ev.data.fd = fd;</span><br><span class="line">epoll_ctl(readfd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// polling</span></span><br><span class="line"><span class="keyword">enum</span> &#123;</span><br><span class="line">    kEventsSize      = <span class="number">512</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> epoll_event eps[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">struct</span> epoll_event evs[kEventsSize];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> n = epoll_wait(epfd, eps, <span class="number">2</span>, timeout);</span><br><span class="line"><span class="keyword">while</span> (n-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> fd = eps[n].data.fd;</span><br><span class="line">    <span class="keyword">int</span> nevent = epoll_wait(fd, events, kEventsSize, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (fd == readfd) &#123;</span><br><span class="line">        <span class="comment">// read events</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// write events</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>推荐阅读: FreeBSD <a href="http://www.freebsd.org/cgi/man.cgi?query=kqueue" target="_blank" rel="external">kqueue(2)</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-04-05T17:15:40.000Z"><a href="/2015/04/06/global-mail-sending-in-game-server/">Apr 6 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/04/06/global-mail-sending-in-game-server/">游戏服务器中的全服邮件发送</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>游戏开发、运营过程中通常会有 “给全服所有玩家发送邮件” 的需求。</p>
+<p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向 “全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global Mail Centra</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">version_t</span> = uint64;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">mail_id_t</span> = uint64;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;<span class="keyword">version_t</span>, <span class="keyword">mail_id_t</span>&gt; _mails;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::tuple&lt;<span class="keyword">version_t</span>, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt;&gt; fetchNewerMail(<span class="keyword">version_t</span> currentVersion) &#123;</span><br><span class="line">    <span class="keyword">auto</span> newerVersion = currentVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> it = _mails.upper_bound(currentVersion); it != _mails.end(); ++it) &#123;</span><br><span class="line">        newerVersion = it-&gt;first;</span><br><span class="line">        newerMails.push_back(it-&gt;second);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::make_tuple(newerVersion, newerMails);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Global Mail Proxy in Player Module</span></span><br><span class="line"><span class="keyword">version_t</span> _currentVersion;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; checkGlobalMails() &#123;</span><br><span class="line">    <span class="keyword">version_t</span> newerVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="built_in">std</span>::tie(newerVersion, newerMails) = fetchNewerMails(_currentVersion);</span><br><span class="line">    <span class="keyword">if</span> (newerVersion != _currentVersion) &#123;</span><br><span class="line">        _currentVersion = newerVersion;</span><br><span class="line">        <span class="comment">// update _currentVersion to backend data storage</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newerMails;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的 coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心” 根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a href="https://github.com/cloudwu/skynet/" target="_blank" rel="external">skynet</a> 中，可以这样做：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">function update_global_mails()</span><br><span class="line">    local currentVersion = get_current_version()</span><br><span class="line">    while true do</span><br><span class="line">        newerVersion, newerMails = skynet.call(".global_mail_centra", "lua", "fetchNewerMails", currentVersion)</span><br><span class="line">        if newerVersion != currentVersion then</span><br><span class="line">            // synchronized to player's mailbox (other module in same process), blocking call</span><br><span class="line">            currentVersion = newerVersion</span><br><span class="line">            // update currentVersion to backend data storage</span><br><span class="line">        end</span><br><span class="line">    end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">skynet.fork(update_global_mails)</span><br></pre></td></tr></table></figure>
+<p>推荐阅读：<a href="http://blog.codingnow.com/2014/07/skynet_response.html" target="_blank" rel="external">skynet 中如何实现邮件达到通知服务</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-03-20T10:01:56.000Z"><a href="/2015/03/20/opinion-on-game-server-development/">Mar 20 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/03/20/opinion-on-game-server-development/">关于游戏服务器开发的一些个人见解</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h2 id="参与并理解策划需求"><a href="#参与并理解策划需求" class="headerlink" title="参与并理解策划需求"></a>参与并理解策划需求</h2><p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
+<h2 id="隔离是必须的"><a href="#隔离是必须的" class="headerlink" title="隔离是必须的"></a>隔离是必须的</h2><p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API 交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层 API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
+<p>这种分案有很多优点：</p>
+<ul>
+<li>便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。</li>
+<li>降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。</li>
+<li>子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。</li>
+<li>容易定位造成 bug 的子系统。</li>
+<li><em>心情舒坦，利于长寿</em>。</li>
+</ul>
+<h2 id="代码质量"><a href="#代码质量" class="headerlink" title="代码质量"></a>代码质量</h2><p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta) 代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
+<h3 id="潜在即是必然"><a href="#潜在即是必然" class="headerlink" title="潜在即是必然"></a>潜在即是必然</h3><p><strong>一个发生概率为百万分之一的 bug ，在线上运行时是必然会发生的</strong>。</p>
+<h3 id="bug-修复要趁早"><a href="#bug-修复要趁早" class="headerlink" title="bug 修复要趁早"></a>bug 修复要趁早</h3><p>大多数没有第一时间修复的 bug ，会被遗忘。</p>
+<ul>
+<li>对于只给出 workaround 或准备稍后 fix 的 bug ，一定要记录在案。</li>
+<li>对于反应出设计缺陷或业务理解偏差的 bug ，最好重写相关模块。</li>
+</ul>
+<h3 id="警惕-C-中的-“设计模式”-和-“面向对象”"><a href="#警惕-C-中的-“设计模式”-和-“面向对象”" class="headerlink" title="警惕 C++ 中的 “设计模式” 和 “面向对象”"></a>警惕 C++ 中的 “设计模式” 和 “面向对象”</h3><p>就我个人来说，我是很讨厌 C++ 的 “面向对象” 部分的，对 “设计模式” 也没有好感。我在工作中遇到的一些人，谈起 “设计模式” 、“面向对象” 来头头是道，写起代码来就很难让人恭维了。</p>
+<p><strong>好代码才是硬道理</strong>。</p>
+<h2 id="协议设计"><a href="#协议设计" class="headerlink" title="协议设计"></a>协议设计</h2><p>请求、回应式的消息一定要有序列 id 的概念，这样客户端可以轻松的找到与回应消息相匹配的请求消息，进而恢复挂起的执行流。</p>
+<h2 id="团队协作"><a href="#团队协作" class="headerlink" title="团队协作"></a>团队协作</h2><p>让每个伙伴都开心的工作!</p>
+<h3 id="团队成员"><a href="#团队成员" class="headerlink" title="团队成员"></a>团队成员</h3><p>确保你的伙伴都是热爱代码的人。</p>
+<h3 id="代码开放"><a href="#代码开放" class="headerlink" title="代码开放"></a>代码开放</h3><p>代码是团队的共同财产，如果不开放，也便没有了信任的基础。强势的法律声明和有代码安全意识的伙伴才是保障代码安全的正途。就我个人来说，在代码不开放的团队工作时，很难<em>维持</em>贡献代码的激情。</p>
+<h3 id="代码-review"><a href="#代码-review" class="headerlink" title="代码 review"></a>代码 review</h3><p>要让代码 review 成为常态，要鼓励团队成员之间的相互 review ，鼓励团队成员对任意代码的 review 和修改。代码 review 可以很好的促进团队成员之间的了解、合作、信任。</p>
+<h3 id="版本控制，降低冲突"><a href="#版本控制，降低冲突" class="headerlink" title="版本控制，降低冲突"></a>版本控制，降低冲突</h3><p>首选分布式的版本管理工具，推荐：git + github 。所有的冲突都意味着某种程度上的耦合，在减少冲突上付出的努力，会节省团队成员大量的时间成本。</p>
+<h2 id="做一个实践者"><a href="#做一个实践者" class="headerlink" title="做一个实践者"></a>做一个实践者</h2><p>纸（嘴）上谈兵永远写不出好代码。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+  
+    <a href="/archives/page/2/" class="alignright next">下一頁</a>
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

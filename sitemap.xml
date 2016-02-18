@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/</loc>
+    
+    <lastmod>2016-02-18T10:47:36.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2015/12/08/desired-cpp-build-system/</loc>
+    
+    <lastmod>2015-12-08T19:30:49.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2015/04/25/split-read-write-events-in-epoll/</loc>
+    
+    <lastmod>2015-12-07T15:36:07.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2015/03/20/opinion-on-game-server-development/</loc>
+    
+    <lastmod>2015-04-08T12:18:24.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/aboutme/index.html</loc>
+    
+    <lastmod>2015-04-06T05:14:16.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2013/12/01/game-drop-item/</loc>
+    
+    <lastmod>2015-04-05T17:45:22.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/</loc>
+    
+    <lastmod>2015-04-05T17:44:29.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2015/04/06/global-mail-sending-in-game-server/</loc>
+    
+    <lastmod>2015-04-05T17:41:59.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/03/05/zeromq-mailbox/</loc>
+    
+    <lastmod>2014-12-28T06:15:28.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2013/03/23/cpp-interface-implementation/</loc>
+    
+    <lastmod>2014-12-21T14:46:59.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2013/05/31/cpp-experience/</loc>
+    
+    <lastmod>2014-12-21T14:46:55.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2013/12/14/two-arguments-version-accumulate/</loc>
+    
+    <lastmod>2014-12-21T14:46:46.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2014/03/23/lua-coroutine-and-csharp-async/</loc>
+    
+    <lastmod>2014-12-21T14:46:42.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2014/05/07/bool-like-enumeration_in_cpp/</loc>
+    
+    <lastmod>2014-12-21T14:46:35.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2013/07/15/address-const-expression/</loc>
+    
+    <lastmod>2014-12-21T12:45:38.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2014/05/27/modules-and-communications-between-modules/</loc>
+    
+    <lastmod>2014-12-21T12:44:11.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/04/10/zeromq-atomic-msg/</loc>
+    
+    <lastmod>2014-12-21T12:42:23.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/04/01/zeromq-nonblocking/</loc>
+    
+    <lastmod>2014-12-21T12:41:56.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/03/09/zeromq-bind/</loc>
+    
+    <lastmod>2014-12-21T12:41:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/03/07/zeromq-connect/</loc>
+    
+    <lastmod>2014-12-21T12:41:21.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2012/03/04/zeromq-context/</loc>
+    
+    <lastmod>2014-12-21T12:40:45.000Z</lastmod>
+    
+  </url>
+  
+</urlset>

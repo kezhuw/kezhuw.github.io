@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>关于游戏服务器开发的一些个人见解 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  <meta name="description" content="参与并理解策划需求能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚它们都在想些什么？！
+隔离是必须的游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间直接的源码级 API 交互，会随着团队成员和子系统的">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="关于游戏服务器开发的一些个人见解"/>
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-03-20T10:01:56.000Z"><a href="/2015/03/20/opinion-on-game-server-development/">Mar 20 2015</a></time>
+      
+      
+  
+    <h1 class="title">关于游戏服务器开发的一些个人见解</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h2 id="参与并理解策划需求"><a href="#参与并理解策划需求" class="headerlink" title="参与并理解策划需求"></a>参与并理解策划需求</h2><p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
+<h2 id="隔离是必须的"><a href="#隔离是必须的" class="headerlink" title="隔离是必须的"></a>隔离是必须的</h2><p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API 交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层 API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
+<p>这种分案有很多优点：</p>
+<ul>
+<li>便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。</li>
+<li>降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。</li>
+<li>子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。</li>
+<li>容易定位造成 bug 的子系统。</li>
+<li><em>心情舒坦，利于长寿</em>。</li>
+</ul>
+<h2 id="代码质量"><a href="#代码质量" class="headerlink" title="代码质量"></a>代码质量</h2><p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta) 代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
+<h3 id="潜在即是必然"><a href="#潜在即是必然" class="headerlink" title="潜在即是必然"></a>潜在即是必然</h3><p><strong>一个发生概率为百万分之一的 bug ，在线上运行时是必然会发生的</strong>。</p>
+<h3 id="bug-修复要趁早"><a href="#bug-修复要趁早" class="headerlink" title="bug 修复要趁早"></a>bug 修复要趁早</h3><p>大多数没有第一时间修复的 bug ，会被遗忘。</p>
+<ul>
+<li>对于只给出 workaround 或准备稍后 fix 的 bug ，一定要记录在案。</li>
+<li>对于反应出设计缺陷或业务理解偏差的 bug ，最好重写相关模块。</li>
+</ul>
+<h3 id="警惕-C-中的-“设计模式”-和-“面向对象”"><a href="#警惕-C-中的-“设计模式”-和-“面向对象”" class="headerlink" title="警惕 C++ 中的 “设计模式” 和 “面向对象”"></a>警惕 C++ 中的 “设计模式” 和 “面向对象”</h3><p>就我个人来说，我是很讨厌 C++ 的 “面向对象” 部分的，对 “设计模式” 也没有好感。我在工作中遇到的一些人，谈起 “设计模式” 、“面向对象” 来头头是道，写起代码来就很难让人恭维了。</p>
+<p><strong>好代码才是硬道理</strong>。</p>
+<h2 id="协议设计"><a href="#协议设计" class="headerlink" title="协议设计"></a>协议设计</h2><p>请求、回应式的消息一定要有序列 id 的概念，这样客户端可以轻松的找到与回应消息相匹配的请求消息，进而恢复挂起的执行流。</p>
+<h2 id="团队协作"><a href="#团队协作" class="headerlink" title="团队协作"></a>团队协作</h2><p>让每个伙伴都开心的工作!</p>
+<h3 id="团队成员"><a href="#团队成员" class="headerlink" title="团队成员"></a>团队成员</h3><p>确保你的伙伴都是热爱代码的人。</p>
+<h3 id="代码开放"><a href="#代码开放" class="headerlink" title="代码开放"></a>代码开放</h3><p>代码是团队的共同财产，如果不开放，也便没有了信任的基础。强势的法律声明和有代码安全意识的伙伴才是保障代码安全的正途。就我个人来说，在代码不开放的团队工作时，很难<em>维持</em>贡献代码的激情。</p>
+<h3 id="代码-review"><a href="#代码-review" class="headerlink" title="代码 review"></a>代码 review</h3><p>要让代码 review 成为常态，要鼓励团队成员之间的相互 review ，鼓励团队成员对任意代码的 review 和修改。代码 review 可以很好的促进团队成员之间的了解、合作、信任。</p>
+<h3 id="版本控制，降低冲突"><a href="#版本控制，降低冲突" class="headerlink" title="版本控制，降低冲突"></a>版本控制，降低冲突</h3><p>首选分布式的版本管理工具，推荐：git + github 。所有的冲突都意味着某种程度上的耦合，在减少冲突上付出的努力，会节省团队成员大量的时间成本。</p>
+<h2 id="做一个实践者"><a href="#做一个实践者" class="headerlink" title="做一个实践者"></a>做一个实践者</h2><p>纸（嘴）上谈兵永远写不出好代码。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/game-development/">game development</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

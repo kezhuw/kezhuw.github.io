@@ -1,0 +1,188 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>epoll 的读写分离 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  <meta name="description" content="直接上代码，简单明了，无错误处理。
+12345678910111213// initializationint epfd = epoll_create(1);int readfd = epoll_create(1);int writefd = epoll_create(1);struct epoll">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="epoll 的读写分离"/>
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-04-25T11:43:12.000Z"><a href="/2015/04/25/split-read-write-events-in-epoll/">Apr 25 2015</a></time>
+      
+      
+  
+    <h1 class="title">epoll 的读写分离</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>直接上代码，简单明了，无错误处理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// initialization</span></span><br><span class="line"><span class="keyword">int</span> epfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> readfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="keyword">int</span> writefd = epoll_create(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> epoll_event event;</span><br><span class="line">event.events = EPOLLIN;</span><br><span class="line"></span><br><span class="line">event.data.fd = readfd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, readfd, &amp;event);</span><br><span class="line"></span><br><span class="line">event.data.fd = writefd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, writefd, &amp;event);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// wait read event</span></span><br><span class="line"><span class="keyword">struct</span> epoll_event ev;</span><br><span class="line">ev.events = EPOLLIN; <span class="comment">// with possible other flags.</span></span><br><span class="line">ev.data.fd = fd;</span><br><span class="line">epoll_ctl(readfd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// polling</span></span><br><span class="line"><span class="keyword">enum</span> &#123;</span><br><span class="line">    kEventsSize      = <span class="number">512</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> epoll_event eps[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">struct</span> epoll_event evs[kEventsSize];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> n = epoll_wait(epfd, eps, <span class="number">2</span>, timeout);</span><br><span class="line"><span class="keyword">while</span> (n-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">int</span> fd = eps[n].data.fd;</span><br><span class="line">    <span class="keyword">int</span> nevent = epoll_wait(fd, events, kEventsSize, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (fd == readfd) &#123;</span><br><span class="line">        <span class="comment">// read events</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// write events</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>推荐阅读: FreeBSD <a href="http://www.freebsd.org/cgi/man.cgi?query=kqueue" target="_blank" rel="external">kqueue(2)</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/linux/">linux</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

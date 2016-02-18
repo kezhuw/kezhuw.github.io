@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>彙整：2016 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">2016</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2016-02-18T10:47:36.000Z"><a href="/2016/02/18/go-memory-leak-in-background-goroutine/">Feb 18 2016</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2016/02/18/go-memory-leak-in-background-goroutine/">Go memory leak in background goroutine</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>People coming from C or C++ may think that there is no <a href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues" target="_blank" rel="external">memory leak</a> in languages with <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="external">garbage collection</a>. But the truth is:</p>
+<p><strong>Memory leak does exist in languages with automatic garbage collection.</strong></p>
+<p>In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t
+understand this. Computer uses a concept [<em>unreachable</em>] to detect whether
+an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.</p>
+<p>Here, I show you a memory leak case using <a href="https://golang.org/doc/effective_go.html" target="_blank" rel="external">Go</a>. Also, it can happen in other garbage collection language, like Java.
+Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.
+Suppose, I write following code for a database library:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">package main&#10;&#10;import (&#10;&#9;&#34;fmt&#34;&#10;&#9;&#34;runtime&#34;&#10;&#9;&#34;sync&#34;&#10;&#9;&#34;time&#34;&#10;)&#10;&#10;type Request struct &#123;&#10;&#125;&#10;&#10;type DB struct &#123;&#10;&#9;closed bool&#10;&#9;reqC   chan Request&#10;&#9;mutex  sync.Mutex&#10;&#125;&#10;&#10;func (db *DB) Close() &#123;&#10;&#9;db.mutex.Lock()&#10;&#9;if db.closed &#123;&#10;&#9;&#9;db.mutex.Unlock()&#10;&#9;&#9;return&#10;&#9;&#125;&#10;&#9;db.closed = true&#10;&#9;db.mutex.Unlock()&#10;&#10;&#9;fmt.Println(&#34;db closing&#34;)&#10;&#9;close(db.reqC)&#10;&#9;runtime.SetFinalizer(db, nil)&#10;&#125;&#10;&#10;func backgroundWork(db *DB) &#123;&#10;&#9;for range db.reqC &#123;&#10;&#9;&#125;&#10;&#9;fmt.Println(&#34;db channel closed&#34;)&#10;&#125;&#10;&#10;func Open(address string, name string) (*DB, error) &#123;&#10;&#9;db := &#38;DB&#123;reqC: make(chan Request, 100)&#125;&#10;&#9;runtime.SetFinalizer(db, (*DB).Close)&#10;&#9;go backgroundWork(db)&#10;&#9;return db, nil&#10;&#125;&#10;&#10;func test() &#123;&#10;&#9;Open(&#34;tcp://127.0.0.1:4444&#34;, &#34;test&#34;)&#10;&#125;&#10;&#10;func main() &#123;&#10;&#9;test()&#10;&#9;for &#123;&#10;&#9;&#9;time.Sleep(5)&#10;&#9;&#125;&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>You may find that, database object created in function <code>test</code> is a garbage, but it never and will never got collected.
+The object is reachable from function <code>backgroundWork</code> called in goroutine fired by <code>go backgroundWork(db)</code> in <code>Open</code>.</p>
+<p><strong>If we want garbage collector to collect object for us, we should not reference the object in any case.</strong> In above code,
+we should not reference database object in <code>backgroundWork</code>. Let us make some changes:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">func backgroundWork(reqC chan Request) &#123;&#10;&#9;for range reqC &#123;&#10;&#9;&#125;&#10;&#9;fmt.Println(&#34;db channel closed&#34;)&#10;&#125;&#10;&#10;func Open(address string, name string) (*DB, error) &#123;&#10;&#9;db := &#38;DB&#123;reqC: make(chan Request, 100)&#125;&#10;&#9;runtime.SetFinalizer(db, (*DB).Close)&#10;&#9;go backgroundWork(db.reqC)&#10;&#9;return db, nil&#10;&#125;</span><br></pre></td></tr></table></figure>
+<p>Now, we run the programm and find that the database object got collected.</p>
+<p>I recommend three principles when you use thread or goroutine as background workhorse for API objects:</p>
+<ul>
+<li>Don’t reference, directly or indirectly, API objects in background threads or goroutines</li>
+<li>Shutdown background threads or goroutines in API objects’ finalizer/closer function</li>
+<li>Care about “double free” issue, including manual-manual, manual-automatic gc</li>
+</ul>
+<p>If you do want reference API object in background workhorse, use its <a href="https://en.wikipedia.org/wiki/Weak_reference" target="_blank" rel="external">weak reference</a>.</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

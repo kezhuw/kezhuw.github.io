@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>彙整：2015/12 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">2015/12</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-12-08T12:29:06.000Z"><a href="/2015/12/08/desired-cpp-build-system/">Dec 8 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/12/08/desired-cpp-build-system/">C++ 编译系统</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>最近尝试了几款 C++ 编译系统。</p>
+<ul>
+<li><p><a href="https://cmake.org/cmake/help/v3.4/index.html" target="_blank" rel="external">CMake</a> 对于一个编译系统来说，个人觉得过于复杂了。项目依赖不好解决，可能我姿势不对，用不好 ExternalProject 。</p>
+</li>
+<li><p><a href="https://github.com/iauns/cpm" target="_blank" rel="external">CPM</a> 基于 CMake ，对项目结构以及名字空间有额外要求。我写我的代码，导出我的接口，你还想管我怎么写？</p>
+</li>
+<li><p><a href="http://docs.biicode.com/c++/building/biicode_building.html" target="_blank" rel="external">biicode</a> 自动生成了很多隐式配置，用的时候很大可能要修改这些配置，作者脑洞有点大。不推荐。</p>
+</li>
+<li><p><a href="https://github.com/mesonbuild/meson" target="_blank" rel="external">meson</a> 很轻量的一个编译系统，配置语言很好用。依赖可以在系统软件包和源码之间切换。对现有项目提供的 patch 支持很不错，不需要对上游做破坏性更新。文档还是比较少的，有些东西估计得读下代码才知道怎么用。值得一试。</p>
+</li>
+<li><p><a href="http://bazel.io/" target="_blank" rel="external">bazel</a> Google 出品，离 1.0 还很远，不过已经可以用了。很合适 <a href="http://www.wired.com/2015/09/google-2-billion-lines-codeand-one-place/" target="_blank" rel="external">Google 那种集中式的代码库</a>，根目录一个 WORKSPACE ，其他的项目都只是一个 BUILD ，项目间的依赖也很好指定。和系统软件包的配合不好，连 <code>make install</code> 都没有。patch 支持，一个 BUILD 文件就可以搞定，复杂的话，可能比较麻烦。文档很不错。推荐。</p>
+</li>
+</ul>
+<p>这几款编译系统都没能解决一个问题：<strong>编译时第三方依赖的源码和软件包之间的一致性</strong>。举例来说：</p>
+<p>如果 packageA 的头文件 <code>header.hpp</code> 通过 <code>make install</code> 或其他的包管理工具安装在 <code>packageA/header.hpp</code> ，那么 packageB 一定可以通过 <code>#include &lt;packageA/header.hpp&gt;</code> 引用到这个文件，不论 packageB 依赖的是 packageA 的源码还是系统软件包。<code>header.hpp</code> 可以在 packageA 的任意位置，甚至可能是编译时生成的头文件。</p>
+<p>要做到这一点，我的想法是：在编译 packageB 时，如果依赖的是 packageA 的源码，则先编译 packageA，将其安装在私有的目录，之后通过修改编译参数指定头文件包含目录和链接目录。如果依赖的是 packageA 的软件包，则直接用系统的头文件包含目录和链接目录。这样的话，就可以通过配置语言 packageA 的源码和软件包之间切换。</p>
+<p>meson 可以在依赖的源码和软件包之间切换，但是需要根据源码结构和包结构之间的差异做特别的定制。bazel 就是一集中化的代码仓库，包含路径只能相对根目录和当前目录。</p>
+<p>也许得自己撸一个？Damnit!</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

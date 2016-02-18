@@ -1,0 +1,372 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>第 3 頁 | 彙整 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">彙整</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-12-01T04:18:31.000Z"><a href="/2013/12/01/game-drop-item/">Dec 1 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/12/01/game-drop-item/">游戏掉落表设计</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>游戏中各种怪物都会有自己的掉落物品列表。</p>
+<p>最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id + 数量），掉落物品2 …… 。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。</p>
+<p>一种更好的掉落表可能是这样的：掉落分类1，掉落 id 1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，……</p>
+<p>这样程序可以对不同的掉落分类进行不同的处理，并且 id 的含义可以局限于分类之下，例如：可以将“分类1”视为虚拟物品，“分类2”视为普通物品，“分类3”视为某种特殊物品，等等。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-07-14T23:07:58.000Z"><a href="/2013/07/15/address-const-expression/">Jul 15 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/07/15/address-const-expression/">地址常量表达式</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>C 语言中具有静态生存周期的变量的初始化器必须是常量表达式。当初始化器不是常量表达式时，gcc 和 clang 的报错信息不尽相同。</p>
+<p>gcc 的报错信息是 <q>error: initializer element is not constant</q> clang 的报错信息是 <q>error: initializer element is not a compile-time constant</q></p>
+<p>clang 用的是“编译时常量”(compile-time constant)，实际上 C99 标准里没有“编译时常量”这个概念，只有“常量表达式”。</p>
+<blockquote>
+<p>A constant expression can be evaluated during translation rather than runtime, and accordingly may be used in any place that a constant may be.</p>
+</blockquote>
+<p>C99 规定了初始化器中可用的常量表达式：</p>
+<blockquote>
+<p>More latitude is permitted for constant expressions in initializers. Such a constant expression shall be, or evaluate to, one of the following: </p>
+<ul>
+<li>— an arithmetic constant expression,</li>
+<li>— a null pointer constant,</li>
+<li>— an address constant, or</li>
+<li>— an address constant for an object type plus or minus an integer constant expression.</li>
+</ul>
+<p>An address constant is a null pointer, a pointer to an lvalue designating an object of static storage duration, or a pointer to a function designator; it shall be created explicitly using the unary &amp; operator or an integer constant cast to pointer type, or implicitly by the use of an expression of array or function type. The array-subscript [] and member-access . and -&gt; operators, the address &amp; and indirection * unary operators, and pointer casts may be used in the creation of an address constant, but the value of an object shall not be accessed by use of these operators.</p>
+</blockquote>
+<p>也就是说，你可以在初始化器中使用变量、变量的成员和函数的地址，也可以在地址的基础上加上个偏移量。</p>
+<p>“address constant” 不能算作 “compile-time constant”。 尽管编译器可能在生成 ELF 文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library) 被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader) 的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
+<p>c99 标准对于 “address constant” 的运算只规定了可以加减整数常量表达式。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="keyword">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
+<p>gcc/clang 都不支持上面这种用法。其实上面这种情况可以通过对 &amp;addr 这个位置进行累积的重定位做到 （Elf_Rel/Elf64_Rel 的 r_addend 存储在 &amp;addr 这个位置)。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 64bit machine</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uint32_t</span>)<span class="built_in">malloc</span>;</span><br></pre></td></tr></table></figure>
+<p>这种情况，gcc 给出的错误信息是 <q>error: initializer element is not computable at load time</q></p>
+<p>右值（地址， 64 位）需要在重定位后强制转换为 32 位整数，再赋值给左值（ 64 位）。要支持这样情况的话，可能需要 ELF 的重定位信息支持。</p>
+<p>编译器的版本： clang version 3.3 gcc version 4.8.1</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-05-30T18:34:02.000Z"><a href="/2013/05/31/cpp-experience/">May 31 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/05/31/cpp-experience/">C++ 经验谈</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。</p>
+<p>很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">1</a>。</p>
+<p>即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。</p>
+<p>在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。</p>
+<p>下面主要记录一下我写 C++ 的不长的时间里的一些经验。</p>
+<h2 id="避免编译时依赖。"><a href="#避免编译时依赖。" class="headerlink" title="避免编译时依赖。"></a>避免编译时依赖。</h2><p>C++ 没有现代的 package, import 机制，而是使用了继承自 C 的 <code>#include</code> 头文件包含机制。C++ 的复杂和 C 的编译模型导致了 C++ 项目冗长的编译时间。在其他语言中 import/require 可以解决的问题，在 C++ 中必须要程序员自己付出努力。[2]</p>
+<p>隐式 (implicit) 的编译依赖不像头文件依赖会导致编译期的错误，却会在运行期招致不可预估的致命错误。比如，当你在编译单元 CompilationUnitA 中 <code>p = new(CompilationUnitB::ClassB)</code> 时，你已经埋下了一颗地雷。以后当你改变 CompilationUnitB::ClassB 的成员而导致其大小 (size) 变化时，你编译 CompilationUnitB ，链接 CompilationUnitA ，运行，然后不知何时那颗地雷就会炸掉。我觉得就 <code>new</code> 的编译期行为，C++ 能做的更好，也应该做的更好。好吧，永远不要跨编译单元调用 <code>new</code> 。</p>
+<p>虚函数调用、跨编译单元的栈上变量/全局变量同样是隐式的编译依赖。</p>
+<h2 id="跨编译单元（-so-dll-lib）时，区分接口与实现-同一编译单元内，不过度区分接口与实现。"><a href="#跨编译单元（-so-dll-lib）时，区分接口与实现-同一编译单元内，不过度区分接口与实现。" class="headerlink" title="跨编译单元（.so, .dll, .lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。"></a>跨编译单元（.so, .dll, .lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</h2><p>不同的编译单元应该不存在实现依赖，例如： UnitA::ClassA 不应该 依赖于 UnitB::ClassB 的内存大小。UnitA 的头文件 UnitA.h 主要的用途是暴露 (export) UnitA 的接口，如 UnitA::ClassA 中的接口函数。受限于 C++ 对接口与实现之间的支持，UnitA.h 头文件可能写有 UnitA::ClassA 基于当前实现的某些私有数据，但其他编译单元不应依赖之。</p>
+<p>跨编译单元的接口不应该是虚函数</p>
+<p>跨编译单元的类应该提供显示的创建函数，并尽可能返回引用类型 (std::shared_ptr, etc.)。</p>
+<h2 id="以小的、具体的类代替模板（成员）变量（集合）。"><a href="#以小的、具体的类代替模板（成员）变量（集合）。" class="headerlink" title="以小的、具体的类代替模板（成员）变量（集合）。"></a>以小的、具体的类代替模板（成员）变量（集合）。</h2><p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如： <code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当 <code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
+<h2 id="多用库，善用-STL-和-boost-。"><a href="#多用库，善用-STL-和-boost-。" class="headerlink" title="多用库，善用 STL 和 boost 。"></a>多用库，善用 STL 和 boost 。</h2><p>C++ 的基础库基本上都是模板库，需要根据适用场景进行再封装。</p>
+<h2 id="拒绝复杂。"><a href="#拒绝复杂。" class="headerlink" title="拒绝复杂。"></a>拒绝复杂。</h2><p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++ 的很多坑，就已经很不错了。</p>
+<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦
+[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
+<p>推荐阅读： 孟岩 <a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">用C设计，用C++编码</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-03-23T02:35:07.000Z"><a href="/2013/03/23/cpp-interface-implementation/">Mar 23 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/03/23/cpp-interface-implementation/">C++ 接口与实现</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>封装是 C++ 面向对象三大特性之一。C++ 通过将数据和对数据操作的函数绑定在一个类里来表达封装。从字面意义和 C++ 的历史(C with class)来看，封装对于 C++ 来说是根本的。</p>
+<p>《代码大全2》6.2节 中提到了一个良好的封装应该“避免把私有的实现细节放入类的接口中”，并介绍了 《Effective C++》 中提到的 pImpl 惯用技法。</p>
+<p>在我看来 C++ 中类的实现方式明显无法很好的表达封装，只是粗暴的将函数及其操作的数据绑在一起，而忽视了可见性的控制。C++ 对运行时性能苛求可能是其罪魁祸首。</p>
+<p>实际上我认为封装从根本上就是一个错误的观点，数据和对数据操作的函数从来就不是一个整体。</p>
+<p>好吧，本文要说只是另一种定义 C++ 类的方式，类似 Objective-C 类的 interface/implementation 。 </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foo_interface.hpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;boost/noncopyable.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Interface : boost::noncopyable &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">Bar</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.hpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"foo_interface.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;boost/shared_ptr.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> boost::<span class="built_in">shared_ptr</span>&lt;Interface&gt; Reference;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.cpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"foo.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> implementation : <span class="keyword">public</span> Interface &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Bar</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">return</span> bar0();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">implementation() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> priv_data0;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bar0</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> Interface::Bar() &#123;</span><br><span class="line">    BOOST_AUTO(impl, <span class="keyword">static_cast</span>&lt;implementation&gt;(<span class="keyword">this</span>));</span><br><span class="line">    <span class="keyword">return</span> impl-&gt;Bar();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Reference(<span class="keyword">new</span> implementation());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>foo::Interface 中只包含 foo 对外提供的接口函数，没有数据成员。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-04-10T05:04:47.000Z"><a href="/2012/04/10/zeromq-atomic-msg/">Apr 10 2012</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2012/04/10/zeromq-atomic-msg/">zeromq atomic msg</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>先引用一下，0mq manual 的话：
+0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
+<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t 的管道中取得数据。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">ypipe_t</span> &lt; <span class="keyword">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="keyword">pipe_t</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Write an item to the pipe.  Don't flush it yet. If incomplete is</span></span><br><span class="line"><span class="comment">//  set to true the item is assumed to be continued by items</span></span><br><span class="line"><span class="comment">//  subsequently written to the pipe. Incomplete items are never</span></span><br><span class="line"><span class="comment">//  flushed down the stream.</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">write</span> <span class="params">(<span class="keyword">const</span> T &amp;value_, <span class="keyword">bool</span> incomplete_)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="comment">//  Place the value to the queue, add new terminator element.</span></span><br><span class="line">    <span class="built_in">queue</span>.back () = value_;</span><br><span class="line">    <span class="built_in">queue</span>.push ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Move the "flush up to here" poiter.</span></span><br><span class="line">    <span class="keyword">if</span> (!incomplete_)</span><br><span class="line">	f = &amp;<span class="built_in">queue</span>.back ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE 标志决定。只有当 multipart message 的最后一部分写入管道时，f 才会更新。当 encoder_t 读取 zmq_msg_t ，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t 从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
+<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的 lock-free 的数据结构实现。</p>
+<p>没什么好写的啊，看代码就OVER了。凑数。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+    <a href="/archives/page/2/" class="alignleft prev">上一頁</a>
+  
+  
+    <a href="/archives/page/4/" class="alignright next">下一頁</a>
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

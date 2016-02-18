@@ -1,0 +1,220 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>彙整：2012/4 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">2012/4</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-04-10T05:04:47.000Z"><a href="/2012/04/10/zeromq-atomic-msg/">Apr 10 2012</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2012/04/10/zeromq-atomic-msg/">zeromq atomic msg</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>先引用一下，0mq manual 的话：
+0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
+<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t 的管道中取得数据。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">ypipe_t</span> &lt; <span class="keyword">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="keyword">pipe_t</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Write an item to the pipe.  Don't flush it yet. If incomplete is</span></span><br><span class="line"><span class="comment">//  set to true the item is assumed to be continued by items</span></span><br><span class="line"><span class="comment">//  subsequently written to the pipe. Incomplete items are never</span></span><br><span class="line"><span class="comment">//  flushed down the stream.</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">write</span> <span class="params">(<span class="keyword">const</span> T &amp;value_, <span class="keyword">bool</span> incomplete_)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="comment">//  Place the value to the queue, add new terminator element.</span></span><br><span class="line">    <span class="built_in">queue</span>.back () = value_;</span><br><span class="line">    <span class="built_in">queue</span>.push ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Move the "flush up to here" poiter.</span></span><br><span class="line">    <span class="keyword">if</span> (!incomplete_)</span><br><span class="line">	f = &amp;<span class="built_in">queue</span>.back ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE 标志决定。只有当 multipart message 的最后一部分写入管道时，f 才会更新。当 encoder_t 读取 zmq_msg_t ，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t 从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
+<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的 lock-free 的数据结构实现。</p>
+<p>没什么好写的啊，看代码就OVER了。凑数。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-04-01T06:40:50.000Z"><a href="/2012/04/01/zeromq-nonblocking/">Apr 1 2012</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2012/04/01/zeromq-nonblocking/">zeromq nonblocking</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Virtual interface to be exposed by object that want to be notified</span></span><br><span class="line"><span class="comment">// about events on file descriptors.</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> i_poll_events</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~i_poll_events () &#123;&#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for reading.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">in_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for writing.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">out_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called when timer expires.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">timer_event</span> <span class="params">(<span class="keyword">int</span> id_)</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>0mq 中实现（或部分实现）了这些接口的类包括： io_thread_t, reaper_t, zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

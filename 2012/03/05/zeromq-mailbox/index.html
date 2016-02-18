@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>zeromq mailbox | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  <meta name="description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。 
+1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do w">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="zeromq mailbox"/>
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2012-03-04T21:12:25.000Z"><a href="/2012/03/05/zeromq-mailbox/">Mar 5 2012</a></time>
+      
+      
+  
+    <h1 class="title">zeromq mailbox</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。 
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">io_thread_t</span>::in_event ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  <span class="doctag">TODO:</span> Do we want to limit number of commands I/O thread can</span></span><br><span class="line">    <span class="comment">//  process in a single go?</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Get the next command. If there is none, exit.</span></span><br><span class="line">        <span class="keyword">command_t</span> cmd;</span><br><span class="line">        <span class="keyword">int</span> rc = mailbox.recv (&amp;cmd, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EINTR)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EAGAIN)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        errno_assert (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Process the command.</span></span><br><span class="line">        cmd.destination-&gt;;process_command (cmd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">ctx_t</span>::send_command (<span class="keyword">uint32_t</span> tid_, <span class="keyword">const</span> <span class="keyword">command_t</span> &amp;command_)</span><br><span class="line">&#123;</span><br><span class="line">    slots [tid_]-&gt;send (command_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从<a href="/2012/03/04/zeromq-context/">之前</a>可以看出： <ul></ul></p>
+<ul>
+<li>当in_event函数相关联的fd可读时，in_event函数被调用；</li>
+<li>reaper_t和io_thread_t的in_event的关联fd都是各自的mailbox成员get_fd函数的返回值。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="keyword">fd_t</span> zmq::<span class="keyword">mailbox_t</span>::get_fd ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> signaler.get_fd ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="keyword">fd_t</span> zmq::<span class="keyword">signaler_t</span>::get_fd ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> r;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="keyword">signaler_t</span>::<span class="keyword">signaler_t</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Create the socketpair for signaling.</span></span><br><span class="line">    <span class="keyword">int</span> rc = make_fdpair (&amp;r, &amp;w);</span><br><span class="line">    errno_assert (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Set both fds to non-blocking mode.</span></span><br><span class="line">    <span class="keyword">int</span> flags = fcntl (w, F_GETFL, <span class="number">0</span>);</span><br><span class="line">    errno_assert (flags &gt;= <span class="number">0</span>);</span><br><span class="line">    rc = fcntl (w, F_SETFL, flags | O_NONBLOCK);</span><br><span class="line">    errno_assert (rc == <span class="number">0</span>);</span><br><span class="line">    flags = fcntl (r, F_GETFL, <span class="number">0</span>);</span><br><span class="line">    errno_assert (flags &gt;= <span class="number">0</span>);</span><br><span class="line">    rc = fcntl (r, F_SETFL, flags | O_NONBLOCK);</span><br><span class="line">    errno_assert (rc == <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> zmq::<span class="keyword">signaler_t</span>::make_fdpair (<span class="keyword">fd_t</span> *r_, <span class="keyword">fd_t</span> *w_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> sv [<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">int</span> rc = socketpair (AF_UNIX, SOCK_STREAM, <span class="number">0</span>, sv);</span><br><span class="line">    errno_assert (rc == <span class="number">0</span>);</span><br><span class="line">    *w_ = sv [<span class="number">0</span>];</span><br><span class="line">    *r_ = sv [<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>mailbox_t的get_fd函数返回的是其signaler成员所创建的管道的读端。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="keyword">mailbox_t</span>::<span class="keyword">mailbox_t</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Get the pipe into passive state. That way, if the users starts by</span></span><br><span class="line">    <span class="comment">//  polling on the associated file descriptor it will get woken up when</span></span><br><span class="line">    <span class="comment">//  new command is posted.</span></span><br><span class="line">    <span class="keyword">bool</span> ok = cpipe.read (<span class="literal">NULL</span>);</span><br><span class="line">    zmq_assert (!ok);</span><br><span class="line">    active = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">mailbox_t</span>::send (<span class="keyword">const</span> <span class="keyword">command_t</span> &amp;cmd_)</span><br><span class="line">&#123;</span><br><span class="line">    sync.lock ();</span><br><span class="line">    cpipe.write (cmd_, <span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">bool</span> ok = cpipe.flush ();</span><br><span class="line">    sync.unlock ();</span><br><span class="line">    <span class="keyword">if</span> (!ok)</span><br><span class="line">        signaler.send ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">signaler_t</span>::send ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> dummy = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="keyword">ssize_t</span> nbytes = ::send (w, &amp;dummy, <span class="keyword">sizeof</span> (dummy), <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (unlikely (nbytes == -<span class="number">1</span> &amp;&amp; errno == EINTR))</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        zmq_assert (nbytes == <span class="keyword">sizeof</span> (dummy));</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当用户第一次调用mailbox_t的send函数时，会调用其signaler成员的send函数，这使得signaler创建的管道的读端变为可读。其关联对象的in_event函数得到调用。reaper_t和io_thread_t的in_event函数循环调用各自mailbox的recv函数取得command。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> zmq::<span class="keyword">mailbox_t</span>::recv (<span class="keyword">command_t</span> *cmd_, <span class="keyword">int</span> timeout_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Try to get the command straight away.</span></span><br><span class="line">    <span class="keyword">if</span> (active) &#123;</span><br><span class="line">        <span class="keyword">bool</span> ok = cpipe.read (cmd_);</span><br><span class="line">        <span class="keyword">if</span> (ok)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  If there are no more commands available, switch into passive state.</span></span><br><span class="line">        active = <span class="literal">false</span>;</span><br><span class="line">        signaler.recv ();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Wait for signal from the command sender.</span></span><br><span class="line">    <span class="keyword">int</span> rc = signaler.wait (timeout_);</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; (errno == EAGAIN || errno == EINTR))</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  We've got the signal. Now we can switch into active state.</span></span><br><span class="line">    active = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Get a command.</span></span><br><span class="line">    errno_assert (rc == <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">bool</span> ok = cpipe.read (cmd_);</span><br><span class="line">    zmq_assert (ok);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> zmq::<span class="keyword">signaler_t</span>::wait (<span class="keyword">int</span> timeout_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">struct</span> pollfd pfd;</span><br><span class="line">    pfd.fd = r;</span><br><span class="line">    pfd.events = POLLIN;</span><br><span class="line">    <span class="keyword">int</span> rc = poll (&amp;pfd, <span class="number">1</span>, timeout_);</span><br><span class="line">    <span class="keyword">if</span> (unlikely (rc &lt; <span class="number">0</span>)) &#123;</span><br><span class="line">        zmq_assert (errno == EINTR);</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (unlikely (rc == <span class="number">0</span>)) &#123;</span><br><span class="line">        errno = EAGAIN;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    zmq_assert (rc == <span class="number">1</span>);</span><br><span class="line">    zmq_assert (pfd.revents &amp; POLLIN);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当command被取完时，调用singlar.recv将之前由mailbox_t::send触发的singlar.send发送的内容清空；并将errno设为EAGAIN。in_event函数终止。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/zeromq/">zeromq</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">留言</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">標籤</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
