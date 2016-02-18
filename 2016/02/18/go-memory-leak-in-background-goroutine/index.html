@@ -77,7 +77,7 @@ Memory leak does exist in l">
         <p>People coming from C or C++ may think that there is no <a href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues" target="_blank" rel="external">memory leak</a> in languages with <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="external">garbage collection</a>. But the truth is:</p>
 <p><strong>Memory leak does exist in languages with automatic garbage collection.</strong></p>
 <p>In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t
-understand this. Computer uses a concept [<em>unreachable</em>] to detect whether
+understand this. Computer uses a concept <a href="https://en.wikipedia.org/wiki/Unreachable_memory" target="_blank" rel="external">unreachable</a> to detect whether
 an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.</p>
 <p>Here, I show you a memory leak case using <a href="https://golang.org/doc/effective_go.html" target="_blank" rel="external">Go</a>. Also, it can happen in other garbage collection language, like Java.
 Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.

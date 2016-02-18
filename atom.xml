@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.kezhuw.name/"/>
-  <updated>2016-02-18T11:00:59.000Z</updated>
+  <updated>2016-02-18T13:00:46.000Z</updated>
   <id>http://blog.kezhuw.name/</id>
   
   <author>
@@ -20,12 +20,12 @@
     <link href="http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/"/>
     <id>http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/</id>
     <published>2016-02-18T10:47:36.000Z</published>
-    <updated>2016-02-18T11:00:59.000Z</updated>
+    <updated>2016-02-18T13:00:46.000Z</updated>
     
     <content type="html">&lt;p&gt;People coming from C or C++ may think that there is no &lt;a href=&quot;https://en.wikipedia.org/wiki/Memory_leak#Programming_issues&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;memory leak&lt;/a&gt; in languages with &lt;a href=&quot;https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;garbage collection&lt;/a&gt;. But the truth is:&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Memory leak does exist in languages with automatic garbage collection.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t
-understand this. Computer uses a concept [&lt;em&gt;unreachable&lt;/em&gt;] to detect whether
+understand this. Computer uses a concept &lt;a href=&quot;https://en.wikipedia.org/wiki/Unreachable_memory&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;unreachable&lt;/a&gt; to detect whether
 an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.&lt;/p&gt;
 &lt;p&gt;Here, I show you a memory leak case using &lt;a href=&quot;https://golang.org/doc/effective_go.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Go&lt;/a&gt;. Also, it can happen in other garbage collection language, like Java.
 Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.
