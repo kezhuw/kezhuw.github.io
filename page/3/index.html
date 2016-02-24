@@ -62,6 +62,44 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2013-12-13T19:08:37.000Z"><a href="/2013/12/14/two-arguments-version-accumulate/">Dec 14 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/12/14/two-arguments-version-accumulate/">两参数版本的 std::accumulate</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>C++11 的 auto 和 decltype 可以做 “返回值类型推断”。</p>
+<p>我写了个两参数版本的 <a href="https://github.com/kezhuw/recipes/blob/master/cpp/accumulate.cpp" target="_blank" rel="external">std::accumulate</a> 。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;numeric&gt;</span><br><span class="line">#include &lt;type_traits&gt;</span><br><span class="line">namespace std &#123;</span><br><span class="line"></span><br><span class="line">template &lt;typename InputIt&gt;</span><br><span class="line">auto accumulate(InputIt begin, InputIt end) -&gt; typename std::remove_reference&lt;decltype(*begin)&gt;::type &#123;</span><br><span class="line">    typedef typename std::remove_reference&lt;decltype(*begin)&gt;::type ValueType;</span><br><span class="line">    return accumulate(begin, end, ValueType());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配上点测试代码。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;initializer_list&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; <span class="keyword">const</span>&amp; v)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::copy(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v), <span class="built_in">std</span>::ostream_iterator&lt;ValueType&gt;(<span class="built_in">std</span>::<span class="built_in">cout</span>, <span class="string">", "</span>));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> sum = <span class="built_in">std</span>::accumulate(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"sum = "</span> &lt;&lt; sum &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================nn"</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::initializer_list&lt;ValueType&gt;&amp;&amp; values)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; v(<span class="built_in">std</span>::forward&lt;<span class="built_in">std</span>::initializer_list&lt;ValueType&gt;&gt;(values));</span><br><span class="line">    test(v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span><br><span class="line"><span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;<span class="number">2</span>,<span class="number">2</span>,<span class="number">3</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">double</span>&gt;(&#123;<span class="number">1.1</span>, <span class="number">1.2</span>, <span class="number">1.3</span>&#125;);</span><br><span class="line">    test&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt;(&#123;<span class="string">"aa"</span>, <span class="string">"bb"</span>, <span class="string">"cc"</span>, <span class="string">"dd"</span>&#125;);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"cpp : "</span> &lt;&lt; __cplusplus &lt;&lt; <span class="built_in">std</span>::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>EOF</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2013-12-01T04:18:31.000Z"><a href="/2013/12/01/game-drop-item/">Dec 1 2013</a></time>
       
       
@@ -238,47 +276,6 @@
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2012-04-10T05:04:47.000Z"><a href="/2012/04/10/zeromq-atomic-msg/">Apr 10 2012</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2012/04/10/zeromq-atomic-msg/">zeromq atomic msg</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>先引用一下，0mq manual 的话：
-0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
-<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t 的管道中取得数据。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">ypipe_t</span> &lt; <span class="keyword">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="keyword">pipe_t</span>;</span><br></pre></td></tr></table></figure>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Write an item to the pipe.  Don't flush it yet. If incomplete is</span></span><br><span class="line"><span class="comment">//  set to true the item is assumed to be continued by items</span></span><br><span class="line"><span class="comment">//  subsequently written to the pipe. Incomplete items are never</span></span><br><span class="line"><span class="comment">//  flushed down the stream.</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">write</span> <span class="params">(<span class="keyword">const</span> T &amp;value_, <span class="keyword">bool</span> incomplete_)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="comment">//  Place the value to the queue, add new terminator element.</span></span><br><span class="line">    <span class="built_in">queue</span>.back () = value_;</span><br><span class="line">    <span class="built_in">queue</span>.push ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Move the "flush up to here" poiter.</span></span><br><span class="line">    <span class="keyword">if</span> (!incomplete_)</span><br><span class="line">	f = &amp;<span class="built_in">queue</span>.back ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE 标志决定。只有当 multipart message 的最后一部分写入管道时，f 才会更新。当 encoder_t 读取 zmq_msg_t ，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t 从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
-<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的 lock-free 的数据结构实现。</p>
-<p>没什么好写的啊，看代码就OVER了。凑数。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -312,7 +309,7 @@
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
-    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
   
     <li><a href="/tags/gc/">gc</a><small>1</small></li>
   

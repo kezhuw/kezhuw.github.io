@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.kezhuw.name/"/>
-  <updated>2016-02-18T13:00:46.000Z</updated>
+  <updated>2016-02-24T22:44:44.000Z</updated>
   <id>http://blog.kezhuw.name/</id>
   
   <author>
@@ -16,11 +16,82 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>基于确定性状态机的小战场同步方案</title>
+    <link href="http://blog.kezhuw.name/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/"/>
+    <id>http://blog.kezhuw.name/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/</id>
+    <published>2016-02-24T22:44:44.000Z</published>
+    <updated>2016-02-24T22:44:44.000Z</updated>
+    
+    <content type="html">&lt;h2 id=&quot;战场状态&quot;&gt;&lt;a href=&quot;#战场状态&quot; class=&quot;headerlink&quot; title=&quot;战场状态&quot;&gt;&lt;/a&gt;战场状态&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;战场状态 ＝ 所有实体的状态之和&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;这里的实体包括但不限于玩家、AI 、子弹和商店。&lt;/p&gt;
+&lt;h2 id=&quot;时间&quot;&gt;&lt;a href=&quot;#时间&quot; class=&quot;headerlink&quot; title=&quot;时间&quot;&gt;&lt;/a&gt;时间&lt;/h2&gt;&lt;p&gt;每隔单位时间，在上一时刻战场状态的基础上，计算所有该时间单位发起的操作或接收的状态改变。同时时间也作为输入，驱动实体的持续性动作。
+这里的单位时间可以是 10ms 这样的间隔。&lt;/p&gt;
+&lt;h2 id=&quot;计算&quot;&gt;&lt;a href=&quot;#计算&quot; class=&quot;headerlink&quot; title=&quot;计算&quot;&gt;&lt;/a&gt;计算&lt;/h2&gt;&lt;p&gt;任意时刻，玩家在客户端的操作在发送给服务器端的同时，也将在本地的下一次计算时，作用于状态的本地副本。在收到服务器端的回应之后，
+与这期间收到的所有回应及其他操作在之前保存的战场状态上重新计算，客户端需要对上一时刻计算的副本进行修正。例如：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;假设，Ti 时刻，本地状态和服务器状态一致，为 Si 。&lt;/li&gt;
+&lt;li&gt;Ti+1 时刻，发起操作 Ai+1; 本地计算该操作，得到本地状态 LSi+1 。&lt;/li&gt;
+&lt;li&gt;Ti+4 时刻，收到服务器其他玩家的操作 SBi+4 ；本地计算该操作，得到本地状态 LSi+4。&lt;/li&gt;
+&lt;li&gt;Ti+8 时刻，发起操作 Ai+8 ；本地计算该操作，得到本地状态 LSi+8。&lt;/li&gt;
+&lt;li&gt;…&lt;/li&gt;
+&lt;li&gt;Ti+k 时间，收到操作 Ai 的回应 SAi+5；在状态 Si 上计算 SBi+4 ，得到 Si+4；在 Si+4 上计算操作 SAi+5 , 得到 Si+5 ；在新的
+Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前的本地状态 LSi+k-1 , 客户端做出修正后，计算该时刻的操作。&lt;/li&gt;
+&lt;li&gt;…&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对于某些难以修正的动作，如：死亡，客户端可以做延迟处理，直到服务器给出回应。&lt;/p&gt;
+&lt;h2 id=&quot;作弊&quot;&gt;&lt;a href=&quot;#作弊&quot; class=&quot;headerlink&quot; title=&quot;作弊&quot;&gt;&lt;/a&gt;作弊&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;作弊源于“服务器端对客户端暴露了过多的数据”。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;要解决作弊问题，就需要服务器端对传送给客户端的数据进行过滤，不传送任何玩家不可见实体的数据。在 MOBA 类游戏中，这类数据包括被
+战争迷雾遮挡的敌对玩家和怪物的行为、隐身玩家的行为等。&lt;/p&gt;
+&lt;p&gt;那么，当客户端接收到的输入少于服务器端的输入之后，客户端的状态如何与服务器保持一致？我个人的看法是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;服务器端的所有实体 &amp;gt;= 客户端的所有实体&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;服务器端的状态 &amp;gt;= 所有客户端状态的并集&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;是的，我们不需要保持客户端的状态完全等于服务器端的状态。我们只需保证，任意时刻任何一个客户端的状态都应该是服务器端状态的子集。
+当玩家需要了解更多实体的状态时，服务器端再将这些实体的当前状态以及后续行为发送给客户端；当玩家不需要了解某些实体的状态时，服务
+器端通知客户端将这些实体的状态从内存中删除，并不再发送这些实体的后续行为。&lt;/p&gt;
+&lt;p&gt;我们需要解决的问题是，如何让客户端不受未知实体的行为影响？我的想法是：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;实体应尽可能的聚合，其本身的状态不应该包含全局数据&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;视全局数据为独特的实体，对全局数据的所有改变，对所有客户端同步。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;实现的时候，应该尽可能的减少全局数据。例如：玩家 和 AI 的状态应该包含私有的随机种子；可被遮挡的商店不应该被视为全局数据。&lt;/p&gt;
+&lt;h2 id=&quot;版本兼容&quot;&gt;&lt;a href=&quot;#版本兼容&quot; class=&quot;headerlink&quot; title=&quot;版本兼容&quot;&gt;&lt;/a&gt;版本兼容&lt;/h2&gt;&lt;p&gt;如果新版本服务器需要兼容老版本的客户端的话，需要在初始化阶段协商版本号。实现的时候，需要对新逻辑做版本过滤。最好只迭代维护最新的几个版本。&lt;/p&gt;
+&lt;h2 id=&quot;优点&quot;&gt;&lt;a href=&quot;#优点&quot; class=&quot;headerlink&quot; title=&quot;优点&quot;&gt;&lt;/a&gt;优点&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;很容易实现战斗录像；&lt;/li&gt;
+&lt;li&gt;也很容易实现，观战；&lt;/li&gt;
+&lt;li&gt;掉线了，上线的时候，重新传下战场状态就可以了；&lt;/li&gt;
+&lt;li&gt;去掉录像功能的话，也应该可以扩展到大一点的战场；&lt;/li&gt;
+&lt;li&gt;……&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;鸣谢&quot;&gt;&lt;a href=&quot;#鸣谢&quot; class=&quot;headerlink&quot; title=&quot;鸣谢&quot;&gt;&lt;/a&gt;鸣谢&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;前公司的客户端主程。当时，我们游戏的战斗模式准备从战报式改为手动操作模式，在我介绍我的（校验？具体的，想不起来了）方案时，
+他说，他们之前有个游戏是通过游戏操作过程来校验的。没有他的提示，很多事情估计会变了样。&lt;/li&gt;
+&lt;li&gt;前公司的前主策。在他离职后，我们的一次讨论，将之前的战报校验流程演化成了战场同步方案。没有那次讨论，不会有这篇文章。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;推荐和参考&quot;&gt;&lt;a href=&quot;#推荐和参考&quot; class=&quot;headerlink&quot; title=&quot;推荐和参考&quot;&gt;&lt;/a&gt;推荐和参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.zhihu.com/question/26072198&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;《魔兽争霸III》是如何实现野怪同步的?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;战场状态&quot;&gt;&lt;a href=&quot;#战场状态&quot; class=&quot;headerlink&quot; title=&quot;战场状态&quot;&gt;&lt;/a&gt;战场状态&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;战场状态 ＝ 所有实体的状态之和&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;这里的实体包括但不限于玩家、AI 、子弹和
+    
+    </summary>
+    
+    
+      <category term="game development" scheme="http://blog.kezhuw.name/tags/game-development/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Go memory leak in background goroutine</title>
     <link href="http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/"/>
     <id>http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/</id>
     <published>2016-02-18T10:47:36.000Z</published>
-    <updated>2016-02-18T13:00:46.000Z</updated>
+    <updated>2016-02-18T13:04:24.000Z</updated>
     
     <content type="html">&lt;p&gt;People coming from C or C++ may think that there is no &lt;a href=&quot;https://en.wikipedia.org/wiki/Memory_leak#Programming_issues&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;memory leak&lt;/a&gt; in languages with &lt;a href=&quot;https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;garbage collection&lt;/a&gt;. But the truth is:&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Memory leak does exist in languages with automatic garbage collection.&lt;/strong&gt;&lt;/p&gt;

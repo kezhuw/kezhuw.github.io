@@ -62,6 +62,88 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2016-02-24T22:44:44.000Z"><a href="/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/">Feb 25 2016</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/">基于确定性状态机的小战场同步方案</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h2 id="战场状态"><a href="#战场状态" class="headerlink" title="战场状态"></a>战场状态</h2><p><strong>战场状态 ＝ 所有实体的状态之和</strong></p>
+<p>这里的实体包括但不限于玩家、AI 、子弹和商店。</p>
+<h2 id="时间"><a href="#时间" class="headerlink" title="时间"></a>时间</h2><p>每隔单位时间，在上一时刻战场状态的基础上，计算所有该时间单位发起的操作或接收的状态改变。同时时间也作为输入，驱动实体的持续性动作。
+这里的单位时间可以是 10ms 这样的间隔。</p>
+<h2 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h2><p>任意时刻，玩家在客户端的操作在发送给服务器端的同时，也将在本地的下一次计算时，作用于状态的本地副本。在收到服务器端的回应之后，
+与这期间收到的所有回应及其他操作在之前保存的战场状态上重新计算，客户端需要对上一时刻计算的副本进行修正。例如：</p>
+<ol>
+<li>假设，Ti 时刻，本地状态和服务器状态一致，为 Si 。</li>
+<li>Ti+1 时刻，发起操作 Ai+1; 本地计算该操作，得到本地状态 LSi+1 。</li>
+<li>Ti+4 时刻，收到服务器其他玩家的操作 SBi+4 ；本地计算该操作，得到本地状态 LSi+4。</li>
+<li>Ti+8 时刻，发起操作 Ai+8 ；本地计算该操作，得到本地状态 LSi+8。</li>
+<li>…</li>
+<li>Ti+k 时间，收到操作 Ai 的回应 SAi+5；在状态 Si 上计算 SBi+4 ，得到 Si+4；在 Si+4 上计算操作 SAi+5 , 得到 Si+5 ；在新的
+Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前的本地状态 LSi+k-1 , 客户端做出修正后，计算该时刻的操作。</li>
+<li>…</li>
+</ol>
+<p>对于某些难以修正的动作，如：死亡，客户端可以做延迟处理，直到服务器给出回应。</p>
+<h2 id="作弊"><a href="#作弊" class="headerlink" title="作弊"></a>作弊</h2><p><strong>作弊源于“服务器端对客户端暴露了过多的数据”。</strong></p>
+<p>要解决作弊问题，就需要服务器端对传送给客户端的数据进行过滤，不传送任何玩家不可见实体的数据。在 MOBA 类游戏中，这类数据包括被
+战争迷雾遮挡的敌对玩家和怪物的行为、隐身玩家的行为等。</p>
+<p>那么，当客户端接收到的输入少于服务器端的输入之后，客户端的状态如何与服务器保持一致？我个人的看法是：</p>
+<ul>
+<li><strong>服务器端的所有实体 &gt;= 客户端的所有实体</strong></li>
+<li><strong>服务器端的状态 &gt;= 所有客户端状态的并集</strong></li>
+</ul>
+<p>是的，我们不需要保持客户端的状态完全等于服务器端的状态。我们只需保证，任意时刻任何一个客户端的状态都应该是服务器端状态的子集。
+当玩家需要了解更多实体的状态时，服务器端再将这些实体的当前状态以及后续行为发送给客户端；当玩家不需要了解某些实体的状态时，服务
+器端通知客户端将这些实体的状态从内存中删除，并不再发送这些实体的后续行为。</p>
+<p>我们需要解决的问题是，如何让客户端不受未知实体的行为影响？我的想法是：</p>
+<ol>
+<li><strong>实体应尽可能的聚合，其本身的状态不应该包含全局数据</strong>；</li>
+<li>视全局数据为独特的实体，对全局数据的所有改变，对所有客户端同步。</li>
+</ol>
+<p>实现的时候，应该尽可能的减少全局数据。例如：玩家 和 AI 的状态应该包含私有的随机种子；可被遮挡的商店不应该被视为全局数据。</p>
+<h2 id="版本兼容"><a href="#版本兼容" class="headerlink" title="版本兼容"></a>版本兼容</h2><p>如果新版本服务器需要兼容老版本的客户端的话，需要在初始化阶段协商版本号。实现的时候，需要对新逻辑做版本过滤。最好只迭代维护最新的几个版本。</p>
+<h2 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h2><ul>
+<li>很容易实现战斗录像；</li>
+<li>也很容易实现，观战；</li>
+<li>掉线了，上线的时候，重新传下战场状态就可以了；</li>
+<li>去掉录像功能的话，也应该可以扩展到大一点的战场；</li>
+<li>……</li>
+</ul>
+<h2 id="鸣谢"><a href="#鸣谢" class="headerlink" title="鸣谢"></a>鸣谢</h2><ul>
+<li>前公司的客户端主程。当时，我们游戏的战斗模式准备从战报式改为手动操作模式，在我介绍我的（校验？具体的，想不起来了）方案时，
+他说，他们之前有个游戏是通过游戏操作过程来校验的。没有他的提示，很多事情估计会变了样。</li>
+<li>前公司的前主策。在他离职后，我们的一次讨论，将之前的战报校验流程演化成了战场同步方案。没有那次讨论，不会有这篇文章。</li>
+</ul>
+<h2 id="推荐和参考"><a href="#推荐和参考" class="headerlink" title="推荐和参考"></a>推荐和参考</h2><ul>
+<li><a href="https://www.zhihu.com/question/26072198" target="_blank" rel="external">《魔兽争霸III》是如何实现野怪同步的?</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2016-02-18T10:47:36.000Z"><a href="/2016/02/18/go-memory-leak-in-background-goroutine/">Feb 18 2016</a></time>
       
       
@@ -235,64 +317,6 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-03-20T10:01:56.000Z"><a href="/2015/03/20/opinion-on-game-server-development/">Mar 20 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/03/20/opinion-on-game-server-development/">关于游戏服务器开发的一些个人见解</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h2 id="参与并理解策划需求"><a href="#参与并理解策划需求" class="headerlink" title="参与并理解策划需求"></a>参与并理解策划需求</h2><p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
-<h2 id="隔离是必须的"><a href="#隔离是必须的" class="headerlink" title="隔离是必须的"></a>隔离是必须的</h2><p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API 交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层 API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
-<p>这种分案有很多优点：</p>
-<ul>
-<li>便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。</li>
-<li>降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。</li>
-<li>子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。</li>
-<li>容易定位造成 bug 的子系统。</li>
-<li><em>心情舒坦，利于长寿</em>。</li>
-</ul>
-<h2 id="代码质量"><a href="#代码质量" class="headerlink" title="代码质量"></a>代码质量</h2><p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta) 代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
-<h3 id="潜在即是必然"><a href="#潜在即是必然" class="headerlink" title="潜在即是必然"></a>潜在即是必然</h3><p><strong>一个发生概率为百万分之一的 bug ，在线上运行时是必然会发生的</strong>。</p>
-<h3 id="bug-修复要趁早"><a href="#bug-修复要趁早" class="headerlink" title="bug 修复要趁早"></a>bug 修复要趁早</h3><p>大多数没有第一时间修复的 bug ，会被遗忘。</p>
-<ul>
-<li>对于只给出 workaround 或准备稍后 fix 的 bug ，一定要记录在案。</li>
-<li>对于反应出设计缺陷或业务理解偏差的 bug ，最好重写相关模块。</li>
-</ul>
-<h3 id="警惕-C-中的-“设计模式”-和-“面向对象”"><a href="#警惕-C-中的-“设计模式”-和-“面向对象”" class="headerlink" title="警惕 C++ 中的 “设计模式” 和 “面向对象”"></a>警惕 C++ 中的 “设计模式” 和 “面向对象”</h3><p>就我个人来说，我是很讨厌 C++ 的 “面向对象” 部分的，对 “设计模式” 也没有好感。我在工作中遇到的一些人，谈起 “设计模式” 、“面向对象” 来头头是道，写起代码来就很难让人恭维了。</p>
-<p><strong>好代码才是硬道理</strong>。</p>
-<h2 id="协议设计"><a href="#协议设计" class="headerlink" title="协议设计"></a>协议设计</h2><p>请求、回应式的消息一定要有序列 id 的概念，这样客户端可以轻松的找到与回应消息相匹配的请求消息，进而恢复挂起的执行流。</p>
-<h2 id="团队协作"><a href="#团队协作" class="headerlink" title="团队协作"></a>团队协作</h2><p>让每个伙伴都开心的工作!</p>
-<h3 id="团队成员"><a href="#团队成员" class="headerlink" title="团队成员"></a>团队成员</h3><p>确保你的伙伴都是热爱代码的人。</p>
-<h3 id="代码开放"><a href="#代码开放" class="headerlink" title="代码开放"></a>代码开放</h3><p>代码是团队的共同财产，如果不开放，也便没有了信任的基础。强势的法律声明和有代码安全意识的伙伴才是保障代码安全的正途。就我个人来说，在代码不开放的团队工作时，很难<em>维持</em>贡献代码的激情。</p>
-<h3 id="代码-review"><a href="#代码-review" class="headerlink" title="代码 review"></a>代码 review</h3><p>要让代码 review 成为常态，要鼓励团队成员之间的相互 review ，鼓励团队成员对任意代码的 review 和修改。代码 review 可以很好的促进团队成员之间的了解、合作、信任。</p>
-<h3 id="版本控制，降低冲突"><a href="#版本控制，降低冲突" class="headerlink" title="版本控制，降低冲突"></a>版本控制，降低冲突</h3><p>首选分布式的版本管理工具，推荐：git + github 。所有的冲突都意味着某种程度上的耦合，在减少冲突上付出的努力，会节省团队成员大量的时间成本。</p>
-<h2 id="做一个实践者"><a href="#做一个实践者" class="headerlink" title="做一个实践者"></a>做一个实践者</h2><p>纸（嘴）上谈兵永远写不出好代码。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -324,7 +348,7 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
-    <li><a href="/tags/game-development/">game development</a><small>3</small></li>
+    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
   
     <li><a href="/tags/gc/">gc</a><small>1</small></li>
   
