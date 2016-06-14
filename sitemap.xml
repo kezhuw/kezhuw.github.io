@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.kezhuw.name/2016/06/14/invariants-in-leveldb-algorithm/</loc>
+    
+    <lastmod>2016-06-14T10:16:27.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.kezhuw.name/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/</loc>
     
     <lastmod>2016-02-24T22:44:44.000Z</lastmod>

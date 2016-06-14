@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>第 3 頁 | Recording</title>
+  <title>Seite 3 | Recording</title>
   <meta name="author" content="Kezhu Wang">
   
   
@@ -62,6 +62,114 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2014-03-23T14:45:44.000Z"><a href="/2014/03/23/lua-coroutine-and-csharp-async/">Mar 23 2014</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2014/03/23/lua-coroutine-and-csharp-async/">Lua coroutine 和 C# async</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="external">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
+<p>这种同步调用的流程：</p>
+<pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
+    ==&gt; coroutine.yield
+        ==&gt; C/C++ 发起异步请求会话
+        ==| (time consumed)
+        ==| C/C++ 异步会话完成（消息/回调）
+    &lt;== coroutine.resume
+val, err = ... -- &lt;== return from function
+do_someting(...)
+</code></pre><p>这个流程很像阻塞式的系统调用：</p>
+<pre><code>n = read(fd, buf, len)        // system call in userland
+    ==&gt; syscallenter(...)     // in kernel mode
+        |=&gt; sys_read(...)     // in system call
+        |== kernel activity   // asynchronous wait if data is not available yet
+        |==
+    &lt;== syscallret(...)       // return from syscall
+n = ...                       // return from read in userland
+</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="external">CPS</a> 变换。</p>
+<blockquote>
+<p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
+</blockquote>
+<p>即将如下代码：</p>
+<pre><code>var result = await expression;
+statement(s);
+</code></pre><p>转换为：</p>
+<pre><code>var awaiter = expression.GetAwaiter();
+awaiter.OnCompleted (() =&gt;
+{
+    var result = awaiter.GetResult();
+    statement(s);
+});
+</code></pre><p>从上面的代码可以看出，这段代码是非阻塞的， <code>statement(s)</code> 是在 callback 中执行的。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Lua coroutine 和 C# async/await 都可以用来编写形如同步的代码。Lua coroutine 中的函数调用是同步阻塞的（从调用者角度），由 C/C++ 通过异步方式实现，其执行流程和一般的同步阻塞的系统调用类似。C# async/await 则是由编译器实施的 CPS 变换，是异步非阻塞的。</p>
+<p>下面一段 C# 代码的流程，如果由 Lua 编写，输出顺序则相反。</p>
+<pre><code>//Title of this code
+//Rextester.Program.Main is the entry point for your code. Don&apos;t change it.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Rextester {
+
+    public class Program
+    {
+
+        static readonly CountdownEvent _countdown = new CountdownEvent(1);
+        static int _value = 5;
+
+        public static void Main(string[] args)
+        {
+            delay(10);
+            dump(&quot;return from delay()&quot;);
+            _value = 10;
+            _countdown.Wait();
+        }
+
+        async static void delay(int msecs) {
+            await Task.Delay(msecs);
+            dump(&quot;in delay():&quot;);
+            _countdown.Signal();
+        }
+
+        static void dump(string prefix) {
+            Console.WriteLine(&quot;{0}: value = {1}&quot;, prefix, _value);
+        }
+
+    }
+
+}
+</code></pre><p>输出： return from delay(): value = 5 in delay():: value = 10</p>
+<h2 id="阅读"><a href="#阅读" class="headerlink" title="阅读"></a>阅读</h2><ul>
+<li>C# 5.0 in a Nutshell</li>
+<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="external">怎样理解阻塞非阻塞与同步异步的区别</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2013-12-13T19:08:37.000Z"><a href="/2013/12/14/two-arguments-version-accumulate/">Dec 14 2013</a></time>
       
       
@@ -76,7 +184,7 @@
 <p>我写了个两参数版本的 <a href="https://github.com/kezhuw/recipes/blob/master/cpp/accumulate.cpp" target="_blank" rel="external">std::accumulate</a> 。</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;numeric&gt;</span><br><span class="line">#include &lt;type_traits&gt;</span><br><span class="line">namespace std &#123;</span><br><span class="line"></span><br><span class="line">template &lt;typename InputIt&gt;</span><br><span class="line">auto accumulate(InputIt begin, InputIt end) -&gt; typename std::remove_reference&lt;decltype(*begin)&gt;::type &#123;</span><br><span class="line">    typedef typename std::remove_reference&lt;decltype(*begin)&gt;::type ValueType;</span><br><span class="line">    return accumulate(begin, end, ValueType());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>配上点测试代码。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;initializer_list&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; <span class="keyword">const</span>&amp; v)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::copy(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v), <span class="built_in">std</span>::ostream_iterator&lt;ValueType&gt;(<span class="built_in">std</span>::<span class="built_in">cout</span>, <span class="string">", "</span>));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> sum = <span class="built_in">std</span>::accumulate(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"sum = "</span> &lt;&lt; sum &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================nn"</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::initializer_list&lt;ValueType&gt;&amp;&amp; values)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; v(<span class="built_in">std</span>::forward&lt;<span class="built_in">std</span>::initializer_list&lt;ValueType&gt;&gt;(values));</span><br><span class="line">    test(v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span><br><span class="line"><span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;<span class="number">2</span>,<span class="number">2</span>,<span class="number">3</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">double</span>&gt;(&#123;<span class="number">1.1</span>, <span class="number">1.2</span>, <span class="number">1.3</span>&#125;);</span><br><span class="line">    test&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt;(&#123;<span class="string">"aa"</span>, <span class="string">"bb"</span>, <span class="string">"cc"</span>, <span class="string">"dd"</span>&#125;);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"cpp : "</span> &lt;&lt; __cplusplus &lt;&lt; <span class="built_in">std</span>::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utility&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;initializer_list&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; <span class="keyword">const</span>&amp; v)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::copy(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v), <span class="built_in">std</span>::ostream_iterator&lt;ValueType&gt;(<span class="built_in">std</span>::<span class="built_in">cout</span>, <span class="string">", "</span>));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> sum = <span class="built_in">std</span>::accumulate(<span class="built_in">std</span>::begin(v), <span class="built_in">std</span>::end(v));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"sum = "</span> &lt;&lt; sum &lt;&lt; <span class="string">"n"</span>;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"=========================nn"</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">initializer_list</span>&lt;ValueType&gt;&amp;&amp; values)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;ValueType&gt; v(<span class="built_in">std</span>::forward&lt;<span class="built_in">std</span>::<span class="built_in">initializer_list</span>&lt;ValueType&gt;&gt;(values));</span><br><span class="line">    test(v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span><br><span class="line"><span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&#123;<span class="number">2</span>,<span class="number">2</span>,<span class="number">3</span>&#125;);</span><br><span class="line">    test&lt;<span class="keyword">double</span>&gt;(&#123;<span class="number">1.1</span>, <span class="number">1.2</span>, <span class="number">1.3</span>&#125;);</span><br><span class="line">    test&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt;(&#123;<span class="string">"aa"</span>, <span class="string">"bb"</span>, <span class="string">"cc"</span>, <span class="string">"dd"</span>&#125;);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"cpp : "</span> &lt;&lt; __cplusplus &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>EOF</p>
 
       
@@ -166,9 +274,9 @@
 <p>也就是说，你可以在初始化器中使用变量、变量的成员和函数的地址，也可以在地址的基础上加上个偏移量。</p>
 <p>“address constant” 不能算作 “compile-time constant”。 尽管编译器可能在生成 ELF 文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library) 被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader) 的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
 <p>c99 标准对于 “address constant” 的运算只规定了可以加减整数常量表达式。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="keyword">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="keyword">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
 <p>gcc/clang 都不支持上面这种用法。其实上面这种情况可以通过对 &amp;addr 这个位置进行累积的重定位做到 （Elf_Rel/Elf64_Rel 的 r_addend 存储在 &amp;addr 这个位置)。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 64bit machine</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uint32_t</span>)<span class="built_in">malloc</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 64bit machine</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uint32_t</span>)<span class="built_in">malloc</span>;</span><br></pre></td></tr></table></figure>
 <p>这种情况，gcc 给出的错误信息是 <q>error: initializer element is not computable at load time</q></p>
 <p>右值（地址， 64 位）需要在重定位后强制转换为 32 位整数，再赋值给左值（ 64 位）。要支持这样情况的话，可能需要 ELF 的重定位信息支持。</p>
 <p>编译器的版本： clang version 3.3 gcc version 4.8.1</p>
@@ -237,59 +345,20 @@
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2013-03-23T02:35:07.000Z"><a href="/2013/03/23/cpp-interface-implementation/">Mar 23 2013</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2013/03/23/cpp-interface-implementation/">C++ 接口与实现</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>封装是 C++ 面向对象三大特性之一。C++ 通过将数据和对数据操作的函数绑定在一个类里来表达封装。从字面意义和 C++ 的历史(C with class)来看，封装对于 C++ 来说是根本的。</p>
-<p>《代码大全2》6.2节 中提到了一个良好的封装应该“避免把私有的实现细节放入类的接口中”，并介绍了 《Effective C++》 中提到的 pImpl 惯用技法。</p>
-<p>在我看来 C++ 中类的实现方式明显无法很好的表达封装，只是粗暴的将函数及其操作的数据绑在一起，而忽视了可见性的控制。C++ 对运行时性能苛求可能是其罪魁祸首。</p>
-<p>实际上我认为封装从根本上就是一个错误的观点，数据和对数据操作的函数从来就不是一个整体。</p>
-<p>好吧，本文要说只是另一种定义 C++ 类的方式，类似 Objective-C 类的 interface/implementation 。 </p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foo_interface.hpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;boost/noncopyable.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Interface : boost::noncopyable &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">Bar</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.hpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"foo_interface.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;boost/shared_ptr.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> boost::<span class="built_in">shared_ptr</span>&lt;Interface&gt; Reference;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.cpp</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"foo.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> implementation : <span class="keyword">public</span> Interface &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Bar</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">return</span> bar0();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">implementation() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> priv_data0;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bar0</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> Interface::Bar() &#123;</span><br><span class="line">    BOOST_AUTO(impl, <span class="keyword">static_cast</span>&lt;implementation&gt;(<span class="keyword">this</span>));</span><br><span class="line">    <span class="keyword">return</span> impl-&gt;Bar();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Reference(<span class="keyword">new</span> implementation());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>foo::Interface 中只包含 foo 对外提供的接口函数，没有数据成员。</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
-    <a href="/page/2/" class="alignleft prev">上一頁</a>
+    <a href="/page/2/" class="alignleft prev">Vorherige Seite</a>
   
   
-    <a href="/page/4/" class="alignright next">下一頁</a>
+    <a href="/page/4/" class="alignright next">Nächste Seite</a>
   
   <div class="clearfix"></div>
 </nav></div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="search" name="q" results="0" placeholder="Suche">
     <input type="hidden" name="q" value="site:blog.kezhuw.name">
   </form>
 </div>
@@ -298,8 +367,10 @@
 
   
 <div class="widget tag">
-  <h3 class="title">標籤</h3>
+  <h3 class="title">Tags</h3>
   <ul class="entry">
+  
+    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
   
     <li><a href="/tags/build/">build</a><small>1</small></li>
   

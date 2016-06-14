@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>彙整：2013/7 | Recording</title>
+  <title>Archiv: 2013/7 | Recording</title>
   <meta name="author" content="Kezhu Wang">
   
   
@@ -96,9 +96,9 @@
 <p>也就是说，你可以在初始化器中使用变量、变量的成员和函数的地址，也可以在地址的基础上加上个偏移量。</p>
 <p>“address constant” 不能算作 “compile-time constant”。 尽管编译器可能在生成 ELF 文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library) 被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader) 的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
 <p>c99 标准对于 “address constant” 的运算只规定了可以加减整数常量表达式。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="keyword">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="keyword">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
 <p>gcc/clang 都不支持上面这种用法。其实上面这种情况可以通过对 &amp;addr 这个位置进行累积的重定位做到 （Elf_Rel/Elf64_Rel 的 r_addend 存储在 &amp;addr 这个位置)。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 64bit machine</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uint32_t</span>)<span class="built_in">malloc</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 64bit machine</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">uintptr_t</span> addr = (<span class="keyword">uint32_t</span>)<span class="built_in">malloc</span>;</span><br></pre></td></tr></table></figure>
 <p>这种情况，gcc 给出的错误信息是 <q>error: initializer element is not computable at load time</q></p>
 <p>右值（地址， 64 位）需要在重定位后强制转换为 32 位整数，再赋值给左值（ 64 位）。要支持这样情况的话，可能需要 ELF 的重定位信息支持。</p>
 <p>编译器的版本： clang version 3.3 gcc version 4.8.1</p>
@@ -128,7 +128,7 @@
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="search" name="q" results="0" placeholder="Suche">
     <input type="hidden" name="q" value="site:blog.kezhuw.name">
   </form>
 </div>
@@ -137,8 +137,10 @@
 
   
 <div class="widget tag">
-  <h3 class="title">標籤</h3>
+  <h3 class="title">Tags</h3>
   <ul class="entry">
+  
+    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
   
     <li><a href="/tags/build/">build</a><small>1</small></li>
   

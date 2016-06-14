@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>第 2 頁 | Recording</title>
+  <title>Seite 2 | Recording</title>
   <meta name="author" content="Kezhu Wang">
   
   
@@ -56,6 +56,44 @@
 <div class="clearfix"></div></header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-04-05T17:15:40.000Z"><a href="/2015/04/06/global-mail-sending-in-game-server/">Apr 6 2015</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2015/04/06/global-mail-sending-in-game-server/">游戏服务器中的全服邮件发送</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>游戏开发、运营过程中通常会有 “给全服所有玩家发送邮件” 的需求。</p>
+<p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向 “全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global Mail Centra</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">version_t</span> = uint64;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">mail_id_t</span> = uint64;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;<span class="keyword">version_t</span>, <span class="keyword">mail_id_t</span>&gt; _mails;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::tuple&lt;<span class="keyword">version_t</span>, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt;&gt; fetchNewerMail(<span class="keyword">version_t</span> currentVersion) &#123;</span><br><span class="line">    <span class="keyword">auto</span> newerVersion = currentVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> it = _mails.upper_bound(currentVersion); it != _mails.end(); ++it) &#123;</span><br><span class="line">        newerVersion = it-&gt;first;</span><br><span class="line">        newerMails.push_back(it-&gt;second);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::make_tuple(newerVersion, newerMails);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Global Mail Proxy in Player Module</span></span><br><span class="line"><span class="keyword">version_t</span> _currentVersion;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; checkGlobalMails() &#123;</span><br><span class="line">    <span class="keyword">version_t</span> newerVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="built_in">std</span>::tie(newerVersion, newerMails) = fetchNewerMails(_currentVersion);</span><br><span class="line">    <span class="keyword">if</span> (newerVersion != _currentVersion) &#123;</span><br><span class="line">        _currentVersion = newerVersion;</span><br><span class="line">        <span class="comment">// update _currentVersion to backend data storage</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newerMails;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的 coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心” 根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a href="https://github.com/cloudwu/skynet/" target="_blank" rel="external">skynet</a> 中，可以这样做：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">function update_global_mails()</span><br><span class="line">    local currentVersion = get_current_version()</span><br><span class="line">    while true do</span><br><span class="line">        newerVersion, newerMails = skynet.call(".global_mail_centra", "lua", "fetchNewerMails", currentVersion)</span><br><span class="line">        if newerVersion != currentVersion then</span><br><span class="line">            // synchronized to player's mailbox (other module in same process), blocking call</span><br><span class="line">            currentVersion = newerVersion</span><br><span class="line">            // update currentVersion to backend data storage</span><br><span class="line">        end</span><br><span class="line">    end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">skynet.fork(update_global_mails)</span><br></pre></td></tr></table></figure>
+<p>推荐阅读：<a href="http://blog.codingnow.com/2014/07/skynet_response.html" target="_blank" rel="external">skynet 中如何实现邮件达到通知服务</a></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
   <article class="post">
   
   <div class="post-content">
@@ -291,128 +329,20 @@ modules + communications between modules = program
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2014-03-23T14:45:44.000Z"><a href="/2014/03/23/lua-coroutine-and-csharp-async/">Mar 23 2014</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2014/03/23/lua-coroutine-and-csharp-async/">Lua coroutine 和 C# async</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="external">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
-<p>这种同步调用的流程：</p>
-<pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
-    ==&gt; coroutine.yield
-        ==&gt; C/C++ 发起异步请求会话
-        ==| (time consumed)
-        ==| C/C++ 异步会话完成（消息/回调）
-    &lt;== coroutine.resume
-val, err = ... -- &lt;== return from function
-do_someting(...)
-</code></pre><p>这个流程很像阻塞式的系统调用：</p>
-<pre><code>n = read(fd, buf, len)        // system call in userland
-    ==&gt; syscallenter(...)     // in kernel mode
-        |=&gt; sys_read(...)     // in system call
-        |== kernel activity   // asynchronous wait if data is not available yet
-        |==
-    &lt;== syscallret(...)       // return from syscall
-n = ...                       // return from read in userland
-</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="external">CPS</a> 变换。</p>
-<blockquote>
-<p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
-</blockquote>
-<p>即将如下代码：</p>
-<pre><code>var result = await expression;
-statement(s);
-</code></pre><p>转换为：</p>
-<pre><code>var awaiter = expression.GetAwaiter();
-awaiter.OnCompleted (() =&gt;
-{
-    var result = awaiter.GetResult();
-    statement(s);
-});
-</code></pre><p>从上面的代码可以看出，这段代码是非阻塞的， <code>statement(s)</code> 是在 callback 中执行的。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Lua coroutine 和 C# async/await 都可以用来编写形如同步的代码。Lua coroutine 中的函数调用是同步阻塞的（从调用者角度），由 C/C++ 通过异步方式实现，其执行流程和一般的同步阻塞的系统调用类似。C# async/await 则是由编译器实施的 CPS 变换，是异步非阻塞的。</p>
-<p>下面一段 C# 代码的流程，如果由 Lua 编写，输出顺序则相反。</p>
-<pre><code>//Title of this code
-//Rextester.Program.Main is the entry point for your code. Don&apos;t change it.
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Rextester {
-
-    public class Program
-    {
-
-        static readonly CountdownEvent _countdown = new CountdownEvent(1);
-        static int _value = 5;
-
-        public static void Main(string[] args)
-        {
-            delay(10);
-            dump(&quot;return from delay()&quot;);
-            _value = 10;
-            _countdown.Wait();
-        }
-
-        async static void delay(int msecs) {
-            await Task.Delay(msecs);
-            dump(&quot;in delay():&quot;);
-            _countdown.Signal();
-        }
-
-        static void dump(string prefix) {
-            Console.WriteLine(&quot;{0}: value = {1}&quot;, prefix, _value);
-        }
-
-    }
-
-}
-</code></pre><p>输出： return from delay(): value = 5 in delay():: value = 10</p>
-<h2 id="阅读"><a href="#阅读" class="headerlink" title="阅读"></a>阅读</h2><ul>
-<li>C# 5.0 in a Nutshell</li>
-<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="external">怎样理解阻塞非阻塞与同步异步的区别</a></li>
-</ul>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
-    <a href="/" class="alignleft prev">上一頁</a>
+    <a href="/" class="alignleft prev">Vorherige Seite</a>
   
   
-    <a href="/page/3/" class="alignright next">下一頁</a>
+    <a href="/page/3/" class="alignright next">Nächste Seite</a>
   
   <div class="clearfix"></div>
 </nav></div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
   <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="搜尋">
+    <input type="search" name="q" results="0" placeholder="Suche">
     <input type="hidden" name="q" value="site:blog.kezhuw.name">
   </form>
 </div>
@@ -421,8 +351,10 @@ namespace Rextester {
 
   
 <div class="widget tag">
-  <h3 class="title">標籤</h3>
+  <h3 class="title">Tags</h3>
   <ul class="entry">
+  
+    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
   
     <li><a href="/tags/build/">build</a><small>1</small></li>
   

@@ -1,0 +1,233 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Invariants in LevelDB algorithm | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  <meta name="description" content="Recently, I write a LevelDB implementation in Go. In this post, I summarize
+some invariants in algorithm used by LevelDB implementations.
+Sequence Num">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Invariants in LevelDB algorithm"/>
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-58052607-1']);
+  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2016-06-14T10:13:07.000Z"><a href="/2016/06/14/invariants-in-leveldb-algorithm/">Jun 14 2016</a></time>
+      
+      
+  
+    <h1 class="title">Invariants in LevelDB algorithm</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="external">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="external">implementation in Go</a>. In this post, I summarize
+some invariants in algorithm used by LevelDB implementations.</p>
+<h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><p>Sequence number is a monotonically increasing 56 bits integer value. Every
+time a key is written to LevelDB, it is tagged with a sequence number one
+larger than sequence number tagged with previous key written to LevelDB.
+<strong>If two entries in LevelDB have same user level keys, the one with larger
+sequence must shadow the other.</strong></p>
+<h2 id="Sorted-Memory-Tables"><a href="#Sorted-Memory-Tables" class="headerlink" title="Sorted Memory Tables"></a>Sorted Memory Tables</h2><p>Writes are first recorded in a mutable memory table. If that memory table is
+full, it is marked as immutable and a new memory table is created to record
+writes. The memory table marked as immutable is then compacted to a sorted
+disk table in level 0 and deleted. Thus we conclude that:</p>
+<p><strong>If a key appears in mutable memory table, it is newest. Otherwise, if it
+appears in immutable memory table, it is newest.</strong></p>
+<h2 id="Compaction"><a href="#Compaction" class="headerlink" title="Compaction"></a>Compaction</h2><p>When an immutable memory table is compacted to a sorted table in Level 0, it
+is assigned with a file number larger than all existing file numbers in this
+Level. Thus we have:</p>
+<p><strong>Entries stored in newer file in Level 0 shadow entries with same user keys
+in older files.</strong></p>
+<p>When there are too many files in Level 0 or too many data in Level 1 or above,
+we start level compaction. In level N compaction, we select a file set from
+level N, such that no remaining files overlap this file set in user key level.
+Then we compact this file set with all overlapping files from level N+1, and
+produce sorted tables in level N+1. Thus we conclude to two invariants.</p>
+<p><strong>No files in level 1 or above overlap other files in the same level.</strong></p>
+<p><strong>Entries stored in level N shadow entries with same user keys above level N.</strong></p>
+<h2 id="Snapshot"><a href="#Snapshot" class="headerlink" title="Snapshot"></a>Snapshot</h2><p>Snapshot in LevelDB is represented by a sequence number. When retrieving entries
+from a snapshot, entries whose sequence number are larger than the snapshot’s
+are ignored. In compaction, we record the smallest sequence number among alive
+snapshots, and we never delete keys shadowed only by entry with sequence number
+larger that this smallest sequence number. After enforcing these restrictions
+on retrieve and compaction, we guarantee that:</p>
+<p><strong>The state a snapshot captured is frozen in its creation time.</strong></p>
+<h2 id="Get"><a href="#Get" class="headerlink" title="Get"></a>Get</h2><p>According to invariants we guarantee, we first search mutable memory table,
+then immutable memory table, then sorted tables in level 0 from newest to
+oldest, then sorted tables in level 1 and above. If we find a write for the
+key, we can return the result to caller without further searching.</p>
+<h2 id="Iteration"><a href="#Iteration" class="headerlink" title="Iteration"></a>Iteration</h2><p>Entries in memory tables and disk level tables may overlap each other. But
+files in level 1 and above have no overlapping files in same level. So we
+concatenate files in level N to form level iterator for level N. Then we
+merge those iterators with iterators from memory tables, level 0 tables to
+construct iterator over a whole LevelDB database. In iteration, we filter
+out entries shadowed by larger sequence number.</p>
+<h2 id="Optimizations"><a href="#Optimizations" class="headerlink" title="Optimizations"></a>Optimizations</h2><p>Implementations can make their private optimizations without break those
+invariants. One such optimization in offical C++ implementation is that
+immutable memory table can be compacted to level 1 or above if it is not
+overlapping with younger level. Aggressive optimization, for example,
+concurrent compaction is also possible.</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/LevelDB/">LevelDB</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+  
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Suche">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2016 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
