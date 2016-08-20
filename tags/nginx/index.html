@@ -3,15 +3,13 @@
 <head>
   <meta charset="utf-8">
   
-  <title>zeromq nonblocking | Recording</title>
+  <title>nginx | Recording</title>
   <meta name="author" content="Kezhu Wang">
-  
-  <meta name="description" content="12345678910111213141516// Virtual interface to be exposed by object that want to be notified// about events on file descriptors. struct i_poll_events&amp;">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="zeromq nonblocking"/>
+  
   <meta property="og:site_name" content="Recording"/>
 
   
@@ -56,36 +54,61 @@
 <div class="clearfix"></div>
 </header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title tag">nginx</h2>
+
+
+  
+    <article class="post">
   
   <div class="post-content">
     <header>
       
         <div class="icon"></div>
-        <time datetime="2012-04-01T06:40:50.000Z"><a href="/2012/04/01/zeromq-nonblocking/">Apr 1 2012</a></time>
+        <time datetime="2016-08-20T14:24:05.000Z"><a href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">Aug 20 2016</a></time>
       
       
   
-    <h1 class="title">zeromq nonblocking</h1>
+    <h1 class="title"><a href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">Don&#39;t use context path in web application behind reverse proxy</a></h1>
   
 
     </header>
     <div class="entry">
       
-        <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Virtual interface to be exposed by object that want to be notified</span></span><br><span class="line"><span class="comment">// about events on file descriptors.</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> i_poll_events</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~i_poll_events () &#123;&#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for reading.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">in_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for writing.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">out_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called when timer expires.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">timer_event</span> <span class="params">(<span class="keyword">int</span> id_)</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>0mq 中实现（或部分实现）了这些接口的类包括： io_thread_t, reaper_t, zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
+        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="external">Spring</a>.
+We use a context path other than “/“, say, “/abc” which is the project name.
+This setting is consistent with existing projects in my team.</p>
+<p>But after we deploy this project behind nginx, we encounter problem. In nginx, we
+config something like this:</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:5000/abc/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>It works fine for handwritten url from client. But the url links in the response html,
+which is generated by this application and points to resources inside this application,
+does not work. <em>All url forwarded by nginx will be prefixed with “/abc”, which is the
+context path of this application in web container.</em> While the application generated url
+links have that prefix already. This results in wrong url links for those resources.</p>
+<p>There are workarounds to solve this, though, but after investigation and thinking, I
+concludes to:</p>
+<p><strong>If you use reverse proxy to forward HTTP request, then don’t use context path in your
+application, instead let reverse proxy set context path for you.</strong></p>
+<p>First, if you use context path other than “/“ in your application and you want your application
+visited via top domain without subpath, then you must hardcode that context path in reverse
+proxy. The same information is hardcoded in two places, your application and the reverse proxy.</p>
+<p>Second, if you use context path “/“ in your application and you want your application visited via
+subpath, reverse proxy such as nginx can set <code>X-Forwarded-Prefix</code> for your application to generate
+url links prefixed with that subpath. If the framework backing your application respect this header,
+you probably don’t notice that.</p>
+<p>The underlying cause behind this conclusion is that both web application and reverse proxy are
+passive. They accept request, handle it, response it. The solution comes from the fact that reverse
+proxy stand before web application so that it can add extra informations for web application to handle
+in programming approach without the need to handcode such informations.</p>
+<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="external">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
+<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="external">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
 
       
     </div>
     <footer>
       
         
-        
-  
-  <div class="tags">
-    <a href="/tags/zeromq/">zeromq</a>
-  </div>
-
         
       
       <div class="clearfix"></div>
@@ -94,16 +117,14 @@
 </article>
 
 
-<section id="comment">
-  <h1 class="title">Comments</h1>
 
   
-  <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-  </div>
-  
-</section>
 
+  <nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav>
 </div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">
@@ -174,7 +195,7 @@ var disqus_shortname = 'blog-kezhuw';
   var dsq = document.createElement('script');
   dsq.type = 'text/javascript';
   dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
 }());
 </script>
