@@ -65,6 +65,63 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2017-04-08T06:06:40.000Z"><a href="/2017/04/08/spring-profile/">Apr 8 2017</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2017/04/08/spring-profile/">Spring Profile</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><strong>Spring profile allows conditional registration of beans/components in runtime based on constants specified declaratively in configuration or programmatically in code.</strong> Let see some use cases.</p>
+<h2 id="Activate-Component-based-on-active-profile"><a href="#Activate-Component-based-on-active-profile" class="headerlink" title="Activate @Component based on active profile"></a>Activate @Component based on active profile</h2><p>Suppose we have a service interface called <code>SomeService</code> which has a method called <code>doSomething</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeService.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">SomeService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>SomeService</code> should only do real work in production environment and trivials in others. We can do this way:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeServiceImpl.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile</span>(<span class="string">"production"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeServiceImpl</span> <span class="keyword">implements</span> <span class="title">SomeService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Do real work ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile</span>(<span class="string">"!production"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NoOpSomeServiceImpl</span> <span class="keyword">implements</span> <span class="title">SomeService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Do trivial things ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now, based on whether <code>production</code> profile is declared or not, <code>SomeServiceImpl</code> or <code>NoOpSomeServiceImpl</code> will serve requests as <code>SomeService</code>.</p>
+<h2 id="Register-Bean-based-on-active-profile"><a href="#Register-Bean-based-on-active-profile" class="headerlink" title="Register @Bean based on active profile"></a>Register @Bean based on active profile</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@Profile</span>(&#123;<span class="string">"dev"</span>, <span class="string">"!featureA"</span>&#125;)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> CustomBean <span class="title">customBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// instantiate, configure and return bean ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>A bean with type <code>CustomBean</code> will be registered if profile <code>dev</code> is active or <code>featureA</code> is not active.</p>
+<h2 id="Testing-accepted-profiles-through-Spring-Environment"><a href="#Testing-accepted-profiles-through-Spring-Environment" class="headerlink" title="Testing accepted profiles through Spring Environment"></a>Testing accepted profiles through Spring Environment</h2><p>Sometimes, it is considered be too heavy to switch whole bean/component based on active profile. We can use spring environment to test accepted profile.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.core.env.Environment;</span><br><span class="line"></span><br><span class="line"><span class="comment">// In SomeServiceImpl.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile</span>(<span class="string">"production"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeServiceImpl</span> <span class="keyword">implements</span> <span class="title">SomeService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> Environment environment;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (environment.acceptsProfiles(<span class="string">"featureA"</span>, <span class="string">"!featureB"</span>)) &#123;</span><br><span class="line">            <span class="comment">// Do things when featureA is active or featureB is not active.</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Do other work ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>If you are using Thymeleaf, you can do this:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span> <span class="attr">xmlns:th</span>=<span class="string">"http://www.thymeleaf.org"</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">th:if</span>=<span class="string">"$&#123;@environment.acceptsProfiles('dev')&#125;"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span> <span class="attr">src</span>=<span class="string">"//unpkg.com/vue@2.2.6/dist/vue.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">th:if</span>=<span class="string">"$&#123;@environment.acceptsProfiles('!dev')&#125;"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span> <span class="attr">src</span>=<span class="string">"//unpkg.com/vue@2.2.6/dist/vue.min.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Now, we knows how to use profile, let dig how to declare it.</p>
+<h2 id="Declare-Spring-profile-in-configuration-file"><a href="#Declare-Spring-profile-in-configuration-file" class="headerlink" title="Declare Spring profile in configuration file"></a>Declare Spring profile in configuration file</h2><p>In Spring Boot, you can declare profiles in <code>application.properties</code> or <code>application.yml</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.profiles.active = dev,featureA</span><br></pre></td></tr></table></figure>
+<p>If you declare profiles this way, profiles specified outside application jar will override profiles inside application jar. If you want to declare a profile which can’t be overrode, use <code>spring.profiles.include</code>.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// application.properties inside projectA&apos;s jar</span><br><span class="line">spring.profiles.include = projectA</span><br></pre></td></tr></table></figure>
+<p><code>application.properties</code> is just one of places to specify spring configuration, you can delcare profiles in other places according to <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config" target="_blank" rel="external">Spring Boot Externalized Configuration</a>. Such as:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># os environment</span></span><br><span class="line">SPRING_PROFILES_ACTIVE=featureB java -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># system properties</span></span><br><span class="line">java -Dspring.profiles.active=featureB -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># command line arguments</span></span><br><span class="line">java -jar project.jar --spring.profiles.active=featureB</span><br></pre></td></tr></table></figure>
+<h2 id="Specify-profiles-programmatically"><a href="#Specify-profiles-programmatically" class="headerlink" title="Specify profiles programmatically"></a>Specify profiles programmatically</h2><p>In application level, you can add profiles using <code>SpringApplication.setAdditinalProfiles</code>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">      SpringApplication app = <span class="keyword">new</span> SpringApplication(SomeApplication.class);</span><br><span class="line">      app.setAdditinalProfiles(<span class="string">"someApplication"</span>)</span><br><span class="line">      app.run(args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In library level, you can add/set profiles through <code>ConfigurableEnvironment</code>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FeatureConfig</span> <span class="keyword">implements</span> <span class="title">ApplicationContextInitializer</span>&lt;<span class="title">ConfigurableApplicationContext</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</span><br><span class="line">        ConfigurableEnvironment environment = context.getEnvironment();</span><br><span class="line">        environment.addActiveProfile(<span class="string">"featureB"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// In library&apos;s META-INF/spring.factories</span><br><span class="line">org.springframework.context.ApplicationContextInitializer=\</span><br><span class="line">path.to.library.package.FeatureConfig</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2016-08-20T14:24:05.000Z"><a href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">Aug 20 2016</a></time>
       
       
@@ -334,56 +391,6 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
 
 
   
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-12-08T12:29:06.000Z"><a href="/2015/12/08/desired-cpp-build-system/">Dec 8 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/12/08/desired-cpp-build-system/">C++ 编译系统</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>最近尝试了几款 C++ 编译系统。</p>
-<ul>
-<li><p><a href="https://cmake.org/cmake/help/v3.4/index.html" target="_blank" rel="external">CMake</a> 对于一个编译系统来说，个人觉得过于复杂了。项目依赖不好解决，可能我姿势不对，用不好 ExternalProject 。</p>
-</li>
-<li><p><a href="https://github.com/iauns/cpm" target="_blank" rel="external">CPM</a> 基于 CMake ，对项目结构以及名字空间有额外要求。我写我的代码，导出我的接口，你还想管我怎么写？</p>
-</li>
-<li><p><a href="http://docs.biicode.com/c++/building/biicode_building.html" target="_blank" rel="external">biicode</a> 自动生成了很多隐式配置，用的时候很大可能要修改这些配置，作者脑洞有点大。不推荐。</p>
-</li>
-<li><p><a href="https://github.com/mesonbuild/meson" target="_blank" rel="external">meson</a> 很轻量的一个编译系统，配置语言很好用。依赖可以在系统软件包和源码之间切换。对现有项目提供的 patch 支持很不错，不需要对上游做破坏性更新。文档还是比较少的，有些东西估计得读下代码才知道怎么用。值得一试。</p>
-</li>
-<li><p><a href="http://bazel.io/" target="_blank" rel="external">bazel</a> Google 出品，离 1.0 还很远，不过已经可以用了。很合适 <a href="http://www.wired.com/2015/09/google-2-billion-lines-codeand-one-place/" target="_blank" rel="external">Google 那种集中式的代码库</a>，根目录一个 WORKSPACE ，其他的项目都只是一个 BUILD ，项目间的依赖也很好指定。和系统软件包的配合不好，连 <code>make install</code> 都没有。patch 支持，一个 BUILD 文件就可以搞定，复杂的话，可能比较麻烦。文档很不错。推荐。</p>
-</li>
-</ul>
-<p>这几款编译系统都没能解决一个问题：<strong>编译时第三方依赖的源码和软件包之间的一致性</strong>。举例来说：</p>
-<p>如果 packageA 的头文件 <code>header.hpp</code> 通过 <code>make install</code> 或其他的包管理工具安装在 <code>packageA/header.hpp</code> ，那么 packageB 一定可以通过 <code>#include &lt;packageA/header.hpp&gt;</code> 引用到这个文件，不论 packageB 依赖的是 packageA 的源码还是系统软件包。<code>header.hpp</code> 可以在 packageA 的任意位置，甚至可能是编译时生成的头文件。</p>
-<p>要做到这一点，我的想法是：在编译 packageB 时，如果依赖的是 packageA 的源码，则先编译 packageA，将其安装在私有的目录，之后通过修改编译参数指定头文件包含目录和链接目录。如果依赖的是 packageA 的软件包，则直接用系统的头文件包含目录和链接目录。这样的话，就可以通过配置语言 packageA 的源码和软件包之间切换。</p>
-<p>meson 可以在依赖的源码和软件包之间切换，但是需要根据源码结构和包结构之间的差异做特别的定制。bazel 就是一集中化的代码仓库，包含路径只能相对根目录和当前目录。</p>
-<p>也许得自己撸一个？Damnit!</p>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-  
 
   <nav id="pagination">
   
@@ -428,6 +435,8 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   
     <li><a href="/tags/golang/">golang</a><small>1</small></li>
   
+    <li><a href="/tags/java/">java</a><small>1</small></li>
+  
     <li><a href="/tags/kqueue/">kqueue</a><small>1</small></li>
   
     <li><a href="/tags/linux/">linux</a><small>1</small></li>
@@ -435,6 +444,8 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
     <li><a href="/tags/lua/">lua</a><small>1</small></li>
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
+  
+    <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
   
@@ -446,7 +457,7 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2016 Kezhu Wang
+  &copy; 2017 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>
