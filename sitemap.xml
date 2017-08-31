@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.kezhuw.name/2017/08/31/spring-aspectj-load-time-weaving/</loc>
+    
+    <lastmod>2017-08-31T05:27:11.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.kezhuw.name/2017/04/24/spring-environment-and-property-source/</loc>
+    
+    <lastmod>2017-04-24T02:10:36.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.kezhuw.name/2017/04/08/spring-profile/</loc>
     
     <lastmod>2017-04-09T06:48:22.000Z</lastmod>

@@ -1,0 +1,223 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Archives: 2017/8 | Recording</title>
+  <meta name="author" content="Kezhu Wang">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Recording"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-58052607-1', 'auto');
+	ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Recording</a></h1>
+  <h2><a href="/"></a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+<h2 class="archive-title">2017/8</h2>
+
+
+  
+    <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2017-08-31T05:24:09.000Z"><a href="/2017/08/31/spring-aspectj-load-time-weaving/">Aug 31 2017</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2017/08/31/spring-aspectj-load-time-weaving/">AspectJ Load-Time Weaving for Spring</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html" target="_blank" rel="external">Spring AOP</a> is proxy-based, using either <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html" target="_blank" rel="external">JDK dynamic proxy</a> or <a href="https://github.com/cglib/cglib" target="_blank" rel="external">CGLIB</a>.
+Spring’s <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html" target="_blank" rel="external">Cache Abstraction</a>, <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/transaction.html" target="_blank" rel="external">Transaction Management</a> and <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-annotation-support" target="_blank" rel="external">Asynchronous Execution</a>
+are all built upon AOP proxies.</p>
+<p>However proxy can intercept only external method calls. Which means that self-invocation, in effect, a method within
+the target object calling another method of the target object, will not lead to an actual caching at runtime.</p>
+<p>Thus, the following code will not function correctly.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> Class SomeServiceImpl implements SomeService &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Cacheable</span>(value = <span class="string">"SomeCache"</span>, key = <span class="string">"#kind + '#' + #id"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">methodBase</span><span class="params">(String kind, String id)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">methodA</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">"a"</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">methodB</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">"b"</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="AspectJ-Load-Time-Weaving"><a href="#AspectJ-Load-Time-Weaving" class="headerlink" title="AspectJ Load-Time Weaving"></a>AspectJ Load-Time Weaving</h2><p>Spring provides <code>spring-aspects</code> library and <code>AdviceMode.ASPECTJ</code> for <code>@EnableCaching</code>, <code>@EnableTransactionManagement</code>
+and <code>@EnableAsync</code> annotations’ <code>mode</code> field to support AspectJ load-time weaving. But that is not enough, AspectJ load-time weaver is required to weave aspect for target class.</p>
+<p>AspectJ Load-Time Weaver weave target class by transforming bytecode using a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="external"><code>ClassFileTransformer</code></a> named <a href="http://git.eclipse.org/c/aspectj/org.aspectj.git/tree/loadtime5/java5-src/org/aspectj/weaver/loadtime/ClassPreProcessorAgentAdapter.java" target="_blank" rel="external"><code>ClassPreProcessorAgentAdapter</code></a> from AspectJ. This transformation can be performed either at <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="external"><code>Instrumentation</code></a> level or <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html" target="_blank" rel="external"><code>ClassLoader</code></a> level. The classloader approach requires a method like <code>void addTransformer(ClassFileTransformer transformer)</code> to apply the transfomer in class loading phase.</p>
+<h3 id="Custom-class-loader-to-apply-class-file-transformation"><a href="#Custom-class-loader-to-apply-class-file-transformation" class="headerlink" title="Custom class loader to apply class file transformation"></a>Custom class loader to apply class file transformation</h3><p>Spring’s <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="external"><code>@EnableLoadTimeWeaving</code></a> creates a bean named <code>loadTimeWeaver</code> to inject a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="external"><code>ClassFileTransformer</code></a>, which is capable to weave target class with desired apsect, to bean class loader. Unfortunately, <a href="https://github.com/spring-projects/spring-boot/issues/739" target="_blank" rel="external">Spring Boot does not support this approach</a>.</p>
+<p>Due to the fact that <code>loadTimeWeaver</code> is a bean and classloading is happening at bean definition parsing phase which certainly happens before bean creation phase in same application context, thus <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="external"><code>@EnableLoadTimeWeaving</code></a> should be enabled in a application context which is a ancestor of the application context where target class located in.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Initializer.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> application.ApplicationConfig;</span><br><span class="line"><span class="keyword">import</span> application.web.WebConfig;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Initializer</span> <span class="keyword">extends</span> <span class="title">AbstractAnnotationConfigDispatcherServletInitializer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> String[] getServletMappings() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String[]&#123;<span class="string">"/"</span>&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt;[] getRootConfigClasses() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Class[]&#123;ApplicationConfig.class&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt;[] getServletConfigClasses() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Class[]&#123;WebConfig.class&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ApplicationConfig.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.EnableLoadTimeWeaving;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableLoadTimeWeaving</span>(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.ENABLED)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// WebConfig</span></span><br><span class="line"><span class="keyword">package</span> application.web;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.ComponentScan;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.config.annotation.EnableWebMvc;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebMvc</span></span><br><span class="line"><span class="meta">@ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebConfig</span> <span class="keyword">extends</span> <span class="title">WebMvcConfigurerAdapter</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// CachingConfiguration.java</span></span><br><span class="line"><span class="keyword">package</span> application.web.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.CacheManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.annotation.CachingConfigurerSupport;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.annotation.EnableCaching;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.concurrent.ConcurrentMapCacheManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.AdviceMode;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span>(mode = AdviceMode.ASPECTJ)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CachingConfiguration</span> <span class="keyword">extends</span> <span class="title">CachingConfigurerSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ConcurrentMapCacheManager();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// build.gradle</span></span><br><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        classpath <span class="string">'io.spring.gradle:dependency-management-plugin:1.0.0.RELEASE'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'io.spring.dependency-management'</span></span><br><span class="line">dependencyManagement &#123;</span><br><span class="line">    imports &#123;</span><br><span class="line">        mavenBom <span class="string">'io.spring.platform:platform-bom:Brussels-SR4'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'java'</span></span><br><span class="line">sourceCompatibility = <span class="number">1.8</span></span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'war'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">"javax.servlet:javax.servlet-api"</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'ch.qos.logback:logback-core'</span></span><br><span class="line">    compile <span class="string">'ch.qos.logback:logback-classic'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'org.aspectj:aspectjweaver'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">"org.springframework:spring-web"</span></span><br><span class="line">    compile <span class="string">"org.springframework:spring-webmvc"</span></span><br><span class="line">    compile <span class="string">"org.springframework:spring-aspects"</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>This way, bean methods annotated with <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html#cache-annotations" target="_blank" rel="external"><code>@Cacheable</code></a> in package <code>application.web.**</code> are weaved with the aspect <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/EnableCaching.html" target="_blank" rel="external"><code>@EnableCaching(mode = AdviceMode.ASPECTJ)</code></a> introduced from library <code>spring-aspects</code>.</p>
+<h3 id="Java-agent-to-apply-class-file-transformation"><a href="#Java-agent-to-apply-class-file-transformation" class="headerlink" title="Java agent to apply class file transformation"></a>Java agent to apply class file transformation</h3><p><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="external"><code>Instrumentation</code></a> has a method <code>void addTransformer(ClassFileTransformer transformer)</code> which can be used to apply ApectJ’s class file transformer. There are two existing java libraries, <code>aspectjweaver</code> and <code>spring-instrument</code>, provide agents to obtain instance of <code>Instrumentation</code>.</p>
+<h4 id="AspectJ-java-agent-to-apply-class-file-transformation"><a href="#AspectJ-java-agent-to-apply-class-file-transformation" class="headerlink" title="AspectJ java agent to apply class file transformation"></a>AspectJ java agent to apply class file transformation</h4><p>You start JVM with <code>-javaagent:/path/aspectweaver-1.8.10.jar</code>, then the AspectJ load-time weaver use <code>META-INF/aop.xml</code> files located on classpath to weaving aspect to target classes. You don’t need <code>@EnableLoadTimeWeaving</code> here.</p>
+<h4 id="Spring-java-agent-to-obtain-Instrumentation-instance-for-transformation"><a href="#Spring-java-agent-to-obtain-Instrumentation-instance-for-transformation" class="headerlink" title="Spring java agent to obtain Instrumentation instance for transformation"></a>Spring java agent to obtain <code>Instrumentation</code> instance for transformation</h4><p>Differ from <code>aspectjweaver</code>, agent provided by <code>spring-instrument</code> does not apply AspectJ load-time weaving by itself, it only obtain a <code>Instrumentation</code>. <code>loadTimeWeaver</code> initiated by <code>@EnableLoadTimeWeaving</code> can use this <code>Instrumentation</code> instance to apply class file transformation.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ApplicationConfig.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.EnableLoadTimeWeaving;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableLoadTimeWeaving</span>(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.AUTODETECT)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// WebApplication.java</span></span><br><span class="line"><span class="keyword">package</span> application.web;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.builder.SpringApplicationBuilder;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> application.ApplicationConfig;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplicationBuilder builder = <span class="keyword">new</span> SpringApplicationBuilder(WebApplication.class);</span><br><span class="line">        builder.parent(ApplicationConfig.class);</span><br><span class="line">        builder.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// build.gradle</span></span><br><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">        maven &#123;</span><br><span class="line">            url <span class="string">"https://plugins.gradle.org/m2/"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        classpath <span class="string">'org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE'</span></span><br><span class="line">        classpath <span class="string">'io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'org.springframework.boot'</span></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">'org.aspectj:aspectjweaver'</span></span><br><span class="line">    compile <span class="string">'org.springframework:spring-aspects'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-devtools'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-web'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-tomcat'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-actuator'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SEE ALSO:</p>
+<ul>
+<li><a href="https://www.credera.com/blog/technology-insights/open-source-technology-insights/aspect-oriented-programming-in-spring-boot-part-3-setting-up-aspectj-load-time-weaving/" target="_blank" rel="external">Aspect-Oriented Programming in Spring Boot Part 3: Setting up AspectJ Load-Time Weaving</a></li>
+<li><a href="http://www.eclipse.org/aspectj/doc/released/devguide/ltw-configuration.html" target="_blank" rel="external">AspectJ Load-Time Weaving Configuration</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+  
+
+  <nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav>
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Search">
+    <input type="hidden" name="q" value="site:blog.kezhuw.name">
+  </form>
+</div>
+
+  
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
+  
+    <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
+  
+    <li><a href="/tags/Java/">Java</a><small>1</small></li>
+  
+    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
+  
+    <li><a href="/tags/Spring/">Spring</a><small>1</small></li>
+  
+    <li><a href="/tags/Spring-Boot/">Spring Boot</a><small>1</small></li>
+  
+    <li><a href="/tags/aop/">aop</a><small>1</small></li>
+  
+    <li><a href="/tags/build/">build</a><small>1</small></li>
+  
+    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
+  
+    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
+  
+    <li><a href="/tags/epoll/">epoll</a><small>1</small></li>
+  
+    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
+  
+    <li><a href="/tags/gc/">gc</a><small>1</small></li>
+  
+    <li><a href="/tags/golang/">golang</a><small>1</small></li>
+  
+    <li><a href="/tags/java/">java</a><small>2</small></li>
+  
+    <li><a href="/tags/kqueue/">kqueue</a><small>1</small></li>
+  
+    <li><a href="/tags/linux/">linux</a><small>1</small></li>
+  
+    <li><a href="/tags/lua/">lua</a><small>1</small></li>
+  
+    <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
+  
+    <li><a href="/tags/spring/">spring</a><small>2</small></li>
+  
+    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 Kezhu Wang
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blog-kezhuw';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
