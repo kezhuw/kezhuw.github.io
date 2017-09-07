@@ -63,26 +63,6 @@
   </entry>
   
   <entry>
-    <title>Spring Environment and PropertySource</title>
-    <link href="http://blog.kezhuw.name/2017/04/24/spring-environment-and-property-source/"/>
-    <id>http://blog.kezhuw.name/2017/04/24/spring-environment-and-property-source/</id>
-    <published>2017-04-24T02:09:06.000Z</published>
-    <updated>2017-04-24T02:10:36.000Z</updated>
-    
-    <content type="html"></content>
-    
-    <summary type="html">
-    
-    </summary>
-    
-    
-      <category term="java" scheme="http://blog.kezhuw.name/tags/java/"/>
-    
-      <category term="spring" scheme="http://blog.kezhuw.name/tags/spring/"/>
-    
-  </entry>
-  
-  <entry>
     <title>Spring Profile</title>
     <link href="http://blog.kezhuw.name/2017/04/08/spring-profile/"/>
     <id>http://blog.kezhuw.name/2017/04/08/spring-profile/</id>
