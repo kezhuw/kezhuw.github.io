@@ -73,10 +73,10 @@ C++ 11 的 explicit operator bool() 可以让类类型的值使用在条件语�
     </header>
     <div class="entry">
       
-        <p>在 Stack Overflow 上回答了一个问题： <a href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context" target="_blank" rel="external">How can I use an enum class in a boolean context?</a>，记录下。</p>
+        <p>在 Stack Overflow 上回答了一个问题： <a href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context" target="_blank" rel="noopener">How can I use an enum class in a boolean context?</a>，记录下。</p>
 <p>C++ 11 的 <code>explicit operator bool()</code> 可以让类类型的值使用在条件语句中，但无法对 <code>enum</code> 类型提供支持。</p>
 <p>下面是我使用的一种方法：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> Error &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> Error(<span class="keyword">decltype</span>(Value) value = None) : Value(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Error</span> &#123;</span></span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> Error(<span class="keyword">decltype</span>(Value) value = None) : Value(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>使用：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Error <span class="title">lastError</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">auto</span> err = lastError()) &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">switch</span> (lastError().Value) &#123;</span><br><span class="line"><span class="keyword">case</span> Error::None:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> Error::Error1:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (lastError() == Error::Error1) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -127,6 +127,8 @@ C++ 11 的 explicit operator bool() 可以让类类型的值使用在条件语�
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -144,6 +146,8 @@ C++ 11 的 explicit operator bool() 可以让类类型的值使用在条件语�
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -165,6 +169,8 @@ C++ 11 的 explicit operator bool() 可以让类类型的值使用在条件语�
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -177,7 +183,7 @@ C++ 11 的 explicit operator bool() 可以让类类型的值使用在条件语�
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

@@ -77,9 +77,9 @@
         <p>游戏开发、运营过程中通常会有 “给全服所有玩家发送邮件” 的需求。</p>
 <p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向 “全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global Mail Centra</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">version_t</span> = uint64;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">mail_id_t</span> = uint64;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;<span class="keyword">version_t</span>, <span class="keyword">mail_id_t</span>&gt; _mails;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::tuple&lt;<span class="keyword">version_t</span>, <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt;&gt; fetchNewerMail(<span class="keyword">version_t</span> currentVersion) &#123;</span><br><span class="line">    <span class="keyword">auto</span> newerVersion = currentVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> it = _mails.upper_bound(currentVersion); it != _mails.end(); ++it) &#123;</span><br><span class="line">        newerVersion = it-&gt;first;</span><br><span class="line">        newerMails.push_back(it-&gt;second);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::make_tuple(newerVersion, newerMails);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Global Mail Proxy in Player Module</span></span><br><span class="line"><span class="keyword">version_t</span> _currentVersion;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; checkGlobalMails() &#123;</span><br><span class="line">    <span class="keyword">version_t</span> newerVersion;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="built_in">std</span>::tie(newerVersion, newerMails) = fetchNewerMails(_currentVersion);</span><br><span class="line">    <span class="keyword">if</span> (newerVersion != _currentVersion) &#123;</span><br><span class="line">        _currentVersion = newerVersion;</span><br><span class="line">        <span class="comment">// update _currentVersion to backend data storage</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newerMails;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的 coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心” 根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a href="https://github.com/cloudwu/skynet/" target="_blank" rel="external">skynet</a> 中，可以这样做：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">function update_global_mails()</span><br><span class="line">    local currentVersion = get_current_version()</span><br><span class="line">    while true do</span><br><span class="line">        newerVersion, newerMails = skynet.call(".global_mail_centra", "lua", "fetchNewerMails", currentVersion)</span><br><span class="line">        if newerVersion != currentVersion then</span><br><span class="line">            // synchronized to player's mailbox (other module in same process), blocking call</span><br><span class="line">            currentVersion = newerVersion</span><br><span class="line">            // update currentVersion to backend data storage</span><br><span class="line">        end</span><br><span class="line">    end</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">skynet.fork(update_global_mails)</span><br></pre></td></tr></table></figure>
-<p>推荐阅读：<a href="http://blog.codingnow.com/2014/07/skynet_response.html" target="_blank" rel="external">skynet 中如何实现邮件达到通知服务</a></p>
+<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的 coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心” 根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a href="https://github.com/cloudwu/skynet/" target="_blank" rel="noopener">skynet</a> 中，可以这样做：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">update_global_mails</span><span class="params">()</span></span></span><br><span class="line">    <span class="keyword">local</span> currentVersion = get_current_version()</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">true</span> <span class="keyword">do</span></span><br><span class="line">        newerVersion, newerMails = skynet.call(<span class="string">".global_mail_centra"</span>, <span class="string">"lua"</span>, <span class="string">"fetchNewerMails"</span>, currentVersion)</span><br><span class="line">        <span class="keyword">if</span> newerVersion != currentVersion <span class="keyword">then</span></span><br><span class="line">            // synchronized to player<span class="string">'s mailbox (other module in same process), blocking call</span></span><br><span class="line"><span class="string">            currentVersion = newerVersion</span></span><br><span class="line"><span class="string">            // update currentVersion to backend data storage</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">skynet.fork(update_global_mails)</span></span><br></pre></td></tr></table></figure>
+<p>推荐阅读：<a href="http://blog.codingnow.com/2014/07/skynet_response.html" target="_blank" rel="noopener">skynet 中如何实现邮件达到通知服务</a></p>
 
       
     </div>
@@ -128,6 +128,8 @@
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -145,6 +147,8 @@
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -166,6 +170,8 @@
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -178,7 +184,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

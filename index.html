@@ -61,6 +61,227 @@
     <header>
       
         <div class="icon"></div>
+        <time datetime="2018-03-20T05:40:22.000Z"><a href="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/">Mar 20 2018</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/">A step by step approach to raft consensus algorithm</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>This is my second time to read through <a href="https://raft.github.io/" target="_blank" rel="noopener">Raft</a> <a href="https://purl.stanford.edu/qr033xr6097" target="_blank" rel="noopener">Algorithm</a>, and it is hard to
+recall what I have learned in first reading. This time I decide to record my thoughts for future
+recall. Hope it is useful to newbies in distributed systems like me.</p>
+<h2 id="What-does-consensus-algorithm-mean"><a href="#What-does-consensus-algorithm-mean" class="headerlink" title="What does consensus algorithm mean ?"></a>What does consensus algorithm mean ?</h2><p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing" target="_blank" rel="noopener">faulty
+processes</a> in distributed system.</strong></p>
+<h2 id="Introduce-Replicated-State-Machines"><a href="#Introduce-Replicated-State-Machines" class="headerlink" title="Introduce Replicated State Machines"></a>Introduce Replicated State Machines</h2><p>Here, we define state machine as State’ = Machine(State, Input) for simplicity. A state machine
+can be defined with its start state, and makes progress with sequence of inputs, produces sequence
+of intermediate states. For examples:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&apos; = Machine(State, Input)</span><br><span class="line">State&apos;&apos; = Machine(State&apos;, Input&apos;)</span><br><span class="line">State&apos;&apos;&apos; = Machine(State&apos;&apos;, Input&apos;&apos;)</span><br></pre></td></tr></table></figure>
+<p>Given a state machine, how can we figure out that it is a replicated state machine ?</p>
+<p>First, replicated state machine is deterministic. Given same start state with same sequence of
+inputs, the state machine always produce same intermediate states.</p>
+<p>Second, two state machines built from same logic on possibly different processes or nodes and
+even possibly different languages must be same. Here we define two state machines as same based
+on deterministic: given same start state and same sequence of inputs, if two state machines
+produce same sequence of intermediate states, we say these two state machine are same. Thus given
+multiple copies of same state machines with same start state, feeding with same sequence of inputs,
+they must produces same sequence of intermediate states.</p>
+<p>Third, states, including start state and intermediate states, and inputs must be self-contained,
+thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
+<p>The word replicated in replicated state machine has duple means: deterministic and replication.
+Occasionally, replicated state machine is used in non distributed systems to validate processes
+using its deterministic. More often, replicated state machines are used to validate or repliate
+processes among processes or nodes in distributed systems.</p>
+<h2 id="How-replicated-state-machines-implemented-in-distributed-systems"><a href="#How-replicated-state-machines-implemented-in-distributed-systems" class="headerlink" title="How replicated state machines implemented in distributed systems ?"></a>How replicated state machines implemented in distributed systems ?</h2><p>Replicated state machines are typically implemented using a replicated log, this is particular due
+to the fact that state machine process sequence of inputs one by one in order, non batch, non concurrency,
+I guess. Here, replicated in replicated log means replication cross processes or nodes.</p>
+<p>In replciated log, inputs to state machines are appended as sequence of entries or records in order,
+these entries will be replicated to replicated logs reside in other nodes in later time, and feeded
+to state machines reside in their nodes for apply eventually.</p>
+<p>Thus if given identical sequence entries from replicated log, multiple copies of same state machine
+will produce same sequence of states. But how can we promise identical sequence cross different faulty
+nodes in distributed systems ? That is consensus algorithm’s job.</p>
+<h2 id="Raft"><a href="#Raft" class="headerlink" title="Raft"></a>Raft</h2><blockquote>
+<p>Raft implements consensus by first electing a server as leader, then giving the leader complete responsibility
+for managing the replicated log. The leader accepts log entries from clients, replicates them on other servers,
+and tells servers when it is safe to apply log entries to their state machines.</p>
+<p>Raft decomposes the consensus problem into two relatively independent subproblems:</p>
+<ul>
+<li>Leader election: a new leader must be chosen when starting the cluster and when an existing leader fails.</li>
+<li>Log replication: the leader must accept log entries from clients and replicate them across the cluster,
+forcing the other logs to agree with its own.</li>
+</ul>
+</blockquote>
+<h3 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h3><h4 id="Majority-and-minority"><a href="#Majority-and-minority" class="headerlink" title="Majority and minority"></a>Majority and minority</h4><p>For a raft cluster contains odd number of servers, say <code>2*N + 1</code>, or even number of servers,
+say <code>2*N</code>, we say majority of the cluster composes at least <code>N + 1</code> servers, and minority of
+the cluster composes at most <code>N</code> servers.</p>
+<h4 id="Server-roles"><a href="#Server-roles" class="headerlink" title="Server roles"></a>Server roles</h4><p>At any given time each server is in one of three states: leader, follower, or candidate. In
+normal operation there is exactly one leader and all of the other servers are followers.
+Followers are passive: they issue no requests on their own but simply respond to requests from
+leaders and candidates. The leader handles all client requests (if a client contacts a follower,
+the follower redirects it to the leader).  The third state, candidate, is used to elect a new leader.
+The following figure shows the states and their transitions:</p>
+<img src="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/server-states.png">
+<h4 id="Terms"><a href="#Terms" class="headerlink" title="Terms"></a>Terms</h4><p>Raft divides time into terms of arbitrary length. Terms are numbered with consecutive integers.
+Each term begins with an election, in which one or more candidates attempt to become leader. If
+a candidate wins the election, then it serves as leader for the rest of the term. In some
+situations an election will result in a split vote. In this case the term will end with no leader;
+a new term (with a new election) will begin shortly. Raft ensures that there is at most one leader
+in a given term.</p>
+<h4 id="Logs"><a href="#Logs" class="headerlink" title="Logs"></a>Logs</h4><p>Logs are composed of entries, which are numbered sequentially as index. Each entry contains the
+term in which it was created and a command for the state machine. Raft determines which of two
+logs is more up-to-date by comparing the index and term of the last entries in the logs. If the
+logs have last entries with different terms, then the log with the later term is more up-to-date.
+If the logs end with the same term, then whichever log is longer is more up-to-date.</p>
+<h3 id="Leader-election"><a href="#Leader-election" class="headerlink" title="Leader election"></a>Leader election</h3><p>Raft uses a heartbeat mechanism to trigger leader election. When servers start up, they begin as
+followers. A server remains in follower state as long as it receives valid RPCs from a leader or
+candidate. Leaders send periodic heartbeats to all followers in order to maintain their authority.
+If a follower receives no communication over a period of time called the election timeout, then it
+assumes there is no viable leader and begins an election to choose a new leader.</p>
+<p>To begin an election, a follower increments its current term and transitions to candidate state. It
+then votes for itself and issues RequestVote RPCs in parallel to each of the other servers in the
+cluster. A candidate continues in this state until one of three things happens:</p>
+<ul>
+<li><p>It wins the election.</p>
+<p>A candidate wins an election if it receives votes from a majority of the servers in the full
+cluster for the same term. Each server will vote for at most one candidate in a given term, on
+a first-come-first-served basis with restriction: the voter denies its vote if its own log is
+more up-to-date than that of the candidate. The majority rule ensures that at most one candidate
+can win the election for a particular term. Once a candidate wins an election, it becomes leader.
+It then sends heartbeat messages to all of the other servers to establish its authority and
+prevent new elections.</p>
+</li>
+<li><p>Another server establishes itself as leader,</p>
+<p>While waiting for votes, a candidate may receive an AppendEntries RPC from another server
+claiming to be leader. If the leader’s term (included in its RPC) is at least as large as the
+candidate’s current term, then the candidate recognizes the leader as legitimate and returns
+to follower state. If the term in the RPC is smaller than the candidate’s current term, then
+the candidate rejects the RPC and continues in candidate state.</p>
+</li>
+<li><p>Another election timeout goes by with no winner.</p>
+<p>If many followers become candidates at the same time, votes could be split so that no candidate
+obtains a majority. When this happens, each candidate will time out and start a new election by
+incrementing its term and initiating another round of RequestVote RPCs. Raft uses randomized
+election timeouts to ensure that split votes are rare and that they are resolved quickly. To
+prevent split votes in the first place, election timeouts are chosen randomly from a fixed
+interval (e.g., 150–300 ms). This spreads out the servers so that in most cases only a single
+server will time out; it wins the election and sends heartbeats before any other servers time out.
+The same mechanism is used to handle split votes. Each candidate restarts its randomized election
+timeout at the start of an election, and it waits for that timeout to elapse before starting the
+next election; this reduces the likelihood of another split vote in the new election.</p>
+</li>
+</ul>
+<h3 id="Log-replication"><a href="#Log-replication" class="headerlink" title="Log replication"></a>Log replication</h3><p>Once a leader has been elected, it begins servicing client requests. Each client request contains a
+command to be executed by the replicated state machine. The leader appends the command to its log as
+a new entry, then issues AppendEntries RPCs in parallel to each of the other servers to replicate the
+entry. When the entry has been safely replicated, the leader applies the entry to its state machine and
+returns the result of that execution to the client. If followers crash or run slowly, or if network packets
+are lost, the leader retries AppendEntries RPCs indefinitely (even after it has responded to the client)
+until all followers eventually store all log entries.</p>
+<p>The leader decides when it is safe to apply a log entry to the state machines; such an entry is
+called committed.  A log entry is committed once the leader that created the entry has replicated
+it on a majority of the servers.  This also commits all preceding entries in the leader’s log,
+including entries created by previous leaders. The leader keeps track of the highest index it knows
+to be committed, and it includes that index in future AppendEntries RPCs (including heartbeats) so
+that the other servers eventually find out. Once a follower learns that a log entry is committed, it
+applies the entry to its local state machine (in log order).</p>
+<p>Raft log mechanism was designed to maintain a high level of coherency between the logs on different
+servers. It maintains the following properties, which together constitute the Log Matching Property:</p>
+<ol>
+<li><p>If two entries in different logs have the same index and term, then they store the same command.</p>
+<p>This property follows from the fact that a leader creates at most one entry with a given log index
+in a given term, and log entries never change their position in the log. New leader is elected with
+a larger term than previous leaders.</p>
+</li>
+<li><p>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.</p>
+<p>This property is guaranteed by a consistency check performed by AppendEntries. When sending an
+AppendEntries RPC, the leader includes the index and term of the entry in its log that immediately
+precedes the new entries. If the follower does not find an entry in its log with the same index
+and term, then it refuses the new entries. The consistency check acts as an induction step: the
+initial empty state of the logs satisfies the Log Matching Property, and the consistency check
+preserves the Log Matching Property whenever logs are extended. As a result, whenever AppendEntries
+returns successfully, the leader knows that the follower’s log is identical to its own log up through
+the new entries.</p>
+</li>
+</ol>
+<p>During normal operation, the logs of the leader and followers stay consistent, so the AppendEntries
+consistency check never fails. However, leader crashes can leave the logs inconsistent (the old leader
+may not have fully replicated all of the entries in its log). These inconsistencies can compound over
+a series of leader and follower crashes. A follower may be missing entries that are present on the leader,
+it may have extra entries that are not present on the leader, or both. Missing and extraneous entries
+in a log may span multiple terms.</p>
+<p>In Raft, the leader handles inconsistencies by forcing the followers’ logs to duplicate its own.
+This means that conflicting entries in follower logs will be overwritten with entries from the
+leader’s log. To bring a follower’s log into consistency with its own, the leader must find the
+latest log entry where the two logs agree, delete any entries in the follower’s log after that
+point, and send the follower all of the leader’s entries after that point. All of these actions
+happen in response to the consistency check performed by AppendEntries RPCs. The leader maintains
+a nextIndex for each follower, which is the index of the next log entry the leader will send to
+that follower. When a leader first comes to power, it initializes all nextIndex values to the index
+just after the last one in ts log. If a follower’s log is inconsistent with the leader’s, the
+AppendEntries consistency check will fail in the next AppendEntries RPC. After a rejection, the leader
+decrements the follower’s nextIndex and retries the AppendEntries RPC. Eventually the nextIndex will
+reach a point where the leader and follower logs match. When this happens, AppendEntries will succeed,
+which removes any conflicting entries in the follower’s log and appends entries from the leader’s log (if any).
+Once AppendEntries succeeds, the follower’s log is consistent with the leader’s, and it will remain
+that way for the rest of the term.</p>
+<h2 id="Safety"><a href="#Safety" class="headerlink" title="Safety"></a>Safety</h2><p>Raft guarantees that each of these properties is true at all times:</p>
+<ul>
+<li><p>Election Safety: At most one leader can be elected in a given term.</p>
+<p>Each server will vote for at most on candidate in a given term, and a candidate must win votes
+from majority of the cluster to be elected as leader.</p>
+</li>
+<li><p>Leader Append-Only: A leader never overwrites or deletes entries in its log; it only appends new entries.</p>
+</li>
+<li>Log Matching Property: If two logs contain an entry with the same index and term, then the logs
+are identical in all entries up through the given index.</li>
+<li><p>Leader Completeness Property: If a log entry is committed in a given term, then that entry will
+be present in the logs of the leaders for all higher-numbered terms.</p>
+<p>A log entry is committed once the leader that created the entry has replicated it on a majority
+of the servers (at least <code>N+1</code>). New leader elected afterward wins votes from majority (at least <code>N+1</code>)
+servers. From inequation <code>(N+1) + (N+1) = 2*N + 2 &gt; 2*N + 1</code>, we knows that at least one server
+from later majority contains that committed log entry. With up-to-date election restriction, we can
+conclude that the new leader has that committed log entry.</p>
+</li>
+<li><p>State Machine Safety: If a server has applied a log entry at a given index to its state machine,
+no other server will ever apply a different log entry for the same index.</p>
+<p>At the time a server applies a log entry to its state machine, its log must be identical to the
+leader’s log up through that entry, and the entry must be committed. Consider the lowest term
+in which any server applies a given log index; the Leader Completeness Property guarantees that
+the leaders for all higher terms will store that same log entry, so servers that apply the index
+in later terms will apply the same value. Thus, the State Machine Safety Property holds.</p>
+</li>
+<li><p>Raft requires servers to apply entries in log index order.</p>
+<p>Combined with the State Machine Safety Property, this means that all servers will apply exactly
+the same set of log entries to their state machines, in the same order.</p>
+</li>
+</ul>
+<p><strong>Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines.</strong></p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
         <time datetime="2017-08-31T05:24:09.000Z"><a href="/2017/08/31/spring-aspectj-load-time-weaving/">Aug 31 2017</a></time>
       
       
@@ -71,24 +292,24 @@
     </header>
     <div class="entry">
       
-        <p><a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html" target="_blank" rel="external">Spring AOP</a> is proxy-based, using either <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html" target="_blank" rel="external">JDK dynamic proxy</a> or <a href="https://github.com/cglib/cglib" target="_blank" rel="external">CGLIB</a>. Spring’s <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html" target="_blank" rel="external">Cache Abstraction</a>, <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/transaction.html" target="_blank" rel="external">Transaction Management</a> and <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-annotation-support" target="_blank" rel="external">Asynchronous Execution</a> are all built upon AOP proxies.</p>
+        <p><a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html" target="_blank" rel="noopener">Spring AOP</a> is proxy-based, using either <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html" target="_blank" rel="noopener">JDK dynamic proxy</a> or <a href="https://github.com/cglib/cglib" target="_blank" rel="noopener">CGLIB</a>. Spring’s <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html" target="_blank" rel="noopener">Cache Abstraction</a>, <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/transaction.html" target="_blank" rel="noopener">Transaction Management</a> and <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-annotation-support" target="_blank" rel="noopener">Asynchronous Execution</a> are all built upon AOP proxies.</p>
 <p>However proxy can intercept only external method calls. Which means that self-invocation, in effect, a method within the target object calling another method of the target object, will not lead to an actual interception at runtime.</p>
 <p>Thus, the following code will not function correctly.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> Class SomeServiceImpl implements SomeService &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Cacheable</span>(value = <span class="string">"SomeCache"</span>, key = <span class="string">"#kind + '#' + #id"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Object <span class="title">methodBase</span><span class="params">(String kind, String id)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">methodA</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">"a"</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">methodB</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">"b"</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="AspectJ-Load-Time-Weaving"><a href="#AspectJ-Load-Time-Weaving" class="headerlink" title="AspectJ Load-Time Weaving"></a>AspectJ Load-Time Weaving</h2><p>Spring provides a library named <code>spring-aspects</code> and <a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/AdviceMode.html" target="_blank" rel="external"><code>AdviceMode.ASPECTJ</code></a> which can be used as value of <code>mode</code> filed for <code>@EnableCaching</code>, <code>@EnableTransactionManagement</code> and <code>@EnableAsync</code> annotations to support AspectJ load-time weaving. But that is not enough, AspectJ load-time weaver is required to weave aspect for target class.</p>
-<p>AspectJ Load-Time Weaver weave target class by transforming class file bytecode using a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="external"><code>ClassFileTransformer</code></a> named <a href="http://git.eclipse.org/c/aspectj/org.aspectj.git/tree/loadtime5/java5-src/org/aspectj/weaver/loadtime/ClassPreProcessorAgentAdapter.java" target="_blank" rel="external"><code>ClassPreProcessorAgentAdapter</code></a> from <code>aspectjweaver.jar</code>. This transformation can be performed either at JVM level through <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="external"><code>Instrumentation</code></a> interface or at per <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html" target="_blank" rel="external"><code>ClassLoader</code></a> level. A method with signature similar to <code>void addTransformer(ClassFileTransformer transformer)</code> is required to apply the transformation in class loading phase, <code>Instrumentation</code> support this method natively, while not all class loaders support this.</p>
-<h3 id="Custom-class-loader-to-apply-class-file-transformation"><a href="#Custom-class-loader-to-apply-class-file-transformation" class="headerlink" title="Custom class loader to apply class file transformation"></a>Custom class loader to apply class file transformation</h3><p>Spring’s <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="external"><code>@EnableLoadTimeWeaving</code></a> creates a bean named <code>loadTimeWeaver</code> to inject a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="external"><code>ClassFileTransformer</code></a>, which is capable to weave target class with desired apsect, to bean class loader. Unfortunately, <a href="https://github.com/spring-projects/spring-boot/issues/739" target="_blank" rel="external">Spring Boot does not support this approach</a>.</p>
-<p>Due to the fact that <code>loadTimeWeaver</code> is a bean and classloading is happening at bean definition parsing phase which certainly happens before bean creation phase in same application context, thus <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="external"><code>@EnableLoadTimeWeaving</code></a> should be enabled in a application context which is a ancestor of the application context where target class located in.</p>
+<h2 id="AspectJ-Load-Time-Weaving"><a href="#AspectJ-Load-Time-Weaving" class="headerlink" title="AspectJ Load-Time Weaving"></a>AspectJ Load-Time Weaving</h2><p>Spring provides a library named <code>spring-aspects</code> and <a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/AdviceMode.html" target="_blank" rel="noopener"><code>AdviceMode.ASPECTJ</code></a> which can be used as value of <code>mode</code> filed for <code>@EnableCaching</code>, <code>@EnableTransactionManagement</code> and <code>@EnableAsync</code> annotations to support AspectJ load-time weaving. But that is not enough, AspectJ load-time weaver is required to weave aspect for target class.</p>
+<p>AspectJ Load-Time Weaver weave target class by transforming class file bytecode using a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="noopener"><code>ClassFileTransformer</code></a> named <a href="http://git.eclipse.org/c/aspectj/org.aspectj.git/tree/loadtime5/java5-src/org/aspectj/weaver/loadtime/ClassPreProcessorAgentAdapter.java" target="_blank" rel="noopener"><code>ClassPreProcessorAgentAdapter</code></a> from <code>aspectjweaver.jar</code>. This transformation can be performed either at JVM level through <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="noopener"><code>Instrumentation</code></a> interface or at per <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html" target="_blank" rel="noopener"><code>ClassLoader</code></a> level. A method with signature similar to <code>void addTransformer(ClassFileTransformer transformer)</code> is required to apply the transformation in class loading phase, <code>Instrumentation</code> support this method natively, while not all class loaders support this.</p>
+<h3 id="Custom-class-loader-to-apply-class-file-transformation"><a href="#Custom-class-loader-to-apply-class-file-transformation" class="headerlink" title="Custom class loader to apply class file transformation"></a>Custom class loader to apply class file transformation</h3><p>Spring’s <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="noopener"><code>@EnableLoadTimeWeaving</code></a> creates a bean named <code>loadTimeWeaver</code> to inject a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html" target="_blank" rel="noopener"><code>ClassFileTransformer</code></a>, which is capable to weave target class with desired apsect, to bean class loader. Unfortunately, <a href="https://github.com/spring-projects/spring-boot/issues/739" target="_blank" rel="noopener">Spring Boot does not support this approach</a>.</p>
+<p>Due to the fact that <code>loadTimeWeaver</code> is a bean and classloading is happening at bean definition parsing phase which certainly happens before bean creation phase in same application context, thus <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html" target="_blank" rel="noopener"><code>@EnableLoadTimeWeaving</code></a> should be enabled in a application context which is a ancestor of the application context where target class located in.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Initializer.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> application.ApplicationConfig;</span><br><span class="line"><span class="keyword">import</span> application.web.WebConfig;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Initializer</span> <span class="keyword">extends</span> <span class="title">AbstractAnnotationConfigDispatcherServletInitializer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> String[] getServletMappings() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> String[]&#123;<span class="string">"/"</span>&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt;[] getRootConfigClasses() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Class[]&#123;ApplicationConfig.class&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt;[] getServletConfigClasses() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Class[]&#123;WebConfig.class&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ApplicationConfig.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.EnableLoadTimeWeaving;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableLoadTimeWeaving</span>(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.ENABLED)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// WebConfig</span></span><br><span class="line"><span class="keyword">package</span> application.web;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.ComponentScan;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.config.annotation.EnableWebMvc;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebMvc</span></span><br><span class="line"><span class="meta">@ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebConfig</span> <span class="keyword">extends</span> <span class="title">WebMvcConfigurerAdapter</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// CachingConfiguration.java</span></span><br><span class="line"><span class="keyword">package</span> application.web.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.CacheManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.annotation.CachingConfigurerSupport;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.annotation.EnableCaching;</span><br><span class="line"><span class="keyword">import</span> org.springframework.cache.concurrent.ConcurrentMapCacheManager;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.AdviceMode;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableCaching</span>(mode = AdviceMode.ASPECTJ)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CachingConfiguration</span> <span class="keyword">extends</span> <span class="title">CachingConfigurerSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ConcurrentMapCacheManager();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// build.gradle</span></span><br><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        classpath <span class="string">'io.spring.gradle:dependency-management-plugin:1.0.0.RELEASE'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'io.spring.dependency-management'</span></span><br><span class="line">dependencyManagement &#123;</span><br><span class="line">    imports &#123;</span><br><span class="line">        mavenBom <span class="string">'io.spring.platform:platform-bom:Brussels-SR4'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'java'</span></span><br><span class="line">sourceCompatibility = <span class="number">1.8</span></span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'war'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">"javax.servlet:javax.servlet-api"</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'ch.qos.logback:logback-core'</span></span><br><span class="line">    compile <span class="string">'ch.qos.logback:logback-classic'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'org.aspectj:aspectjweaver'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">"org.springframework:spring-web"</span></span><br><span class="line">    compile <span class="string">"org.springframework:spring-webmvc"</span></span><br><span class="line">    compile <span class="string">"org.springframework:spring-aspects"</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>This way, bean methods annotated with <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html#cache-annotations" target="_blank" rel="external"><code>@Cacheable</code></a> in package <code>application.web.**</code> are weaved with the aspect <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/EnableCaching.html" target="_blank" rel="external"><code>@EnableCaching(mode = AdviceMode.ASPECTJ)</code></a> introduced from library <code>spring-aspects</code>.</p>
-<h3 id="Java-agent-to-apply-class-file-transformation"><a href="#Java-agent-to-apply-class-file-transformation" class="headerlink" title="Java agent to apply class file transformation"></a>Java agent to apply class file transformation</h3><p><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="external"><code>Instrumentation</code></a> has a method <code>void addTransformer(ClassFileTransformer transformer)</code> which can be used to apply ApectJ’s class file transformer. There are two existing java libraries, <code>aspectjweaver</code> and <code>spring-instrument</code>, provide agents to obtain instance of <code>Instrumentation</code>.</p>
+<p>This way, bean methods annotated with <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html#cache-annotations" target="_blank" rel="noopener"><code>@Cacheable</code></a> in package <code>application.web.**</code> are weaved with the aspect <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/EnableCaching.html" target="_blank" rel="noopener"><code>@EnableCaching(mode = AdviceMode.ASPECTJ)</code></a> introduced from library <code>spring-aspects</code>.</p>
+<h3 id="Java-agent-to-apply-class-file-transformation"><a href="#Java-agent-to-apply-class-file-transformation" class="headerlink" title="Java agent to apply class file transformation"></a>Java agent to apply class file transformation</h3><p><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html" target="_blank" rel="noopener"><code>Instrumentation</code></a> has a method <code>void addTransformer(ClassFileTransformer transformer)</code> which can be used to apply ApectJ’s class file transformer. There are two existing java libraries, <code>aspectjweaver</code> and <code>spring-instrument</code>, provide agents to obtain instance of <code>Instrumentation</code>.</p>
 <h4 id="AspectJ-java-agent-to-apply-class-file-transformation"><a href="#AspectJ-java-agent-to-apply-class-file-transformation" class="headerlink" title="AspectJ java agent to apply class file transformation"></a>AspectJ java agent to apply class file transformation</h4><p>You start JVM with <code>-javaagent:/path/aspectweaver-1.8.10.jar</code>, then the AspectJ load-time weaver use <code>META-INF/aop.xml</code> files located on classpath to weaving aspect to target classes. You don’t need <code>@EnableLoadTimeWeaving</code> here.</p>
 <h4 id="Spring-java-agent-to-obtain-Instrumentation-instance-for-transformation"><a href="#Spring-java-agent-to-obtain-Instrumentation-instance-for-transformation" class="headerlink" title="Spring java agent to obtain Instrumentation instance for transformation"></a>Spring java agent to obtain <code>Instrumentation</code> instance for transformation</h4><p>Differ from <code>aspectjweaver</code>, agent provided by <code>spring-instrument</code> does not apply AspectJ load-time weaving by itself, it only obtain a <code>Instrumentation</code>. <code>loadTimeWeaver</code> initiated by <code>@EnableLoadTimeWeaving</code> can use this <code>Instrumentation</code> instance to apply class file transformation.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ApplicationConfig.java</span></span><br><span class="line"><span class="keyword">package</span> application;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.EnableLoadTimeWeaving;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableLoadTimeWeaving</span>(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.AUTODETECT)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// WebApplication.java</span></span><br><span class="line"><span class="keyword">package</span> application.web;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.builder.SpringApplicationBuilder;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> application.ApplicationConfig;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplicationBuilder builder = <span class="keyword">new</span> SpringApplicationBuilder(WebApplication.class);</span><br><span class="line">        builder.parent(ApplicationConfig.class);</span><br><span class="line">        builder.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// build.gradle</span></span><br><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">        maven &#123;</span><br><span class="line">            url <span class="string">"https://plugins.gradle.org/m2/"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        classpath <span class="string">'org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE'</span></span><br><span class="line">        classpath <span class="string">'io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">apply plugin: <span class="string">'org.springframework.boot'</span></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">'org.aspectj:aspectjweaver'</span></span><br><span class="line">    compile <span class="string">'org.springframework:spring-aspects'</span></span><br><span class="line"></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-devtools'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-web'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-tomcat'</span></span><br><span class="line">    compile <span class="string">'org.springframework.boot:spring-boot-starter-actuator'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>SEE ALSO:</p>
 <ul>
-<li><a href="https://www.credera.com/blog/technology-insights/open-source-technology-insights/aspect-oriented-programming-in-spring-boot-part-3-setting-up-aspectj-load-time-weaving/" target="_blank" rel="external">Aspect-Oriented Programming in Spring Boot Part 3: Setting up AspectJ Load-Time Weaving</a></li>
-<li><a href="http://www.eclipse.org/aspectj/doc/released/devguide/ltw-configuration.html" target="_blank" rel="external">AspectJ Load-Time Weaving Configuration</a></li>
+<li><a href="https://www.credera.com/blog/technology-insights/open-source-technology-insights/aspect-oriented-programming-in-spring-boot-part-3-setting-up-aspectj-load-time-weaving/" target="_blank" rel="noopener">Aspect-Oriented Programming in Spring Boot Part 3: Setting up AspectJ Load-Time Weaving</a></li>
+<li><a href="http://www.eclipse.org/aspectj/doc/released/devguide/ltw-configuration.html" target="_blank" rel="noopener">AspectJ Load-Time Weaving Configuration</a></li>
 </ul>
 
       
@@ -140,7 +361,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.profiles.active = dev,featureA</span><br></pre></td></tr></table></figure>
 <p>If you declare profiles this way, profiles specified outside application jar will override profiles inside application jar. If you want to declare a profile which can’t be overrode, use <code>spring.profiles.include</code>.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// application.properties inside projectA&apos;s jar</span><br><span class="line">spring.profiles.include = projectA</span><br></pre></td></tr></table></figure>
-<p><code>application.properties</code> is just one of places to specify spring configuration, you can delcare profiles in other places according to <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config" target="_blank" rel="external">Spring Boot Externalized Configuration</a>. Such as:</p>
+<p><code>application.properties</code> is just one of places to specify spring configuration, you can delcare profiles in other places according to <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config" target="_blank" rel="noopener">Spring Boot Externalized Configuration</a>. Such as:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># os environment</span></span><br><span class="line">SPRING_PROFILES_ACTIVE=featureB java -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># system properties</span></span><br><span class="line">java -Dspring.profiles.active=featureB -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># command line arguments</span></span><br><span class="line">java -jar project.jar --spring.profiles.active=featureB</span><br></pre></td></tr></table></figure>
 <h2 id="Specify-profiles-programmatically"><a href="#Specify-profiles-programmatically" class="headerlink" title="Specify profiles programmatically"></a>Specify profiles programmatically</h2><p>In application level, you can add profiles using <code>SpringApplication.setAdditinalProfiles</code>.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">      SpringApplication app = <span class="keyword">new</span> SpringApplication(SomeApplication.class);</span><br><span class="line">      app.setAdditinalProfiles(<span class="string">"someApplication"</span>)</span><br><span class="line">      app.run(args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -179,7 +400,7 @@
     </header>
     <div class="entry">
       
-        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="external">Spring</a>.
+        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.
 We use a context path other than “/“, say, “/abc” which is the project name.
 This setting is consistent with existing projects in my team.</p>
 <p>But after we deploy this project behind nginx, we encounter problem. In nginx, we
@@ -205,8 +426,8 @@ you probably don’t notice that.</p>
 passive. They accept request, handle it, response it. The solution comes from the fact that reverse
 proxy stand before web application so that it can add extra informations for web application to handle
 in programming approach without the need to handcode such informations.</p>
-<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="external">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
-<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="external">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
+<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
+<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
 
       
     </div>
@@ -239,7 +460,7 @@ in programming approach without the need to handcode such informations.</p>
     </header>
     <div class="entry">
       
-        <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="external">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="external">implementation in Go</a>. In this post, I summarize
+        <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="noopener">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="noopener">implementation in Go</a>. In this post, I summarize
 some invariants in algorithm used by LevelDB implementations.</p>
 <h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><p>Sequence number is a monotonically increasing 56 bits integer value. Every
 time a key is written to LevelDB, it is tagged with a sequence number one
@@ -302,88 +523,6 @@ concurrent compaction is also possible.</p>
 
 
 
-  <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2016-02-24T22:44:44.000Z"><a href="/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/">Feb 25 2016</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/">基于确定性状态机的小战场同步方案</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <h2 id="战场状态"><a href="#战场状态" class="headerlink" title="战场状态"></a>战场状态</h2><p><strong>战场状态 ＝ 所有实体的状态之和</strong></p>
-<p>这里的实体包括但不限于玩家、AI 、子弹和商店。</p>
-<h2 id="时间"><a href="#时间" class="headerlink" title="时间"></a>时间</h2><p>每隔单位时间，在上一时刻战场状态的基础上，计算所有该时间单位发起的操作或接收的状态改变。同时时间也作为输入，驱动实体的持续性动作。
-这里的单位时间可以是 10ms 这样的间隔。</p>
-<h2 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h2><p>任意时刻，玩家在客户端的操作在发送给服务器端的同时，也将在本地的下一次计算时，作用于状态的本地副本。在收到服务器端的回应之后，
-与这期间收到的所有回应及其他操作在之前保存的战场状态上重新计算，客户端需要对上一时刻计算的副本进行修正。例如：</p>
-<ol>
-<li>假设，Ti 时刻，本地状态和服务器状态一致，为 Si 。</li>
-<li>Ti+1 时刻，发起操作 Ai+1; 本地计算该操作，得到本地状态 LSi+1 。</li>
-<li>Ti+4 时刻，收到服务器其他玩家的操作 SBi+4 ；本地计算该操作，得到本地状态 LSi+4。</li>
-<li>Ti+8 时刻，发起操作 Ai+8 ；本地计算该操作，得到本地状态 LSi+8。</li>
-<li>…</li>
-<li>Ti+k 时间，收到操作 Ai 的回应 SAi+5；在状态 Si 上计算 SBi+4 ，得到 Si+4；在 Si+4 上计算操作 SAi+5 , 得到 Si+5 ；在新的
-Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前的本地状态 LSi+k-1 , 客户端做出修正后，计算该时刻的操作。</li>
-<li>…</li>
-</ol>
-<p>对于某些难以修正的动作，如：死亡，客户端可以做延迟处理，直到服务器给出回应。</p>
-<h2 id="作弊"><a href="#作弊" class="headerlink" title="作弊"></a>作弊</h2><p><strong>作弊源于“服务器端对客户端暴露了过多的数据”。</strong></p>
-<p>要解决作弊问题，就需要服务器端对传送给客户端的数据进行过滤，不传送任何玩家不可见实体的数据。在 MOBA 类游戏中，这类数据包括被
-战争迷雾遮挡的敌对玩家和怪物的行为、隐身玩家的行为等。</p>
-<p>那么，当客户端接收到的输入少于服务器端的输入之后，客户端的状态如何与服务器保持一致？我个人的看法是：</p>
-<ul>
-<li><strong>服务器端的所有实体 &gt;= 客户端的所有实体</strong></li>
-<li><strong>服务器端的状态 &gt;= 所有客户端状态的并集</strong></li>
-</ul>
-<p>是的，我们不需要保持客户端的状态完全等于服务器端的状态。我们只需保证，任意时刻任何一个客户端的状态都应该是服务器端状态的子集。
-当玩家需要了解更多实体的状态时，服务器端再将这些实体的当前状态以及后续行为发送给客户端；当玩家不需要了解某些实体的状态时，服务
-器端通知客户端将这些实体的状态从内存中删除，并不再发送这些实体的后续行为。</p>
-<p>我们需要解决的问题是，如何让客户端不受未知实体的行为影响？我的想法是：</p>
-<ol>
-<li><strong>实体应尽可能的聚合，其本身的状态不应该包含全局数据</strong>；</li>
-<li>视全局数据为独特的实体，对全局数据的所有改变，对所有客户端同步。</li>
-</ol>
-<p>实现的时候，应该尽可能的减少全局数据。例如：玩家 和 AI 的状态应该包含私有的随机种子；可被遮挡的商店不应该被视为全局数据。</p>
-<h2 id="版本兼容"><a href="#版本兼容" class="headerlink" title="版本兼容"></a>版本兼容</h2><p>如果新版本服务器需要兼容老版本的客户端的话，需要在初始化阶段协商版本号。实现的时候，需要对新逻辑做版本过滤。最好只迭代维护最新的几个版本。</p>
-<h2 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h2><ul>
-<li>很容易实现战斗录像；</li>
-<li>也很容易实现，观战；</li>
-<li>掉线了，上线的时候，重新传下战场状态就可以了；</li>
-<li>去掉录像功能的话，也应该可以扩展到大一点的战场；</li>
-<li>……</li>
-</ul>
-<h2 id="鸣谢"><a href="#鸣谢" class="headerlink" title="鸣谢"></a>鸣谢</h2><ul>
-<li>前公司的客户端主程。当时，我们游戏的战斗模式准备从战报式改为手动操作模式，在我介绍我的（校验？具体的，想不起来了）方案时，
-他说，他们之前有个游戏是通过游戏操作过程来校验的。没有他的提示，很多事情估计会变了样。</li>
-<li>前公司的前主策。在他离职后，我们的一次讨论，将之前的战报校验流程演化成了战场同步方案。没有那次讨论，不会有这篇文章。</li>
-</ul>
-<h2 id="推荐和参考"><a href="#推荐和参考" class="headerlink" title="推荐和参考"></a>推荐和参考</h2><ul>
-<li><a href="https://www.zhihu.com/question/26072198" target="_blank" rel="external">《魔兽争霸III》是如何实现野怪同步的?</a></li>
-</ul>
-
-      
-    </div>
-    <footer>
-      
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
 
 <nav id="pagination">
   
@@ -409,6 +548,8 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -426,6 +567,8 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -447,6 +590,8 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -459,7 +604,7 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

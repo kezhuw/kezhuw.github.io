@@ -90,7 +90,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.profiles.active = dev,featureA</span><br></pre></td></tr></table></figure>
 <p>If you declare profiles this way, profiles specified outside application jar will override profiles inside application jar. If you want to declare a profile which can’t be overrode, use <code>spring.profiles.include</code>.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// application.properties inside projectA&apos;s jar</span><br><span class="line">spring.profiles.include = projectA</span><br></pre></td></tr></table></figure>
-<p><code>application.properties</code> is just one of places to specify spring configuration, you can delcare profiles in other places according to <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config" target="_blank" rel="external">Spring Boot Externalized Configuration</a>. Such as:</p>
+<p><code>application.properties</code> is just one of places to specify spring configuration, you can delcare profiles in other places according to <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config" target="_blank" rel="noopener">Spring Boot Externalized Configuration</a>. Such as:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># os environment</span></span><br><span class="line">SPRING_PROFILES_ACTIVE=featureB java -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># system properties</span></span><br><span class="line">java -Dspring.profiles.active=featureB -jar project.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># command line arguments</span></span><br><span class="line">java -jar project.jar --spring.profiles.active=featureB</span><br></pre></td></tr></table></figure>
 <h2 id="Specify-profiles-programmatically"><a href="#Specify-profiles-programmatically" class="headerlink" title="Specify profiles programmatically"></a>Specify profiles programmatically</h2><p>In application level, you can add profiles using <code>SpringApplication.setAdditinalProfiles</code>.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeApplication</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">      SpringApplication app = <span class="keyword">new</span> SpringApplication(SomeApplication.class);</span><br><span class="line">      app.setAdditinalProfiles(<span class="string">"someApplication"</span>)</span><br><span class="line">      app.run(args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -145,6 +145,8 @@
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -162,6 +164,8 @@
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -183,6 +187,8 @@
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -195,7 +201,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

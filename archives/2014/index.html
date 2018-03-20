@@ -75,13 +75,13 @@
     </header>
     <div class="entry">
       
-        <p>在很早的时候，我就接触到 <a href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs" target="_blank" rel="external">Algorithms + Data Structures = Programs</a> 这样的概念。</p>
+        <p>在很早的时候，我就接触到 <a href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs" target="_blank" rel="noopener">Algorithms + Data Structures = Programs</a> 这样的概念。</p>
 <p>在几年的工作之后的现今，我不认为这个等式可以表达所有的程序，也许只是我所工作的领域无法让我体会到这个等式的价值。</p>
 <p>下面是我尝试去总结自己的经历，得到的另一个等式。</p>
 <pre><code>模块 + 模块间的通信 = 程序
 modules + communications between modules = program
 </code></pre><p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++ 语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
-<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持， <a href="http://www.erlang.org/" target="_blank" rel="external">Erlang</a> 是其中之一。 Erlang 中的 process 就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
+<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持， <a href="http://www.erlang.org/" target="_blank" rel="noopener">Erlang</a> 是其中之一。 Erlang 中的 process 就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
 <p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。 Erlang 中的消息可以跨节点进行传输，</p>
 <p>对在 C/C++ 中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
 <p>在软件开发中引入的大多数“抽象”和“分层”（如果不是全部）都会引起性能的损失，但是今天的大部分程序仍然是运行在“进程”和“虚拟地址空间”的抽象之上。</p>
@@ -117,10 +117,10 @@ modules + communications between modules = program
     </header>
     <div class="entry">
       
-        <p>在 Stack Overflow 上回答了一个问题： <a href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context" target="_blank" rel="external">How can I use an enum class in a boolean context?</a>，记录下。</p>
+        <p>在 Stack Overflow 上回答了一个问题： <a href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context" target="_blank" rel="noopener">How can I use an enum class in a boolean context?</a>，记录下。</p>
 <p>C++ 11 的 <code>explicit operator bool()</code> 可以让类类型的值使用在条件语句中，但无法对 <code>enum</code> 类型提供支持。</p>
 <p>下面是我使用的一种方法：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> Error &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> Error(<span class="keyword">decltype</span>(Value) value = None) : Value(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Error</span> &#123;</span></span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> Error(<span class="keyword">decltype</span>(Value) value = None) : Value(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>使用：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Error <span class="title">lastError</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">auto</span> err = lastError()) &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">switch</span> (lastError().Value) &#123;</span><br><span class="line"><span class="keyword">case</span> Error::None:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> Error::Error1:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (lastError() == Error::Error1) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -193,7 +193,7 @@ modules + communications between modules = program
 <li>如果不存在玩家记录，根据策略（id 哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx, ref: yyy]； </li>
 <li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx, ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
 <li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。 </li>
-<li>做成无状态的服务，所有数据都存 Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。 （服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a href="http://redis.io/commands/eval" target="_blank" rel="external">Lua Script</a> 都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
+<li>做成无状态的服务，所有数据都存 Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。 （服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a href="http://redis.io/commands/eval" target="_blank" rel="noopener">Lua Script</a> 都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
 </ul>
 </li>
 <li><p>多个逻辑服务器：</p>
@@ -252,7 +252,7 @@ modules + communications between modules = program
     </header>
     <div class="entry">
       
-        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="external">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
+        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="noopener">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
 <p>这种同步调用的流程：</p>
 <pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
     ==&gt; coroutine.yield
@@ -270,7 +270,7 @@ do_someting(...)
         |==
     &lt;== syscallret(...)       // return from syscall
 n = ...                       // return from read in userland
-</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="external">CPS</a> 变换。</p>
+</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="noopener">CPS</a> 变换。</p>
 <blockquote>
 <p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
 </blockquote>
@@ -326,7 +326,7 @@ namespace Rextester {
 </code></pre><p>输出： return from delay(): value = 5 in delay():: value = 10</p>
 <h2 id="阅读"><a href="#阅读" class="headerlink" title="阅读"></a>阅读</h2><ul>
 <li>C# 5.0 in a Nutshell</li>
-<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="external">怎样理解阻塞非阻塞与同步异步的区别</a></li>
+<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="noopener">怎样理解阻塞非阻塞与同步异步的区别</a></li>
 </ul>
 
       
@@ -368,6 +368,8 @@ namespace Rextester {
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -385,6 +387,8 @@ namespace Rextester {
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -406,6 +410,8 @@ namespace Rextester {
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -418,7 +424,7 @@ namespace Rextester {
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

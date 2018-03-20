@@ -75,7 +75,7 @@
     </header>
     <div class="entry">
       
-        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="external">Spring</a>.
+        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.
 We use a context path other than “/“, say, “/abc” which is the project name.
 This setting is consistent with existing projects in my team.</p>
 <p>But after we deploy this project behind nginx, we encounter problem. In nginx, we
@@ -101,8 +101,8 @@ you probably don’t notice that.</p>
 passive. They accept request, handle it, response it. The solution comes from the fact that reverse
 proxy stand before web application so that it can add extra informations for web application to handle
 in programming approach without the need to handcode such informations.</p>
-<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="external">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
-<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="external">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
+<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
+<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
 
       
     </div>
@@ -135,7 +135,7 @@ in programming approach without the need to handcode such informations.</p>
     </header>
     <div class="entry">
       
-        <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="external">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="external">implementation in Go</a>. In this post, I summarize
+        <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="noopener">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="noopener">implementation in Go</a>. In this post, I summarize
 some invariants in algorithm used by LevelDB implementations.</p>
 <h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><p>Sequence number is a monotonically increasing 56 bits integer value. Every
 time a key is written to LevelDB, it is tagged with a sequence number one
@@ -262,7 +262,7 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
 <li>前公司的前主策。在他离职后，我们的一次讨论，将之前的战报校验流程演化成了战场同步方案。没有那次讨论，不会有这篇文章。</li>
 </ul>
 <h2 id="推荐和参考"><a href="#推荐和参考" class="headerlink" title="推荐和参考"></a>推荐和参考</h2><ul>
-<li><a href="https://www.zhihu.com/question/26072198" target="_blank" rel="external">《魔兽争霸III》是如何实现野怪同步的?</a></li>
+<li><a href="https://www.zhihu.com/question/26072198" target="_blank" rel="noopener">《魔兽争霸III》是如何实现野怪同步的?</a></li>
 </ul>
 
       
@@ -296,12 +296,12 @@ Si+5 上计算后续的操作，得到新的本地状态 LSi+k-1 ；对比之前
     </header>
     <div class="entry">
       
-        <p>People coming from C or C++ may think that there is no <a href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues" target="_blank" rel="external">memory leak</a> in languages with <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="external">garbage collection</a>. But the truth is:</p>
+        <p>People coming from C or C++ may think that there is no <a href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues" target="_blank" rel="noopener">memory leak</a> in languages with <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="noopener">garbage collection</a>. But the truth is:</p>
 <p><strong>Memory leak does exist in languages with automatic garbage collection.</strong></p>
 <p>In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t
-understand this. Computer uses a concept <a href="https://en.wikipedia.org/wiki/Unreachable_memory" target="_blank" rel="external">unreachable</a> to detect whether
+understand this. Computer uses a concept <a href="https://en.wikipedia.org/wiki/Unreachable_memory" target="_blank" rel="noopener">unreachable</a> to detect whether
 an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.</p>
-<p>Here, I show you a memory leak case using <a href="https://golang.org/doc/effective_go.html" target="_blank" rel="external">Go</a>. Also, it can happen in other garbage collection language, like Java.
+<p>Here, I show you a memory leak case using <a href="https://golang.org/doc/effective_go.html" target="_blank" rel="noopener">Go</a>. Also, it can happen in other garbage collection language, like Java.
 Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.
 Suppose, I write following code for a database library:</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"runtime"</span></span><br><span class="line">	<span class="string">"sync"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Request <span class="keyword">struct</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> DB <span class="keyword">struct</span> &#123;</span><br><span class="line">	closed <span class="keyword">bool</span></span><br><span class="line">	reqC   <span class="keyword">chan</span> Request</span><br><span class="line">	mutex  sync.Mutex</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span> <span class="title">Close</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db.mutex.Lock()</span><br><span class="line">	<span class="keyword">if</span> db.closed &#123;</span><br><span class="line">		db.mutex.Unlock()</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	db.closed = <span class="literal">true</span></span><br><span class="line">	db.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">"db closing"</span>)</span><br><span class="line">	<span class="built_in">close</span>(db.reqC)</span><br><span class="line">	runtime.SetFinalizer(db, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">backgroundWork</span><span class="params">(db *DB)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> <span class="keyword">range</span> db.reqC &#123;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">"db channel closed"</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Open</span><span class="params">(address <span class="keyword">string</span>, name <span class="keyword">string</span>)</span> <span class="params">(*DB, error)</span></span> &#123;</span><br><span class="line">	db := &amp;DB&#123;reqC: <span class="built_in">make</span>(<span class="keyword">chan</span> Request, <span class="number">100</span>)&#125;</span><br><span class="line">	runtime.SetFinalizer(db, (*DB).Close)</span><br><span class="line">	<span class="keyword">go</span> backgroundWork(db)</span><br><span class="line">	<span class="keyword">return</span> db, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</span><br><span class="line">	Open(<span class="string">"tcp://127.0.0.1:4444"</span>, <span class="string">"test"</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	test()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		time.Sleep(<span class="number">5</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -317,7 +317,7 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
 <li>Shutdown background threads or goroutines in API objects’ finalizer/closer function</li>
 <li>Care about “double free” issue, including manual-manual, manual-automatic gc</li>
 </ul>
-<p>If you do want reference API object in background workhorse, use its <a href="https://en.wikipedia.org/wiki/Weak_reference" target="_blank" rel="external">weak reference</a>.</p>
+<p>If you do want reference API object in background workhorse, use its <a href="https://en.wikipedia.org/wiki/Weak_reference" target="_blank" rel="noopener">weak reference</a>.</p>
 
       
     </div>
@@ -358,6 +358,8 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -375,6 +377,8 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -396,6 +400,8 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -408,7 +414,7 @@ we should not reference database object in <code>backgroundWork</code>. Let us m
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

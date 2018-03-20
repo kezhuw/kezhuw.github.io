@@ -80,15 +80,15 @@ biicode ">
       
         <p>最近尝试了几款 C++ 编译系统。</p>
 <ul>
-<li><p><a href="https://cmake.org/cmake/help/v3.4/index.html" target="_blank" rel="external">CMake</a> 对于一个编译系统来说，个人觉得过于复杂了。项目依赖不好解决，可能我姿势不对，用不好 ExternalProject 。</p>
+<li><p><a href="https://cmake.org/cmake/help/v3.4/index.html" target="_blank" rel="noopener">CMake</a> 对于一个编译系统来说，个人觉得过于复杂了。项目依赖不好解决，可能我姿势不对，用不好 ExternalProject 。</p>
 </li>
-<li><p><a href="https://github.com/iauns/cpm" target="_blank" rel="external">CPM</a> 基于 CMake ，对项目结构以及名字空间有额外要求。我写我的代码，导出我的接口，你还想管我怎么写？</p>
+<li><p><a href="https://github.com/iauns/cpm" target="_blank" rel="noopener">CPM</a> 基于 CMake ，对项目结构以及名字空间有额外要求。我写我的代码，导出我的接口，你还想管我怎么写？</p>
 </li>
-<li><p><a href="http://docs.biicode.com/c++/building/biicode_building.html" target="_blank" rel="external">biicode</a> 自动生成了很多隐式配置，用的时候很大可能要修改这些配置，作者脑洞有点大。不推荐。</p>
+<li><p><a href="http://docs.biicode.com/c++/building/biicode_building.html" target="_blank" rel="noopener">biicode</a> 自动生成了很多隐式配置，用的时候很大可能要修改这些配置，作者脑洞有点大。不推荐。</p>
 </li>
-<li><p><a href="https://github.com/mesonbuild/meson" target="_blank" rel="external">meson</a> 很轻量的一个编译系统，配置语言很好用。依赖可以在系统软件包和源码之间切换。对现有项目提供的 patch 支持很不错，不需要对上游做破坏性更新。文档还是比较少的，有些东西估计得读下代码才知道怎么用。值得一试。</p>
+<li><p><a href="https://github.com/mesonbuild/meson" target="_blank" rel="noopener">meson</a> 很轻量的一个编译系统，配置语言很好用。依赖可以在系统软件包和源码之间切换。对现有项目提供的 patch 支持很不错，不需要对上游做破坏性更新。文档还是比较少的，有些东西估计得读下代码才知道怎么用。值得一试。</p>
 </li>
-<li><p><a href="http://bazel.io/" target="_blank" rel="external">bazel</a> Google 出品，离 1.0 还很远，不过已经可以用了。很合适 <a href="http://www.wired.com/2015/09/google-2-billion-lines-codeand-one-place/" target="_blank" rel="external">Google 那种集中式的代码库</a>，根目录一个 WORKSPACE ，其他的项目都只是一个 BUILD ，项目间的依赖也很好指定。和系统软件包的配合不好，连 <code>make install</code> 都没有。patch 支持，一个 BUILD 文件就可以搞定，复杂的话，可能比较麻烦。文档很不错。推荐。</p>
+<li><p><a href="http://bazel.io/" target="_blank" rel="noopener">bazel</a> Google 出品，离 1.0 还很远，不过已经可以用了。很合适 <a href="http://www.wired.com/2015/09/google-2-billion-lines-codeand-one-place/" target="_blank" rel="noopener">Google 那种集中式的代码库</a>，根目录一个 WORKSPACE ，其他的项目都只是一个 BUILD ，项目间的依赖也很好指定。和系统软件包的配合不好，连 <code>make install</code> 都没有。patch 支持，一个 BUILD 文件就可以搞定，复杂的话，可能比较麻烦。文档很不错。推荐。</p>
 </li>
 </ul>
 <p>这几款编译系统都没能解决一个问题：<strong>编译时第三方依赖的源码和软件包之间的一致性</strong>。举例来说：</p>
@@ -144,6 +144,8 @@ biicode ">
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -161,6 +163,8 @@ biicode ">
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -182,6 +186,8 @@ biicode ">
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -194,7 +200,7 @@ biicode ">
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

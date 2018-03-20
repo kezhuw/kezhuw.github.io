@@ -76,7 +76,7 @@
     <div class="entry">
       
         <p>学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。</p>
-<p>很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">1</a>。</p>
+<p>很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a>。</p>
 <p>即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。</p>
 <p>在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。</p>
 <p>下面主要记录一下我写 C++ 的不长的时间里的一些经验。</p>
@@ -89,9 +89,9 @@
 <h2 id="以小的、具体的类代替模板（成员）变量（集合）。"><a href="#以小的、具体的类代替模板（成员）变量（集合）。" class="headerlink" title="以小的、具体的类代替模板（成员）变量（集合）。"></a>以小的、具体的类代替模板（成员）变量（集合）。</h2><p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如： <code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当 <code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
 <h2 id="多用库，善用-STL-和-boost-。"><a href="#多用库，善用-STL-和-boost-。" class="headerlink" title="多用库，善用 STL 和 boost 。"></a>多用库，善用 STL 和 boost 。</h2><p>C++ 的基础库基本上都是模板库，需要根据适用场景进行再封装。</p>
 <h2 id="拒绝复杂。"><a href="#拒绝复杂。" class="headerlink" title="拒绝复杂。"></a>拒绝复杂。</h2><p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++ 的很多坑，就已经很不错了。</p>
-<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦
+<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦
 [2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
-<p>推荐阅读： 孟岩 <a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="external">用C设计，用C++编码</a></p>
+<p>推荐阅读： 孟岩 <a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">用C设计，用C++编码</a></p>
 
       
     </div>
@@ -140,6 +140,8 @@
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -157,6 +159,8 @@
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -178,6 +182,8 @@
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -190,7 +196,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

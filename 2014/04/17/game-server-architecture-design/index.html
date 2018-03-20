@@ -111,7 +111,7 @@
 <li>如果不存在玩家记录，根据策略（id 哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx, ref: yyy]； </li>
 <li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx, ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
 <li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。 </li>
-<li>做成无状态的服务，所有数据都存 Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。 （服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a href="http://redis.io/commands/eval" target="_blank" rel="external">Lua Script</a> 都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
+<li>做成无状态的服务，所有数据都存 Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。 （服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a href="http://redis.io/commands/eval" target="_blank" rel="noopener">Lua Script</a> 都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
 </ul>
 </li>
 <li><p>多个逻辑服务器：</p>
@@ -186,6 +186,8 @@
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -203,6 +205,8 @@
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -224,6 +228,8 @@
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -236,7 +242,7 @@
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>

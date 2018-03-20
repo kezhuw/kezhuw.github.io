@@ -75,7 +75,7 @@
     </header>
     <div class="entry">
       
-        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="external">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
+        <h2 id="Lua-coroutine"><a href="#Lua-coroutine" class="headerlink" title="Lua coroutine"></a>Lua coroutine</h2><p>Lua coroutine 是<a href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" target="_blank" rel="noopener">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
 <p>这种同步调用的流程：</p>
 <pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
     ==&gt; coroutine.yield
@@ -93,7 +93,7 @@ do_someting(...)
         |==
     &lt;== syscallret(...)       // return from syscall
 n = ...                       // return from read in userland
-</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="external">CPS</a> 变换。</p>
+</code></pre><h2 id="C-async-await"><a href="#C-async-await" class="headerlink" title="C# async/await"></a>C# async/await</h2><p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style" target="_blank" rel="noopener">CPS</a> 变换。</p>
 <blockquote>
 <p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
 </blockquote>
@@ -149,7 +149,7 @@ namespace Rextester {
 </code></pre><p>输出： return from delay(): value = 5 in delay():: value = 10</p>
 <h2 id="阅读"><a href="#阅读" class="headerlink" title="阅读"></a>阅读</h2><ul>
 <li>C# 5.0 in a Nutshell</li>
-<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="external">怎样理解阻塞非阻塞与同步异步的区别</a></li>
+<li><a href="http://www.zhihu.com/question/19732473/answer/20851256" target="_blank" rel="noopener">怎样理解阻塞非阻塞与同步异步的区别</a></li>
 </ul>
 
       
@@ -191,6 +191,8 @@ namespace Rextester {
   
     <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
   
+    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
+  
     <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
   
     <li><a href="/tags/Java/">Java</a><small>1</small></li>
@@ -208,6 +210,8 @@ namespace Rextester {
     <li><a href="/tags/csharp/">c#</a><small>1</small></li>
   
     <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
+  
+    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
   
     <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
   
@@ -229,6 +233,8 @@ namespace Rextester {
   
     <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
   
+    <li><a href="/tags/raft/">raft</a><small>1</small></li>
+  
     <li><a href="/tags/spring/">spring</a><small>1</small></li>
   
     <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
@@ -241,7 +247,7 @@ namespace Rextester {
   </div>
   <footer id="footer" class="inner"><div class="alignleft">
   
-  &copy; 2017 Kezhu Wang
+  &copy; 2018 Kezhu Wang
   
 </div>
 <div class="clearfix"></div></footer>
