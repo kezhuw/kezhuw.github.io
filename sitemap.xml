@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.kezhuw.name/2017/04/08/spring-profile/</loc>
+    
+    <lastmod>2018-03-20T16:03:30.492Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/</loc>
     
     <lastmod>2018-03-20T15:57:07.592Z</lastmod>
@@ -12,13 +19,6 @@
     <loc>http://blog.kezhuw.name/2017/08/31/spring-aspectj-load-time-weaving/</loc>
     
     <lastmod>2017-08-31T10:55:33.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.kezhuw.name/2017/04/08/spring-profile/</loc>
-    
-    <lastmod>2017-04-09T06:48:22.000Z</lastmod>
     
   </url>
   
