@@ -78,12 +78,12 @@ recall what I have learned in first reading. This time I decide to record my tho
 recall. Hope it is useful to newbies in distributed systems like me.</p>
 <h2 id="What-does-consensus-algorithm-mean"><a href="#What-does-consensus-algorithm-mean" class="headerlink" title="What does consensus algorithm mean ?"></a>What does consensus algorithm mean ?</h2><p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing" target="_blank" rel="noopener">faulty
 processes</a> in distributed system.</strong></p>
-<h2 id="Introduce-Replicated-State-Machines"><a href="#Introduce-Replicated-State-Machines" class="headerlink" title="Introduce Replicated State Machines"></a>Introduce Replicated State Machines</h2><p>Here, we define state machine as State’ = Machine(State, Input) for simplicity. A state machine
+<h2 id="Introduce-Replicated-State-Machines"><a href="#Introduce-Replicated-State-Machines" class="headerlink" title="Introduce Replicated State Machines"></a>Introduce Replicated State Machines</h2><p>Here, we define state machine as <code>State&#39; = Machine(State, Input)</code> for simplicity. A state machine
 can be defined with its start state, and makes progress with sequence of inputs, produces sequence
 of intermediate states. For examples:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&apos; = Machine(State, Input)</span><br><span class="line">State&apos;&apos; = Machine(State&apos;, Input&apos;)</span><br><span class="line">State&apos;&apos;&apos; = Machine(State&apos;&apos;, Input&apos;&apos;)</span><br></pre></td></tr></table></figure>
 <p>Given a state machine, how can we figure out that it is a replicated state machine ?</p>
-<p>First, replicated state machine is deterministic. Given same start state with same sequence of
+<p>First, <strong>replicated state machine is deterministic</strong>. Given same start state with same sequence of
 inputs, the state machine always produce same intermediate states.</p>
 <p>Second, two state machines built from same logic on possibly different processes or nodes and
 even possibly different languages must be same. Here we define two state machines as same based
@@ -93,11 +93,11 @@ multiple copies of same state machines with same start state, feeding with same 
 they must produces same sequence of intermediate states.</p>
 <p>Third, states, including start state and intermediate states, and inputs must be self-contained,
 thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
-<p>The word replicated in replicated state machine has duple means: deterministic and replication.
+<p>The word replicated in <a href="https://en.wikipedia.org/wiki/State_machine_replication" target="_blank" rel="noopener">replicated state machine</a> has duple means: deterministic and replication.
 Occasionally, replicated state machine is used in non distributed systems to validate processes
 using its deterministic. More often, replicated state machines are used to validate or repliate
 processes among processes or nodes in distributed systems.</p>
-<h2 id="How-replicated-state-machines-implemented-in-distributed-systems"><a href="#How-replicated-state-machines-implemented-in-distributed-systems" class="headerlink" title="How replicated state machines implemented in distributed systems ?"></a>How replicated state machines implemented in distributed systems ?</h2><p>Replicated state machines are typically implemented using a replicated log, this is particular due
+<h2 id="How-replicated-state-machines-implemented-in-distributed-systems"><a href="#How-replicated-state-machines-implemented-in-distributed-systems" class="headerlink" title="How replicated state machines implemented in distributed systems ?"></a>How replicated state machines implemented in distributed systems ?</h2><p>Replicated state machines are typically implemented using a <a href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="noopener">replicated log</a>, this is particular due
 to the fact that state machine process sequence of inputs one by one in order, non batch, non concurrency,
 I guess. Here, replicated in replicated log means replication cross processes or nodes.</p>
 <p>In replciated log, inputs to state machines are appended as sequence of entries or records in order,
