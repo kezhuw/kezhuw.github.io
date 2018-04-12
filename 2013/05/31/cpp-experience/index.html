@@ -1,79 +1,368 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="default,en-US,en,zh-CN,default">
 <head>
-  <meta charset="utf-8">
-  
-  <title>C++ 经验谈 | Recording</title>
-  <meta name="author" content="Kezhu Wang">
-  
-  <meta name="description" content="学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。
-很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦1。
-即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。
-在用 C++">
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
 
-  <meta property="og:title" content="C++ 经验谈"/>
-  <meta property="og:site_name" content="Recording"/>
 
-  
-    <meta property="og:image" content="undefined"/>
-  
 
-  <link href="/favicon.png" rel="icon">
-  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
-  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-  
-<script>
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-	ga('create', 'UA-58052607-1', 'auto');
-	ga('send', 'pageview');
 
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
 </script>
 
 
+  
+
+
+
+
+  <meta name="description" content="学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。 很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦1。 即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。 在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。 下面主要记录一下我写 C++ 的不长的时间里的一些经验。">
+<meta name="keywords" content="c++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ 经验谈">
+<meta property="og:url" content="http://blog.kezhuw.name/2013/05/31/cpp-experience/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。 很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦1。 即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。 在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。 下面主要记录一下我写 C++ 的不长的时间里的一些经验。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2014-12-21T14:46:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ 经验谈">
+<meta name="twitter:description" content="学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。 很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦1。 即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。 在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。 下面主要记录一下我写 C++ 的不长的时间里的一些经验。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="http://blog.kezhuw.name/2013/05/31/cpp-experience/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>C++ 经验谈 | Recording</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
 </head>
 
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
 
-<body>
-  <header id="header" class="inner"><div class="alignleft">
-  <h1><a href="/">Recording</a></h1>
-  <h2><a href="/"></a></h2>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Recording</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
 </div>
-<nav id="main-nav" class="alignright">
-  <ul>
-    
-      <li><a href="/">Home</a></li>
-    
-      <li><a href="/archives">Archives</a></li>
-    
-  </ul>
-  <div class="clearfix"></div>
-</nav>
-<div class="clearfix"></div>
-</header>
-  <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+
+
+
+
+<nav class="site-nav">
   
-  <div class="post-content">
-    <header>
+    <ul id="menu" class="menu">
       
-        <div class="icon"></div>
-        <time datetime="2013-05-30T18:34:02.000Z"><a href="/2013/05/31/cpp-experience/">May 31 2013</a></time>
-      
-      
+        
+        
+          
   
-    <h1 class="title">C++ 经验谈</h1>
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />Tags</a>
+</li>
+
+      
+
+      
+      
+    </ul>
   
 
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
     </header>
-    <div class="entry">
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2013/05/31/cpp-experience/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">C++ 经验谈
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-05-31T02:34:02+08:00">May 31 2013</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
       
         <p>学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。</p>
 <p>很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a>。</p>
@@ -89,139 +378,445 @@
 <h2 id="以小的、具体的类代替模板（成员）变量（集合）。"><a href="#以小的、具体的类代替模板（成员）变量（集合）。" class="headerlink" title="以小的、具体的类代替模板（成员）变量（集合）。"></a>以小的、具体的类代替模板（成员）变量（集合）。</h2><p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如： <code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当 <code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
 <h2 id="多用库，善用-STL-和-boost-。"><a href="#多用库，善用-STL-和-boost-。" class="headerlink" title="多用库，善用 STL 和 boost 。"></a>多用库，善用 STL 和 boost 。</h2><p>C++ 的基础库基本上都是模板库，需要根据适用场景进行再封装。</p>
 <h2 id="拒绝复杂。"><a href="#拒绝复杂。" class="headerlink" title="拒绝复杂。"></a>拒绝复杂。</h2><p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++ 的很多坑，就已经很不错了。</p>
-<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦
-[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
+<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦<br>[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
 <p>推荐阅读： 孟岩 <a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">用C设计，用C++编码</a></p>
 
       
     </div>
-    <footer>
-      
-        
-        
-  
-  <div class="tags">
-    <a href="/tags/cplusplus/">c++</a>
-  </div>
 
-        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
       
-      <div class="clearfix"></div>
+        <div class="post-tags">
+          
+            <a href="/tags/cplusplus/" rel="tag"># c++</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/03/23/cpp-interface-implementation/" rel="next" title="C++ 接口与实现">
+                <i class="fa fa-chevron-left"></i> C++ 接口与实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/07/15/address-const-expression/" rel="prev" title="地址常量表达式">
+                地址常量表达式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
     </footer>
   </div>
-</article>
-
-
-<section id="comment">
-  <h1 class="title">Comments</h1>
-
   
-  <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
-  
-</section>
 
-</div></div>
-    <aside id="sidebar" class="alignright">
-  <div class="search">
-  <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="Search">
-    <input type="hidden" name="q" value="site:blog.kezhuw.name">
-  </form>
-</div>
+
+          </div>
+          
 
   
 
-  
-<div class="widget tag">
-  <h3 class="title">Tags</h3>
-  <ul class="entry">
-  
-    <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
-  
-    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
-  
-    <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
-  
-    <li><a href="/tags/Java/">Java</a><small>2</small></li>
-  
-    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
-  
-    <li><a href="/tags/Spring/">Spring</a><small>2</small></li>
-  
-    <li><a href="/tags/Spring-Boot/">Spring Boot</a><small>1</small></li>
-  
-    <li><a href="/tags/aop/">aop</a><small>1</small></li>
-  
-    <li><a href="/tags/build/">build</a><small>1</small></li>
-  
-    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
-  
-    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
-  
-    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
-  
-    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
-  
-    <li><a href="/tags/epoll/">epoll</a><small>1</small></li>
-  
-    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
-  
-    <li><a href="/tags/gc/">gc</a><small>1</small></li>
-  
-    <li><a href="/tags/golang/">golang</a><small>1</small></li>
-  
-    <li><a href="/tags/kqueue/">kqueue</a><small>1</small></li>
-  
-    <li><a href="/tags/linux/">linux</a><small>1</small></li>
-  
-    <li><a href="/tags/lua/">lua</a><small>1</small></li>
-  
-    <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
-  
-    <li><a href="/tags/raft/">raft</a><small>1</small></li>
-  
-    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
-  
-  </ul>
-</div>
 
-</aside>
-    <div class="clearfix"></div>
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
   </div>
-  <footer id="footer" class="inner"><div class="alignleft">
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/kezhuw" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://book.douban.com/people/kezhuw/" target="_blank" title="Douban"><i class="fa fa-fw fa-book"></i>Douban</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/kezhuw" target="_blank" title="Twitter"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#避免编译时依赖。"><span class="nav-number">1.</span> <span class="nav-text">避免编译时依赖。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨编译单元（-so-dll-lib）时，区分接口与实现-同一编译单元内，不过度区分接口与实现。"><span class="nav-number">2.</span> <span class="nav-text">跨编译单元（.so, .dll, .lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#以小的、具体的类代替模板（成员）变量（集合）。"><span class="nav-number">3.</span> <span class="nav-text">以小的、具体的类代替模板（成员）变量（集合）。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多用库，善用-STL-和-boost-。"><span class="nav-number">4.</span> <span class="nav-text">多用库，善用 STL 和 boost 。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拒绝复杂。"><span class="nav-number">5.</span> <span class="nav-text">拒绝复杂。</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2012 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+
   
-  &copy; 2018 Kezhu Wang
+
   
 </div>
-<div class="clearfix"></div></footer>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
 
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Gemini</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
 
 <script type="text/javascript">
-var disqus_shortname = 'blog-kezhuw';
-
-(function(){
-  var dsq = document.createElement('script');
-  dsq.type = 'text/javascript';
-  dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-}());
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
 </script>
 
 
 
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-  $('.fancybox').fancybox();
-})(jQuery);
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>

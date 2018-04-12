@@ -1,77 +1,368 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="default,en-US,en,zh-CN,default">
 <head>
-  <meta charset="utf-8">
-  
-  <title>zeromq connect | Recording</title>
-  <meta name="author" content="Kezhu Wang">
-  
-  <meta name="description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。
-1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515">
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
 
-  <meta property="og:title" content="zeromq connect"/>
-  <meta property="og:site_name" content="Recording"/>
 
-  
-    <meta property="og:image" content="undefined"/>
-  
 
-  <link href="/favicon.png" rel="icon">
-  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
-  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-  
-<script>
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-	ga('create', 'UA-58052607-1', 'auto');
-	ga('send', 'pageview');
 
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
 </script>
 
 
+  
+
+
+
+
+  <meta name="description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970int zmq::sock">
+<meta name="keywords" content="zeromq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zeromq connect">
+<meta property="og:url" content="http://blog.kezhuw.name/2012/03/07/zeromq-connect/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970int zmq::sock">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2014-12-21T12:41:21.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="zeromq connect">
+<meta name="twitter:description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970int zmq::sock">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="http://blog.kezhuw.name/2012/03/07/zeromq-connect/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>zeromq connect | Recording</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
 </head>
 
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
 
-<body>
-  <header id="header" class="inner"><div class="alignleft">
-  <h1><a href="/">Recording</a></h1>
-  <h2><a href="/"></a></h2>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Recording</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
 </div>
-<nav id="main-nav" class="alignright">
-  <ul>
-    
-      <li><a href="/">Home</a></li>
-    
-      <li><a href="/archives">Archives</a></li>
-    
-  </ul>
-  <div class="clearfix"></div>
-</nav>
-<div class="clearfix"></div>
-</header>
-  <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+
+
+
+
+<nav class="site-nav">
   
-  <div class="post-content">
-    <header>
+    <ul id="menu" class="menu">
       
-        <div class="icon"></div>
-        <time datetime="2012-03-06T23:56:12.000Z"><a href="/2012/03/07/zeromq-connect/">Mar 7 2012</a></time>
-      
-      
+        
+        
+          
   
-    <h1 class="title">zeromq connect</h1>
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />Tags</a>
+</li>
+
+      
+
+      
+      
+    </ul>
   
 
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
     </header>
-    <div class="entry">
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/03/07/zeromq-connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">zeromq connect
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2012-03-07T07:56:12+08:00">Mar 7 2012</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
       
         <p>zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> zmq::<span class="keyword">socket_base_t</span>::connect (<span class="keyword">const</span> <span class="keyword">char</span> *addr_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (unlikely (ctx_terminated)) &#123;</span><br><span class="line">        errno = ETERM;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Parse addr_ string.</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> protocol;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> address;</span><br><span class="line">    <span class="keyword">int</span> rc = parse_uri (addr_, protocol, address);</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// omit...</span></span><br><span class="line">    <span class="comment">//  Parsed address for validation</span></span><br><span class="line">    sockaddr_storage addr;</span><br><span class="line">    <span class="keyword">socklen_t</span> addr_len;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">"tcp"</span>)</span><br><span class="line">        rc = resolve_ip_hostname (&amp;addr, &amp;addr_len, address.c_str ());</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">"ipc"</span>)</span><br><span class="line">        rc = resolve_local_path (&amp;addr, &amp;addr_len, address.c_str ());</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose the I/O thread to run the session in.</span></span><br><span class="line">    <span class="keyword">io_thread_t</span> *io_thread = choose_io_thread (options.affinity);</span><br><span class="line">    <span class="keyword">if</span> (!io_thread) &#123;</span><br><span class="line">        errno = EMTHREAD;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create session.</span></span><br><span class="line">    <span class="keyword">connect_session_t</span> *session = <span class="keyword">new</span> (<span class="built_in">std</span>::nothrow) <span class="keyword">connect_session_t</span> (</span><br><span class="line">        io_thread, <span class="keyword">this</span>, options, protocol.c_str (), address.c_str ());</span><br><span class="line">    alloc_assert (session);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  If 'immediate connect' feature is required, we'll create the pipes</span></span><br><span class="line">    <span class="comment">//  to the session straight away. Otherwise, they'll be created by the</span></span><br><span class="line">    <span class="comment">//  session once the connection is established.</span></span><br><span class="line">    <span class="keyword">if</span> (options.immediate_connect) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">reader_t</span> *inpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">writer_t</span> *inpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">reader_t</span> *outpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">writer_t</span> *outpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create inbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_in)</span><br><span class="line">            create_pipe (<span class="keyword">this</span>, session, options.hwm, options.swap,</span><br><span class="line">                &amp;inpipe_reader, &amp;inpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create outbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_out)</span><br><span class="line">            create_pipe (session, <span class="keyword">this</span>, options.hwm, options.swap,</span><br><span class="line">                &amp;outpipe_reader, &amp;outpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the socket object.</span></span><br><span class="line">        attach_pipes (inpipe_reader, outpipe_writer, <span class="keyword">blob_t</span> ());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the session object.</span></span><br><span class="line">        session-&gt;attach_pipes (outpipe_reader, inpipe_writer, <span class="keyword">blob_t</span> ());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Activate the session. Make it a child of this socket.</span></span><br><span class="line">    launch_child (session);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -96,133 +387,415 @@
 
       
     </div>
-    <footer>
-      
-        
-        
-  
-  <div class="tags">
-    <a href="/tags/zeromq/">zeromq</a>
-  </div>
 
-        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
       
-      <div class="clearfix"></div>
+        <div class="post-tags">
+          
+            <a href="/tags/zeromq/" rel="tag"># zeromq</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2012/03/05/zeromq-mailbox/" rel="next" title="zeromq mailbox">
+                <i class="fa fa-chevron-left"></i> zeromq mailbox
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2012/03/09/zeromq-bind/" rel="prev" title="zeromq bind">
+                zeromq bind <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
     </footer>
   </div>
-</article>
-
-
-<section id="comment">
-  <h1 class="title">Comments</h1>
-
   
-  <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
-  
-</section>
 
-</div></div>
-    <aside id="sidebar" class="alignright">
-  <div class="search">
-  <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="Search">
-    <input type="hidden" name="q" value="site:blog.kezhuw.name">
-  </form>
-</div>
+
+          </div>
+          
 
   
 
-  
-<div class="widget tag">
-  <h3 class="title">Tags</h3>
-  <ul class="entry">
-  
-    <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
-  
-    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
-  
-    <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
-  
-    <li><a href="/tags/Java/">Java</a><small>2</small></li>
-  
-    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
-  
-    <li><a href="/tags/Spring/">Spring</a><small>2</small></li>
-  
-    <li><a href="/tags/Spring-Boot/">Spring Boot</a><small>1</small></li>
-  
-    <li><a href="/tags/aop/">aop</a><small>1</small></li>
-  
-    <li><a href="/tags/build/">build</a><small>1</small></li>
-  
-    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
-  
-    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
-  
-    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
-  
-    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
-  
-    <li><a href="/tags/epoll/">epoll</a><small>1</small></li>
-  
-    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
-  
-    <li><a href="/tags/gc/">gc</a><small>1</small></li>
-  
-    <li><a href="/tags/golang/">golang</a><small>1</small></li>
-  
-    <li><a href="/tags/kqueue/">kqueue</a><small>1</small></li>
-  
-    <li><a href="/tags/linux/">linux</a><small>1</small></li>
-  
-    <li><a href="/tags/lua/">lua</a><small>1</small></li>
-  
-    <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
-  
-    <li><a href="/tags/raft/">raft</a><small>1</small></li>
-  
-    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
-  
-  </ul>
-</div>
 
-</aside>
-    <div class="clearfix"></div>
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
   </div>
-  <footer id="footer" class="inner"><div class="alignleft">
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/kezhuw" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://book.douban.com/people/kezhuw/" target="_blank" title="Douban"><i class="fa fa-fw fa-book"></i>Douban</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/kezhuw" target="_blank" title="Twitter"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2012 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+
   
-  &copy; 2018 Kezhu Wang
+
   
 </div>
-<div class="clearfix"></div></footer>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
 
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Gemini</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
 
 <script type="text/javascript">
-var disqus_shortname = 'blog-kezhuw';
-
-(function(){
-  var dsq = document.createElement('script');
-  dsq.type = 'text/javascript';
-  dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-}());
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
 </script>
 
 
 
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-  $('.fancybox').fancybox();
-})(jQuery);
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>

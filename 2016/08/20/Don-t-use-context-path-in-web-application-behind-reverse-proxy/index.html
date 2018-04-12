@@ -1,236 +1,793 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="default,en-US,en,zh-CN,default">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Don&#39;t use context path in web application behind reverse proxy | Recording</title>
-  <meta name="author" content="Kezhu Wang">
-  
-  <meta name="description" content="Recently, I and my colleague build a small web project together using Spring.
-We use a context path other than “/“, say, “/abc” which is the project n">
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
 
-  <meta property="og:title" content="Don&#39;t use context path in web application behind reverse proxy"/>
-  <meta property="og:site_name" content="Recording"/>
 
-  
-    <meta property="og:image" content="undefined"/>
-  
 
-  <link href="/favicon.png" rel="icon">
-  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
-  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-  
-<script>
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-	ga('create', 'UA-58052607-1', 'auto');
-	ga('send', 'pageview');
 
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
 </script>
 
+
+  
+
+
+
+
+  <meta name="description" content="Recently, I and my colleague build a small web project together using Spring.We use a context path other than “/“, say, “/abc” which is the project name.This setting is consistent with existing projec">
+<meta name="keywords" content="nginx,HTTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Don&#39;t use context path in web application behind reverse proxy">
+<meta property="og:url" content="http://blog.kezhuw.name/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="Recently, I and my colleague build a small web project together using Spring.We use a context path other than “/“, say, “/abc” which is the project name.This setting is consistent with existing projec">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2016-08-20T23:32:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Don&#39;t use context path in web application behind reverse proxy">
+<meta name="twitter:description" content="Recently, I and my colleague build a small web project together using Spring.We use a context path other than “/“, say, “/abc” which is the project name.This setting is consistent with existing projec">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="http://blog.kezhuw.name/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Don't use context path in web application behind reverse proxy | Recording</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
 
 </head>
 
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
 
-<body>
-  <header id="header" class="inner"><div class="alignleft">
-  <h1><a href="/">Recording</a></h1>
-  <h2><a href="/"></a></h2>
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Recording</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
 </div>
-<nav id="main-nav" class="alignright">
-  <ul>
-    
-      <li><a href="/">Home</a></li>
-    
-      <li><a href="/archives">Archives</a></li>
-    
-  </ul>
-  <div class="clearfix"></div>
-</nav>
-<div class="clearfix"></div>
-</header>
-  <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+
+
+
+
+<nav class="site-nav">
   
-  <div class="post-content">
-    <header>
+    <ul id="menu" class="menu">
       
-        <div class="icon"></div>
-        <time datetime="2016-08-20T14:24:05.000Z"><a href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">Aug 20 2016</a></time>
-      
-      
+        
+        
+          
   
-    <h1 class="title">Don&#39;t use context path in web application behind reverse proxy</h1>
+  <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+</li>
+
+      
+        
+        
+          
+  
+  <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />Tags</a>
+</li>
+
+      
+
+      
+      
+    </ul>
   
 
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
     </header>
-    <div class="entry">
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Don't use context path in web application behind reverse proxy
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2016-08-20T22:24:05+08:00">Aug 20 2016</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
       
-        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.
-We use a context path other than “/“, say, “/abc” which is the project name.
-This setting is consistent with existing projects in my team.</p>
-<p>But after we deploy this project behind nginx, we encounter problem. In nginx, we
-config something like this:</p>
+      
+
+      
+        <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.<br>We use a context path other than “/“, say, “/abc” which is the project name.<br>This setting is consistent with existing projects in my team.</p>
+<p>But after we deploy this project behind nginx, we encounter problem. In nginx, we<br>config something like this:</p>
 <figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:5000/abc/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>It works fine for handwritten url from client. But the url links in the response html,
-which is generated by this application and points to resources inside this application,
-does not work. <em>All url forwarded by nginx will be prefixed with “/abc”, which is the
-context path of this application in web container.</em> While the application generated url
-links have that prefix already. This results in wrong url links for those resources.</p>
-<p>There are workarounds to solve this, though, but after investigation and thinking, I
-concludes to:</p>
-<p><strong>If you use reverse proxy to forward HTTP request, then don’t use context path in your
-application, instead let reverse proxy set context path for you.</strong></p>
-<p>First, if you use context path other than “/“ in your application and you want your application
-visited via top domain without subpath, then you must hardcode that context path in reverse
-proxy. The same information is hardcoded in two places, your application and the reverse proxy.</p>
-<p>Second, if you use context path “/“ in your application and you want your application visited via
-subpath, reverse proxy such as nginx can set <code>X-Forwarded-Prefix</code> for your application to generate
-url links prefixed with that subpath. If the framework backing your application respect this header,
-you probably don’t notice that.</p>
-<p>The underlying cause behind this conclusion is that both web application and reverse proxy are
-passive. They accept request, handle it, response it. The solution comes from the fact that reverse
-proxy stand before web application so that it can add extra informations for web application to handle
-in programming approach without the need to handcode such informations.</p>
-<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
-<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
+<p>It works fine for handwritten url from client. But the url links in the response html,<br>which is generated by this application and points to resources inside this application,<br>does not work. <em>All url forwarded by nginx will be prefixed with “/abc”, which is the<br>context path of this application in web container.</em> While the application generated url<br>links have that prefix already. This results in wrong url links for those resources.</p>
+<p>There are workarounds to solve this, though, but after investigation and thinking, I<br>concludes to:</p>
+<p><strong>If you use reverse proxy to forward HTTP request, then don’t use context path in your<br>application, instead let reverse proxy set context path for you.</strong></p>
+<p>First, if you use context path other than “/“ in your application and you want your application<br>visited via top domain without subpath, then you must hardcode that context path in reverse<br>proxy. The same information is hardcoded in two places, your application and the reverse proxy.</p>
+<p>Second, if you use context path “/“ in your application and you want your application visited via<br>subpath, reverse proxy such as nginx can set <code>X-Forwarded-Prefix</code> for your application to generate<br>url links prefixed with that subpath. If the framework backing your application respect this header,<br>you probably don’t notice that.</p>
+<p>The underlying cause behind this conclusion is that both web application and reverse proxy are<br>passive. They accept request, handle it, response it. The solution comes from the fact that reverse<br>proxy stand before web application so that it can add extra informations for web application to handle<br>in programming approach without the need to handcode such informations.</p>
+<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a><br><a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
 
       
     </div>
-    <footer>
-      
-        
-        
-  
-  <div class="tags">
-    <a href="/tags/nginx/">nginx</a>, <a href="/tags/HTTP/">HTTP</a>
-  </div>
 
-        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
       
-      <div class="clearfix"></div>
+        <div class="post-tags">
+          
+            <a href="/tags/nginx/" rel="tag"># nginx</a>
+          
+            <a href="/tags/HTTP/" rel="tag"># HTTP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/14/invariants-in-leveldb-algorithm/" rel="next" title="Invariants in LevelDB algorithm">
+                <i class="fa fa-chevron-left"></i> Invariants in LevelDB algorithm
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/08/spring-profile/" rel="prev" title="Spring Profile">
+                Spring Profile <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
     </footer>
   </div>
-</article>
-
-
-<section id="comment">
-  <h1 class="title">Comments</h1>
-
   
-  <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
-  
-</section>
 
-</div></div>
-    <aside id="sidebar" class="alignright">
-  <div class="search">
-  <form action="//google.com/search" method="get" accept-charset="utf-8">
-    <input type="search" name="q" results="0" placeholder="Search">
-    <input type="hidden" name="q" value="site:blog.kezhuw.name">
-  </form>
-</div>
+
+          </div>
+          
 
   
 
-  
-<div class="widget tag">
-  <h3 class="title">Tags</h3>
-  <ul class="entry">
-  
-    <li><a href="/tags/AspectJ/">AspectJ</a><small>1</small></li>
-  
-    <li><a href="/tags/Distributed-Systems/">Distributed Systems</a><small>1</small></li>
-  
-    <li><a href="/tags/HTTP/">HTTP</a><small>1</small></li>
-  
-    <li><a href="/tags/Java/">Java</a><small>2</small></li>
-  
-    <li><a href="/tags/LevelDB/">LevelDB</a><small>1</small></li>
-  
-    <li><a href="/tags/Spring/">Spring</a><small>2</small></li>
-  
-    <li><a href="/tags/Spring-Boot/">Spring Boot</a><small>1</small></li>
-  
-    <li><a href="/tags/aop/">aop</a><small>1</small></li>
-  
-    <li><a href="/tags/build/">build</a><small>1</small></li>
-  
-    <li><a href="/tags/csharp/">c#</a><small>1</small></li>
-  
-    <li><a href="/tags/cplusplus/">c++</a><small>5</small></li>
-  
-    <li><a href="/tags/consensus/">consensus</a><small>1</small></li>
-  
-    <li><a href="/tags/coroutine/">coroutine</a><small>1</small></li>
-  
-    <li><a href="/tags/epoll/">epoll</a><small>1</small></li>
-  
-    <li><a href="/tags/game-development/">game development</a><small>4</small></li>
-  
-    <li><a href="/tags/gc/">gc</a><small>1</small></li>
-  
-    <li><a href="/tags/golang/">golang</a><small>1</small></li>
-  
-    <li><a href="/tags/kqueue/">kqueue</a><small>1</small></li>
-  
-    <li><a href="/tags/linux/">linux</a><small>1</small></li>
-  
-    <li><a href="/tags/lua/">lua</a><small>1</small></li>
-  
-    <li><a href="/tags/nginx/">nginx</a><small>1</small></li>
-  
-    <li><a href="/tags/raft/">raft</a><small>1</small></li>
-  
-    <li><a href="/tags/zeromq/">zeromq</a><small>6</small></li>
-  
-  </ul>
-</div>
 
-</aside>
-    <div class="clearfix"></div>
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
   </div>
-  <footer id="footer" class="inner"><div class="alignleft">
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/kezhuw" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://book.douban.com/people/kezhuw/" target="_blank" title="Douban"><i class="fa fa-fw fa-book"></i>Douban</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://twitter.com/kezhuw" target="_blank" title="Twitter"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2012 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+
   
-  &copy; 2018 Kezhu Wang
+
   
 </div>
-<div class="clearfix"></div></footer>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
 
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Gemini</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
 
 <script type="text/javascript">
-var disqus_shortname = 'blog-kezhuw';
-
-(function(){
-  var dsq = document.createElement('script');
-  dsq.type = 'text/javascript';
-  dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-}());
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
 </script>
 
 
 
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-  $('.fancybox').fancybox();
-})(jQuery);
-</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>
