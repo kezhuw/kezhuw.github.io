@@ -99,18 +99,18 @@
 
 
 
-  <meta name="description" content="先引用一下，0mq manual 的话：0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发">
+  <meta name="description" content="先引用一下，0mq manual 的话： 0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用">
 <meta name="keywords" content="zeromq">
 <meta property="og:type" content="article">
 <meta property="og:title" content="zeromq atomic msg">
 <meta property="og:url" content="http://blog.kezhuw.name/2012/04/10/zeromq-atomic-msg/index.html">
 <meta property="og:site_name" content="Recording">
-<meta property="og:description" content="先引用一下，0mq manual 的话：0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发">
+<meta property="og:description" content="先引用一下，0mq manual 的话： 0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用">
 <meta property="og:locale" content="default">
 <meta property="og:updated_time" content="2014-12-21T12:42:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="zeromq atomic msg">
-<meta name="twitter:description" content="先引用一下，0mq manual 的话：0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发">
+<meta name="twitter:description" content="先引用一下，0mq manual 的话： 0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all. 在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用">
 
 
 
@@ -192,7 +192,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+        <p class="site-subtitle">Commit volatile memory to immutable log.</p>
       
   </div>
 
@@ -364,7 +364,8 @@
       
 
       
-        <p>先引用一下，0mq manual 的话：<br>0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
+        <p>先引用一下，0mq manual 的话：
+0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
 <p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t 的管道中取得数据。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">ypipe_t</span> &lt; <span class="keyword">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="keyword">pipe_t</span>;</span><br></pre></td></tr></table></figure>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>

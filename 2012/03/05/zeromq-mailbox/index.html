@@ -99,18 +99,18 @@
 
 
 
-  <meta name="description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
+  <meta name="description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。  1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
 <meta name="keywords" content="zeromq">
 <meta property="og:type" content="article">
 <meta property="og:title" content="zeromq mailbox">
 <meta property="og:url" content="http://blog.kezhuw.name/2012/03/05/zeromq-mailbox/index.html">
 <meta property="og:site_name" content="Recording">
-<meta property="og:description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
+<meta property="og:description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。  1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
 <meta property="og:locale" content="default">
 <meta property="og:updated_time" content="2014-12-28T06:15:28.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="zeromq mailbox">
-<meta name="twitter:description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
+<meta name="twitter:description" content="0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。  1234567891011121314151617181920void zmq::io_thread_t::in_event ()&amp;#123;    //  TODO: Do we want to limit number of commands I/O thread can">
 
 
 
@@ -192,7 +192,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+        <p class="site-subtitle">Commit volatile memory to immutable log.</p>
       
   </div>
 
@@ -364,7 +364,8 @@
       
 
       
-        <p>0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">io_thread_t</span>::in_event ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  <span class="doctag">TODO:</span> Do we want to limit number of commands I/O thread can</span></span><br><span class="line">    <span class="comment">//  process in a single go?</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Get the next command. If there is none, exit.</span></span><br><span class="line">        <span class="keyword">command_t</span> cmd;</span><br><span class="line">        <span class="keyword">int</span> rc = mailbox.recv (&amp;cmd, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EINTR)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EAGAIN)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        errno_assert (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Process the command.</span></span><br><span class="line">        cmd.destination-&gt;;process_command (cmd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+        <p>0mq中的reaper_t和io_thread_t的in_event函数大体相同，都是用来处理mailbox里的命令。 
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">io_thread_t</span>::in_event ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  <span class="doctag">TODO:</span> Do we want to limit number of commands I/O thread can</span></span><br><span class="line">    <span class="comment">//  process in a single go?</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Get the next command. If there is none, exit.</span></span><br><span class="line">        <span class="keyword">command_t</span> cmd;</span><br><span class="line">        <span class="keyword">int</span> rc = mailbox.recv (&amp;cmd, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EINTR)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span> &amp;&amp; errno == EAGAIN)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        errno_assert (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Process the command.</span></span><br><span class="line">        cmd.destination-&gt;;process_command (cmd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> zmq::<span class="keyword">ctx_t</span>::send_command (<span class="keyword">uint32_t</span> tid_, <span class="keyword">const</span> <span class="keyword">command_t</span> &amp;command_)</span><br><span class="line">&#123;</span><br><span class="line">    slots [tid_]-&gt;send (command_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>从<a href="/2012/03/04/zeromq-context/">之前</a>可以看出： <ul></ul></p>
 <ul>

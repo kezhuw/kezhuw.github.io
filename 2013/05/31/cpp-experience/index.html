@@ -192,7 +192,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+        <p class="site-subtitle">Commit volatile memory to immutable log.</p>
       
   </div>
 
@@ -378,7 +378,8 @@
 <h2 id="以小的、具体的类代替模板（成员）变量（集合）。"><a href="#以小的、具体的类代替模板（成员）变量（集合）。" class="headerlink" title="以小的、具体的类代替模板（成员）变量（集合）。"></a>以小的、具体的类代替模板（成员）变量（集合）。</h2><p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如： <code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当 <code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
 <h2 id="多用库，善用-STL-和-boost-。"><a href="#多用库，善用-STL-和-boost-。" class="headerlink" title="多用库，善用 STL 和 boost 。"></a>多用库，善用 STL 和 boost 。</h2><p>C++ 的基础库基本上都是模板库，需要根据适用场景进行再封装。</p>
 <h2 id="拒绝复杂。"><a href="#拒绝复杂。" class="headerlink" title="拒绝复杂。"></a>拒绝复杂。</h2><p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++ 的很多坑，就已经很不错了。</p>
-<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦<br>[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
+<p><a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦
+[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
 <p>推荐阅读： 孟岩 <a href="http://blog.csdn.net/myan/article/details/1778843" target="_blank" rel="noopener">用C设计，用C++编码</a></p>
 
       

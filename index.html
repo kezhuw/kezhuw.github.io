@@ -188,7 +188,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">Commit volatile memory to immutable history.</p>
+        <p class="site-subtitle">Commit volatile memory to immutable log.</p>
       
   </div>
 
@@ -365,14 +365,26 @@
 
       
         
-          <p>This is my second time to read through <a href="https://raft.github.io/" target="_blank" rel="noopener">Raft</a> <a href="https://purl.stanford.edu/qr033xr6097" target="_blank" rel="noopener">Algorithm</a>, and it is hard to<br>recall what I have learned in first reading. This time I decide to record my thoughts for future<br>recall. Hope it is useful to newbies in distributed systems like me.</p>
-<h2 id="What-does-consensus-algorithm-mean"><a href="#What-does-consensus-algorithm-mean" class="headerlink" title="What does consensus algorithm mean ?"></a>What does consensus algorithm mean ?</h2><p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing" target="_blank" rel="noopener">faulty<br>processes</a> in distributed system.</strong></p>
-<h2 id="Introduce-Replicated-State-Machines"><a href="#Introduce-Replicated-State-Machines" class="headerlink" title="Introduce Replicated State Machines"></a>Introduce Replicated State Machines</h2><p>Here, we define state machine as <code>State&#39; = Machine(State, Input)</code> for simplicity. A state machine<br>can be defined with its start state, and makes progress with sequence of inputs, produces sequence<br>of intermediate states. For examples:</p>
+          <p>This is my second time to read through <a href="https://raft.github.io/" target="_blank" rel="noopener">Raft</a> <a href="https://purl.stanford.edu/qr033xr6097" target="_blank" rel="noopener">Algorithm</a>, and it is hard to
+recall what I have learned in first reading. This time I decide to record my thoughts for future
+recall. Hope it is useful to newbies in distributed systems like me.</p>
+<h2 id="What-does-consensus-algorithm-mean"><a href="#What-does-consensus-algorithm-mean" class="headerlink" title="What does consensus algorithm mean ?"></a>What does consensus algorithm mean ?</h2><p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing" target="_blank" rel="noopener">faulty
+processes</a> in distributed system.</strong></p>
+<h2 id="Introduce-Replicated-State-Machines"><a href="#Introduce-Replicated-State-Machines" class="headerlink" title="Introduce Replicated State Machines"></a>Introduce Replicated State Machines</h2><p>Here, we define state machine as <code>State&#39; = Machine(State, Input)</code> for simplicity. A state machine
+can be defined with its start state, and makes progress with sequence of inputs, produces sequence
+of intermediate states. For examples:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&apos; = Machine(State, Input)</span><br><span class="line">State&apos;&apos; = Machine(State&apos;, Input&apos;)</span><br><span class="line">State&apos;&apos;&apos; = Machine(State&apos;&apos;, Input&apos;&apos;)</span><br></pre></td></tr></table></figure>
 <p>Given a state machine, how can we figure out that it is a replicated state machine ?</p>
-<p>First, <strong>replicated state machine is deterministic</strong>. Given same start state with same sequence of<br>inputs, the state machine always produce same intermediate states.</p>
-<p>Second, two state machines built from same logic on possibly different processes or nodes and<br>even possibly different languages must be same. Here we define two state machines as same based<br>on deterministic: given same start state and same sequence of inputs, if two state machines<br>produce same sequence of intermediate states, we say these two state machine are same. Thus given<br>multiple copies of same state machines with same start state, feeding with same sequence of inputs,<br>they must produces same sequence of intermediate states.</p>
-<p>Third, states, including start state and intermediate states, and inputs must be self-contained,<br>thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
+<p>First, <strong>replicated state machine is deterministic</strong>. Given same start state with same sequence of
+inputs, the state machine always produce same intermediate states.</p>
+<p>Second, two state machines built from same logic on possibly different processes or nodes and
+even possibly different languages must be same. Here we define two state machines as same based
+on deterministic: given same start state and same sequence of inputs, if two state machines
+produce same sequence of intermediate states, we say these two state machine are same. Thus given
+multiple copies of same state machines with same start state, feeding with same sequence of inputs,
+they must produces same sequence of intermediate states.</p>
+<p>Third, states, including start state and intermediate states, and inputs must be self-contained,
+thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/#more" rel="contents">
@@ -797,16 +809,34 @@
 
       
         
-          <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.<br>We use a context path other than “/“, say, “/abc” which is the project name.<br>This setting is consistent with existing projects in my team.</p>
-<p>But after we deploy this project behind nginx, we encounter problem. In nginx, we<br>config something like this:</p>
+          <p>Recently, I and my colleague build a small web project together using <a href="https://spring.io/" target="_blank" rel="noopener">Spring</a>.
+We use a context path other than “/“, say, “/abc” which is the project name.
+This setting is consistent with existing projects in my team.</p>
+<p>But after we deploy this project behind nginx, we encounter problem. In nginx, we
+config something like this:</p>
 <figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:5000/abc/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>It works fine for handwritten url from client. But the url links in the response html,<br>which is generated by this application and points to resources inside this application,<br>does not work. <em>All url forwarded by nginx will be prefixed with “/abc”, which is the<br>context path of this application in web container.</em> While the application generated url<br>links have that prefix already. This results in wrong url links for those resources.</p>
-<p>There are workarounds to solve this, though, but after investigation and thinking, I<br>concludes to:</p>
-<p><strong>If you use reverse proxy to forward HTTP request, then don’t use context path in your<br>application, instead let reverse proxy set context path for you.</strong></p>
-<p>First, if you use context path other than “/“ in your application and you want your application<br>visited via top domain without subpath, then you must hardcode that context path in reverse<br>proxy. The same information is hardcoded in two places, your application and the reverse proxy.</p>
-<p>Second, if you use context path “/“ in your application and you want your application visited via<br>subpath, reverse proxy such as nginx can set <code>X-Forwarded-Prefix</code> for your application to generate<br>url links prefixed with that subpath. If the framework backing your application respect this header,<br>you probably don’t notice that.</p>
-<p>The underlying cause behind this conclusion is that both web application and reverse proxy are<br>passive. They accept request, handle it, response it. The solution comes from the fact that reverse<br>proxy stand before web application so that it can add extra informations for web application to handle<br>in programming approach without the need to handcode such informations.</p>
-<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a><br><a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
+<p>It works fine for handwritten url from client. But the url links in the response html,
+which is generated by this application and points to resources inside this application,
+does not work. <em>All url forwarded by nginx will be prefixed with “/abc”, which is the
+context path of this application in web container.</em> While the application generated url
+links have that prefix already. This results in wrong url links for those resources.</p>
+<p>There are workarounds to solve this, though, but after investigation and thinking, I
+concludes to:</p>
+<p><strong>If you use reverse proxy to forward HTTP request, then don’t use context path in your
+application, instead let reverse proxy set context path for you.</strong></p>
+<p>First, if you use context path other than “/“ in your application and you want your application
+visited via top domain without subpath, then you must hardcode that context path in reverse
+proxy. The same information is hardcoded in two places, your application and the reverse proxy.</p>
+<p>Second, if you use context path “/“ in your application and you want your application visited via
+subpath, reverse proxy such as nginx can set <code>X-Forwarded-Prefix</code> for your application to generate
+url links prefixed with that subpath. If the framework backing your application respect this header,
+you probably don’t notice that.</p>
+<p>The underlying cause behind this conclusion is that both web application and reverse proxy are
+passive. They accept request, handle it, response it. The solution comes from the fact that reverse
+proxy stand before web application so that it can add extra informations for web application to handle
+in programming approach without the need to handcode such informations.</p>
+<p>Links:<br><a href="http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy" target="_blank" rel="noopener">http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy</a>
+<a href="http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context" target="_blank" rel="noopener">http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</a></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/#more" rel="contents">
@@ -943,13 +973,29 @@
 
       
         
-          <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="noopener">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="noopener">implementation in Go</a>. In this post, I summarize<br>some invariants in algorithm used by LevelDB implementations.</p>
-<h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><p>Sequence number is a monotonically increasing 56 bits integer value. Every<br>time a key is written to LevelDB, it is tagged with a sequence number one<br>larger than sequence number tagged with previous key written to LevelDB.<br><strong>If two entries in LevelDB have same user level keys, the one with larger<br>sequence must shadow the other.</strong></p>
-<h2 id="Sorted-Memory-Tables"><a href="#Sorted-Memory-Tables" class="headerlink" title="Sorted Memory Tables"></a>Sorted Memory Tables</h2><p>Writes are first recorded in a mutable memory table. If that memory table is<br>full, it is marked as immutable and a new memory table is created to record<br>writes. The memory table marked as immutable is then compacted to a sorted<br>disk table in level 0 and deleted. Thus we conclude that:</p>
-<p><strong>If a key appears in mutable memory table, it is newest. Otherwise, if it<br>appears in immutable memory table, it is newest.</strong></p>
-<h2 id="Compaction"><a href="#Compaction" class="headerlink" title="Compaction"></a>Compaction</h2><p>When an immutable memory table is compacted to a sorted table in Level 0, it<br>is assigned with a file number larger than all existing file numbers in this<br>Level. Thus we have:</p>
-<p><strong>Entries stored in newer file in Level 0 shadow entries with same user keys<br>in older files.</strong></p>
-<p>When there are too many files in Level 0 or too many data in Level 1 or above,<br>we start level compaction. In level N compaction, we select a file set from<br>level N, such that no remaining files overlap this file set in user key level.<br>Then we compact this file set with all overlapping files from level N+1, and<br>produce sorted tables in level N+1. Thus we conclude to two invariants.</p>
+          <p>Recently, I write a <a href="https://github.com/google/leveldb" target="_blank" rel="noopener">LevelDB</a> <a href="https://github.com/kezhuw/leveldb" target="_blank" rel="noopener">implementation in Go</a>. In this post, I summarize
+some invariants in algorithm used by LevelDB implementations.</p>
+<h2 id="Sequence-Number"><a href="#Sequence-Number" class="headerlink" title="Sequence Number"></a>Sequence Number</h2><p>Sequence number is a monotonically increasing 56 bits integer value. Every
+time a key is written to LevelDB, it is tagged with a sequence number one
+larger than sequence number tagged with previous key written to LevelDB.
+<strong>If two entries in LevelDB have same user level keys, the one with larger
+sequence must shadow the other.</strong></p>
+<h2 id="Sorted-Memory-Tables"><a href="#Sorted-Memory-Tables" class="headerlink" title="Sorted Memory Tables"></a>Sorted Memory Tables</h2><p>Writes are first recorded in a mutable memory table. If that memory table is
+full, it is marked as immutable and a new memory table is created to record
+writes. The memory table marked as immutable is then compacted to a sorted
+disk table in level 0 and deleted. Thus we conclude that:</p>
+<p><strong>If a key appears in mutable memory table, it is newest. Otherwise, if it
+appears in immutable memory table, it is newest.</strong></p>
+<h2 id="Compaction"><a href="#Compaction" class="headerlink" title="Compaction"></a>Compaction</h2><p>When an immutable memory table is compacted to a sorted table in Level 0, it
+is assigned with a file number larger than all existing file numbers in this
+Level. Thus we have:</p>
+<p><strong>Entries stored in newer file in Level 0 shadow entries with same user keys
+in older files.</strong></p>
+<p>When there are too many files in Level 0 or too many data in Level 1 or above,
+we start level compaction. In level N compaction, we select a file set from
+level N, such that no remaining files overlap this file set in user key level.
+Then we compact this file set with all overlapping files from level N+1, and
+produce sorted tables in level N+1. Thus we conclude to two invariants.</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/06/14/invariants-in-leveldb-algorithm/#more" rel="contents">
