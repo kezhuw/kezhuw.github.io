@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Recording">
+<meta property="og:url" content="http://blog.kezhuw.name/page/3/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:locale">
+<meta property="article:author" content="Kezhu Wang">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/page/3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2015/04/06/global-mail-sending-in-game-server/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2015/04/06/global-mail-sending-in-game-server/" class="post-title-link" itemprop="url">游戏服务器中的全服邮件发送</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: Apr 6 2015 1:15:40 / Modified: 1:41:59" itemprop="dateCreated datePublished" datetime="2015-04-06T01:15:40+08:00">Apr 6 2015</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>游戏开发、运营过程中通常会有 “给全服所有玩家发送邮件” 的需求。</p>
+<p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向
+“全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global Mail Centra</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">version_t</span> = uint64;</span><br><span class="line"><span class="keyword">using</span> <span class="type">mail_id_t</span> = uint64;</span><br><span class="line"></span><br><span class="line">std::map&lt;<span class="type">version_t</span>, <span class="type">mail_id_t</span>&gt; _mails;</span><br><span class="line"></span><br><span class="line">std::tuple&lt;<span class="type">version_t</span>, std::vector&lt;<span class="type">mail_id_t</span>&gt;&gt; <span class="built_in">fetchNewerMail</span>(<span class="type">version_t</span> currentVersion) &#123;</span><br><span class="line">    <span class="keyword">auto</span> newerVersion = currentVersion;</span><br><span class="line">    std::vector&lt;<span class="type">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> it = _mails.<span class="built_in">upper_bound</span>(currentVersion); it != _mails.<span class="built_in">end</span>(); ++it) &#123;</span><br><span class="line">        newerVersion = it-&gt;first;</span><br><span class="line">        newerMails.<span class="built_in">push_back</span>(it-&gt;second);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> std::<span class="built_in">make_tuple</span>(newerVersion, newerMails);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Global Mail Proxy in Player Module</span></span><br><span class="line"><span class="type">version_t</span> _currentVersion;</span><br><span class="line"></span><br><span class="line"><span class="function">std::vector&lt;<span class="type">mail_id_t</span>&gt; <span class="title">checkGlobalMails</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">version_t</span> newerVersion;</span><br><span class="line">    std::vector&lt;<span class="type">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    std::<span class="built_in">tie</span>(newerVersion, newerMails) = <span class="built_in">fetchNewerMails</span>(_currentVersion);</span><br><span class="line">    <span class="keyword">if</span> (newerVersion != _currentVersion) &#123;</span><br><span class="line">        _currentVersion = newerVersion;</span><br><span class="line">        <span class="comment">// update _currentVersion to backend data storage</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newerMails;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的
+coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心”
+根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a target="_blank" rel="noopener" href="https://github.com/cloudwu/skynet/">skynet</a>
+中，可以这样做：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">update_global_mails</span><span class="params">()</span></span></span><br><span class="line">    <span class="keyword">local</span> currentVersion = get_current_version()</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">true</span> <span class="keyword">do</span></span><br><span class="line">        newerVersion, newerMails = skynet.call(<span class="string">&quot;.global_mail_centra&quot;</span>, <span class="string">&quot;lua&quot;</span>, <span class="string">&quot;fetchNewerMails&quot;</span>, currentVersion)</span><br><span class="line">        <span class="keyword">if</span> newerVersion != currentVersion <span class="keyword">then</span></span><br><span class="line">            // synchronized to player<span class="string">&#x27;s mailbox (other module in same process), blocking call</span></span><br><span class="line"><span class="string">            currentVersion = newerVersion</span></span><br><span class="line"><span class="string">            // update currentVersion to backend data storage</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">skynet.fork(update_global_mails)</span></span><br></pre></td></tr></table></figure>
+<p>推荐阅读：<a target="_blank" rel="noopener" href="http://blog.codingnow.com/2014/07/skynet_response.html">skynet
+中如何实现邮件达到通知服务</a></p>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2015/04/06/global-mail-sending-in-game-server/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2015/03/20/opinion-on-game-server-development/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2015/03/20/opinion-on-game-server-development/" class="post-title-link" itemprop="url">关于游戏服务器开发的一些个人见解</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 20 2015 18:01:56" itemprop="dateCreated datePublished" datetime="2015-03-20T18:01:56+08:00">Mar 20 2015</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Apr 8 2015 20:18:24" itemprop="dateModified" datetime="2015-04-08T20:18:24+08:00">Apr 8 2015</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="参与并理解策划需求">参与并理解策划需求</h2>
+<p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
+<h2 id="隔离是必须的">隔离是必须的</h2>
+<p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug
+最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API
+交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层
+API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
+<p>这种分案有很多优点： *
+便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。
+* 降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。 *
+子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。
+* 容易定位造成 bug 的子系统。 * <em>心情舒坦，利于长寿</em>。</p>
+<h2 id="代码质量">代码质量</h2>
+<p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta)
+代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
+<h3 id="潜在即是必然">潜在即是必然</h3>
+<p><strong>一个发生概率为百万分之一的 bug
+，在线上运行时是必然会发生的</strong>。</p>
+<h3 id="bug-修复要趁早">bug 修复要趁早</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2015/03/20/opinion-on-game-server-development/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/05/27/modules-and-communications-between-modules/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2014/05/27/modules-and-communications-between-modules/" class="post-title-link" itemprop="url">模块和模块间的通信</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: May 27 2014 12:15:41" itemprop="dateCreated datePublished" datetime="2014-05-27T12:15:41+08:00">May 27 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:44:11" itemprop="dateModified" datetime="2014-12-21T20:44:11+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在很早的时候，我就接触到 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs">Algorithms
++ Data Structures = Programs</a> 这样的概念。</p>
+<p>在几年的工作之后的现今，我不认为这个等式可以表达所有的程序，也许只是我所工作的领域无法让我体会到这个等式的价值。</p>
+<p>下面是我尝试去总结自己的经历，得到的另一个等式。</p>
+<pre><code>模块 + 模块间的通信 = 程序
+modules + communications between modules = program</code></pre>
+<p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++
+语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
+<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持，
+<a target="_blank" rel="noopener" href="http://www.erlang.org/">Erlang</a> 是其中之一。 Erlang 中的
+process
+就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
+<p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。
+Erlang 中的消息可以跨节点进行传输，</p>
+<p>对在 C/C++
+中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
+<p>在软件开发中引入的大多数“抽象”和“分层”（如果不是全部）都会引起性能的损失，但是今天的大部分程序仍然是运行在“进程”和“虚拟地址空间”的抽象之上。</p>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2014/05/27/modules-and-communications-between-modules/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/05/07/bool-like-enumeration_in_cpp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2014/05/07/bool-like-enumeration_in_cpp/" class="post-title-link" itemprop="url">bool like enumeration in C++</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: May 7 2014 13:12:49" itemprop="dateCreated datePublished" datetime="2014-05-07T13:12:49+08:00">May 7 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 22:46:35" itemprop="dateModified" datetime="2014-12-21T22:46:35+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在 Stack Overflow 上回答了一个问题： <a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context">How
+can I use an enum class in a boolean context?</a>，记录下。</p>
+<p>C++ 11 的 <code>explicit operator bool()</code>
+可以让类类型的值使用在条件语句中，但无法对 <code>enum</code>
+类型提供支持。</p>
+<p>下面是我使用的一种方法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Error</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> <span class="built_in">Error</span>(<span class="keyword">decltype</span>(Value) value = None) : <span class="built_in">Value</span>(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Error <span class="title">lastError</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">auto</span> err = <span class="built_in">lastError</span>()) &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">switch</span> (<span class="built_in">lastError</span>().Value) &#123;</span><br><span class="line"><span class="keyword">case</span> Error::None:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> Error::Error1:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">lastError</span>() == Error::Error1) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2014/05/07/bool-like-enumeration_in_cpp/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2014/04/17/game-server-architecture-design/" class="post-title-link" itemprop="url">游戏服务器结构的设计</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 17 2014 19:57:50" itemprop="dateCreated datePublished" datetime="2014-04-17T19:57:50+08:00">Apr 17 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Apr 6 2015 1:44:29" itemprop="dateModified" datetime="2015-04-06T01:44:29+08:00">Apr 6 2015</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。</p>
+<p>在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如：
+如果聊天/好友服务内嵌到逻辑服务器上时，玩家如果需要与其他服务器上的好友（在跨服功能中加为好友的）通信时就会很麻烦。</p>
+<p>大多可能有很大压力的全局功能都采用服务器集群的做法，集群中的成员：</p>
+<ul>
+<li>一个或多个（分层的或平行的）管理服务器，职责：
+<ul>
+<li>根据某种策略（id
+哈希/映射，服务器压力统计等）路由外部请求到具体的工作服务器；</li>
+<li>工作服务器的新增（外部请求或根据工作强度向其他服务请求启动新的工作服务器）；</li>
+<li>工作服务器的停机</li>
+</ul></li>
+<li>多个工作服务器，职责：
+<ul>
+<li>根据请求 id，处理对应的模块实体；</li>
+<li>向管理服务器汇报服务器压力</li>
+</ul></li>
+</ul>
+<p>实现：</p>
+<p>gate</p>
+<ul>
+<li>多个 gate 管理服务器，外网接入：
+<ul>
+<li>由 DNS 根据线路等指向或者固定 ip，client 接入时，会根据玩家的线路和
+gate 的压力情况选择适合的 gate ip:port 返回给玩家；</li>
+<li>gate 接入，外网 ip:port 注册</li>
+</ul></li>
+<li>多个 gate ，外网接入：
+<ul>
+<li>玩家接入，认证等等；</li>
+<li>向 gate 管理服务器发送在线压力情况；</li>
+<li>和在线统计服务器和逻辑服务器合作，负责玩家的登入及之后的消息中转</li>
+</ul></li>
+</ul>
+<p>登入</p>
+<ul>
+<li><p>一个或多个在线统计服务器：</p>
+<ul>
+<li>如果不存在玩家记录，根据策略（id
+哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx,
+ref: yyy]；</li>
+<li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx,
+ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
+<li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。</li>
+<li>做成无状态的服务，所有数据都存
+Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。
+（服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a target="_blank" rel="noopener" href="http://redis.io/commands/eval">Lua Script</a>
+都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
+</ul></li>
+<li><p>多个逻辑服务器：</p>
+<ul>
+<li>玩家个体逻辑的大部分功能都由该服务器实现
+（如果玩家逻辑功能比较复杂，可以用动态语言+虚拟机方式实现，这样当某个玩家或某个功能出现异常时，缩小影响范围）；</li>
+<li>在玩家登出后的有限时间内清空玩家数据，并向在线服务器（或
+Redis）发送清空玩家对该服务器的引用[player: zzz, ref: yyy]</li>
+</ul></li>
+</ul>
+<p>client 在 gate 完成登录认证，由 gate
+向在线统计服务器发送请求选择逻辑服务器 [id: xxx, ref: yyy] ， gate
+向逻辑服务器发送玩家的登入请求 [player: zzz, ref: yyy]
+，玩家进入游戏。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2014/04/17/game-server-architecture-design/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

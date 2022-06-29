@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970int zmq::sock">
+<meta property="og:type" content="article">
+<meta property="og:title" content="zeromq connect">
+<meta property="og:url" content="http://blog.kezhuw.name/2012/03/07/zeromq-connect/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970int zmq::sock">
+<meta property="og:locale">
+<meta property="article:published_time" content="2012-03-06T23:56:12.000Z">
+<meta property="article:modified_time" content="2014-12-21T12:41:21.000Z">
+<meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="zeromq">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/2012/03/07/zeromq-connect/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>zeromq connect | Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/03/07/zeromq-connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          zeromq connect
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 7 2012 7:56:12" itemprop="dateCreated datePublished" datetime="2012-03-07T07:56:12+08:00">Mar 7 2012</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:41:21" itemprop="dateModified" datetime="2014-12-21T20:41:21+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> zmq::<span class="type">socket_base_t</span>::<span class="built_in">connect</span> (<span class="type">const</span> <span class="type">char</span> *addr_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">unlikely</span> (ctx_terminated)) &#123;</span><br><span class="line">        errno = ETERM;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Parse addr_ string.</span></span><br><span class="line">    std::string protocol;</span><br><span class="line">    std::string address;</span><br><span class="line">    <span class="type">int</span> rc = <span class="built_in">parse_uri</span> (addr_, protocol, address);</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// omit...</span></span><br><span class="line">    <span class="comment">//  Parsed address for validation</span></span><br><span class="line">    sockaddr_storage addr;</span><br><span class="line">    <span class="type">socklen_t</span> addr_len;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;tcp&quot;</span>)</span><br><span class="line">        rc = <span class="built_in">resolve_ip_hostname</span> (&amp;addr, &amp;addr_len, address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;ipc&quot;</span>)</span><br><span class="line">        rc = <span class="built_in">resolve_local_path</span> (&amp;addr, &amp;addr_len, address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose the I/O thread to run the session in.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="keyword">if</span> (!io_thread) &#123;</span><br><span class="line">        errno = EMTHREAD;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create session.</span></span><br><span class="line">    <span class="type">connect_session_t</span> *session = <span class="built_in">new</span> (std::nothrow) <span class="built_in">connect_session_t</span> (</span><br><span class="line">        io_thread, <span class="keyword">this</span>, options, protocol.<span class="built_in">c_str</span> (), address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="built_in">alloc_assert</span> (session);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  If &#x27;immediate connect&#x27; feature is required, we&#x27;ll create the pipes</span></span><br><span class="line">    <span class="comment">//  to the session straight away. Otherwise, they&#x27;ll be created by the</span></span><br><span class="line">    <span class="comment">//  session once the connection is established.</span></span><br><span class="line">    <span class="keyword">if</span> (options.immediate_connect) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">reader_t</span> *inpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">writer_t</span> *inpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">reader_t</span> *outpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">writer_t</span> *outpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create inbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_in)</span><br><span class="line">            <span class="built_in">create_pipe</span> (<span class="keyword">this</span>, session, options.hwm, options.swap,</span><br><span class="line">                &amp;inpipe_reader, &amp;inpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create outbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_out)</span><br><span class="line">            <span class="built_in">create_pipe</span> (session, <span class="keyword">this</span>, options.hwm, options.swap,</span><br><span class="line">                &amp;outpipe_reader, &amp;outpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the socket object.</span></span><br><span class="line">        <span class="built_in">attach_pipes</span> (inpipe_reader, outpipe_writer, <span class="built_in">blob_t</span> ());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the session object.</span></span><br><span class="line">        session-&gt;<span class="built_in">attach_pipes</span> (outpipe_reader, inpipe_writer, <span class="built_in">blob_t</span> ());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Activate the session. Make it a child of this socket.</span></span><br><span class="line">    <span class="built_in">launch_child</span> (session);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">own_t</span>::<span class="built_in">launch_child</span> (<span class="type">own_t</span> *object_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Specify the owner of the object.</span></span><br><span class="line">    object_-&gt;<span class="built_in">set_owner</span> (<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Plug the object into the I/O thread.</span></span><br><span class="line">    <span class="built_in">send_plug</span> (object_);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Take ownership of the object.</span></span><br><span class="line">    <span class="built_in">send_own</span> (<span class="keyword">this</span>, object_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>0mq
+socket为每个connect创建一个connect_session_t，代表主动发起的连接。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">connect_session_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Start connection process immediately.</span></span><br><span class="line">    <span class="built_in">start_connecting</span> (<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> zmq::<span class="type">connect_session_t</span>::<span class="built_in">start_connecting</span> (<span class="type">bool</span> wait_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Choose I/O thread to run connecter in. Given that we are already</span></span><br><span class="line">    <span class="comment">//  running in an I/O thread, there must be at least one available.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (io_thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create the connecter object.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Both TCP and IPC transports are using the same infrastructure.</span></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;tcp&quot;</span> || protocol == <span class="string">&quot;ipc&quot;</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">zmq_connecter_t</span> *connecter = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_connecter_t</span> (</span><br><span class="line">            io_thread, <span class="keyword">this</span>, options, protocol.<span class="built_in">c_str</span> (), address.<span class="built_in">c_str</span> (),</span><br><span class="line">            wait_);</span><br><span class="line">        <span class="built_in">alloc_assert</span> (connecter);</span><br><span class="line">        <span class="built_in">launch_child</span> (connecter);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">zmq_assert</span> (<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>zmq_connect_t负责发起连接以及连接失败后重连。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (wait)</span><br><span class="line">        <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">start_connecting</span> ();</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">start_connecting</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Open the connecting socket.</span></span><br><span class="line">    <span class="type">int</span> rc = tcp_connecter.<span class="built_in">open</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connect may succeed in synchronous manner.</span></span><br><span class="line">    <span class="keyword">if</span> (rc == <span class="number">0</span>) &#123;</span><br><span class="line">        handle = <span class="built_in">add_fd</span> (tcp_connecter.<span class="built_in">get_fd</span> ());</span><br><span class="line">        handle_valid = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">out_event</span> ();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connection establishment may be dealyed. Poll for its completion.</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (rc == <span class="number">-1</span> &amp;&amp; errno == EAGAIN) &#123;</span><br><span class="line">        handle = <span class="built_in">add_fd</span> (tcp_connecter.<span class="built_in">get_fd</span> ());</span><br><span class="line">        handle_valid = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">set_pollout</span> (handle);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Handle any other error condition by eventual reconnect.</span></span><br><span class="line">    wait = <span class="literal">true</span>;</span><br><span class="line">    <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于ipc或者本机tcp端口的连接可能立即成功，对于处于连接过程中的fd将其置入io_thread_t的线程中polling。如失败，则重连。下面是zmq_connect_t的out_event函数，该函数在连接成功时被调用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">out_event</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">fd_t</span> fd = tcp_connecter.<span class="built_in">connect</span> ();</span><br><span class="line">    <span class="built_in">rm_fd</span> (handle);</span><br><span class="line">    handle_valid = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Handle the error condition by attempt to reconnect.</span></span><br><span class="line">    <span class="keyword">if</span> (fd == retired_fd) &#123;</span><br><span class="line">        tcp_connecter.<span class="built_in">close</span> ();</span><br><span class="line">        wait = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose I/O thread to run connecter in. Given that we are already</span></span><br><span class="line">    <span class="comment">//  running in an I/O thread, there must be at least one available.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (io_thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create an init object. </span></span><br><span class="line">    <span class="type">zmq_init_t</span> *init = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_init_t</span> (io_thread, <span class="literal">NULL</span>,</span><br><span class="line">        session, fd, options);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (init);</span><br><span class="line">    <span class="built_in">launch_sibling</span> (init);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Shut the connecter down.</span></span><br><span class="line">    <span class="built_in">terminate</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当连接建立起来之后，通过zmq_init_t进行最出的数据（identity）交换。zmq_init_t被直接挂接到了session_t(connect_session_t)上去了，而zmq_connecter_t被terminate()。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="type">zmq_init_t</span>::<span class="built_in">zmq_init_t</span> (<span class="type">io_thread_t</span> *io_thread_,</span><br><span class="line">      <span class="type">socket_base_t</span> *socket_, <span class="type">session_t</span> *session_, <span class="type">fd_t</span> fd_,</span><br><span class="line">      <span class="type">const</span> <span class="type">options_t</span> &amp;options_) :</span><br><span class="line">    <span class="built_in">own_t</span> (io_thread_, options_),</span><br><span class="line">    <span class="built_in">ephemeral_engine</span> (<span class="literal">NULL</span>),</span><br><span class="line">    <span class="built_in">sent</span> (<span class="literal">false</span>),</span><br><span class="line">    <span class="built_in">received</span> (<span class="literal">false</span>),</span><br><span class="line">    <span class="built_in">socket</span> (socket_),</span><br><span class="line">    <span class="built_in">session</span> (session_),</span><br><span class="line">    <span class="built_in">io_thread</span> (io_thread_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Create the engine object for this connection.</span></span><br><span class="line">    engine = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_engine_t</span> (fd_, options);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (engine);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">zmq_assert</span> (engine);</span><br><span class="line">    engine-&gt;<span class="built_in">plug</span> (io_thread, <span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_engine_t</span>::<span class="built_in">plug</span> (<span class="type">io_thread_t</span> *io_thread_, i_inout *inout_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">zmq_assert</span> (!plugged);</span><br><span class="line">    plugged = <span class="literal">true</span>;</span><br><span class="line">    ephemeral_inout = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connect to session/init object.</span></span><br><span class="line">    <span class="built_in">zmq_assert</span> (!inout);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (inout_);</span><br><span class="line">    encoder.<span class="built_in">set_inout</span> (inout_);</span><br><span class="line">    decoder.<span class="built_in">set_inout</span> (inout_);</span><br><span class="line">    inout = inout_;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connect to I/O threads poller object.</span></span><br><span class="line">    <span class="type">io_object_t</span>::<span class="built_in">plug</span> (io_thread_);</span><br><span class="line">    handle = <span class="built_in">add_fd</span> (tcp_socket.<span class="built_in">get_fd</span> ());</span><br><span class="line">    <span class="built_in">set_pollin</span> (handle);</span><br><span class="line">    <span class="built_in">set_pollout</span> (handle);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Flush all the data that may have been already received downstream.</span></span><br><span class="line">    <span class="built_in">in_event</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这一次被polling的是真正的用于tcp/ipc数据传输的socket
+fd。zmq_engine_t的encoder和decoder的类型分别为encoder_t和decoder_t。encoder_t用于发送数据时负责从inout_（这里是zmq_init_t）取得（调用inout_的read函数）并打包数据。decoder_t用于接收数据时负责解包并将数据发送（调用inout_的write函数）到inout_。具体可看二者的实现及zmq_engine_t的in_event和out_event函数。下面时zmq_init_t的read、write函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">read</span> (::<span class="type">zmq_msg_t</span> *msg_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  If the identity was already sent, do nothing.</span></span><br><span class="line">    <span class="keyword">if</span> (sent)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Send the identity.</span></span><br><span class="line">    <span class="type">int</span> rc = <span class="built_in">zmq_msg_init_size</span> (msg_, options.identity.<span class="built_in">size</span> ());</span><br><span class="line">    <span class="built_in">zmq_assert</span> (rc == <span class="number">0</span>);</span><br><span class="line">    <span class="built_in">memcpy</span> (<span class="built_in">zmq_msg_data</span> (msg_), options.identity.<span class="built_in">c_str</span> (),</span><br><span class="line">        options.identity.<span class="built_in">size</span> ());</span><br><span class="line">    sent = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Try finalize initialization.</span></span><br><span class="line">    <span class="built_in">finalise_initialisation</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">write</span> (::<span class="type">zmq_msg_t</span> *msg_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  If identity was already received, we are not interested</span></span><br><span class="line">    <span class="comment">//  in subsequent messages.</span></span><br><span class="line">    <span class="keyword">if</span> (received)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Retreieve the remote identity. If it&#x27;s empty, generate a unique name.</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">zmq_msg_size</span> (msg_)) &#123;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> identity [<span class="type">uuid_t</span>::uuid_blob_len + <span class="number">1</span>];</span><br><span class="line">        identity [<span class="number">0</span>] = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">memcpy</span> (identity + <span class="number">1</span>, <span class="built_in">uuid_t</span> ().<span class="built_in">to_blob</span> (), <span class="type">uuid_t</span>::uuid_blob_len);</span><br><span class="line">        peer_identity.<span class="built_in">assign</span> (identity, <span class="type">uuid_t</span>::uuid_blob_len + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        peer_identity.<span class="built_in">assign</span> ((<span class="type">const</span> <span class="type">unsigned</span> <span class="type">char</span>*) <span class="built_in">zmq_msg_data</span> (msg_),</span><br><span class="line">            <span class="built_in">zmq_msg_size</span> (msg_));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> rc = <span class="built_in">zmq_msg_close</span> (msg_);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    received = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Try finalize initialization.</span></span><br><span class="line">    <span class="built_in">finalise_initialisation</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">finalise_initialisation</span> ()</span><br><span class="line">&#123;</span><br><span class="line">     <span class="comment">//  Unplug and prepare to dispatch engine.</span></span><br><span class="line">     <span class="keyword">if</span> (sent &amp;&amp; received) &#123;</span><br><span class="line">        ephemeral_engine = engine;</span><br><span class="line">        engine = <span class="literal">NULL</span>;</span><br><span class="line">        ephemeral_engine-&gt;<span class="built_in">unplug</span> ();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">flush</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Check if there&#x27;s anything to flush.</span></span><br><span class="line">    <span class="keyword">if</span> (!received)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Initialization is done, dispatch engine.</span></span><br><span class="line">    <span class="keyword">if</span> (ephemeral_engine)</span><br><span class="line">        <span class="built_in">dispatch_engine</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出zmq_init_t的read只是将其identity发送出去，write只是接收连接另一方的identity。当连接的双方交换过identity之后，zmq_init_t不在发送或接收任何数据。zmq_init_t的flush函数被zmq_engine_t的in_event或out_event调用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_init_t</span>::<span class="built_in">dispatch_engine</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (sent &amp;&amp; received) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Engine must be detached.</span></span><br><span class="line">        <span class="built_in">zmq_assert</span> (!engine);</span><br><span class="line">        <span class="built_in">zmq_assert</span> (ephemeral_engine);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  If we know what session we belong to, it&#x27;s easy, just send the</span></span><br><span class="line">        <span class="comment">//  engine to that session and destroy the init object. Note that we</span></span><br><span class="line">        <span class="comment">//  know about the session only if this object is owned by it. Thus,</span></span><br><span class="line">        <span class="comment">//  lifetime of this object in contained in the lifetime of the session</span></span><br><span class="line">        <span class="comment">//  so the pointer cannot become invalid without notice.</span></span><br><span class="line">        <span class="keyword">if</span> (session) &#123;</span><br><span class="line">            <span class="built_in">send_attach</span> (session, ephemeral_engine, peer_identity, <span class="literal">true</span>);</span><br><span class="line">            <span class="built_in">terminate</span> ();</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  All the cases below are listener-based. Therefore we need the socket</span></span><br><span class="line">        <span class="comment">//  reference so that new sessions can bind to that socket.</span></span><br><span class="line">        <span class="built_in">zmq_assert</span> (socket);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  We have no associated session. If the peer has no identity we&#x27;ll</span></span><br><span class="line">        <span class="comment">//  create a transient session for the connection. Note that</span></span><br><span class="line">        <span class="comment">//  seqnum is incremented to account for attach command before the</span></span><br><span class="line">        <span class="comment">//  session is launched. That way we are sure it won&#x27;t terminate before</span></span><br><span class="line">        <span class="comment">//  being attached.</span></span><br><span class="line">        <span class="keyword">if</span> (peer_identity [<span class="number">0</span>] == <span class="number">0</span>) &#123;</span><br><span class="line">            session = <span class="built_in">new</span> (std::nothrow) <span class="built_in">transient_session_t</span> (io_thread,</span><br><span class="line">                socket, options);</span><br><span class="line">            <span class="built_in">alloc_assert</span> (session);</span><br><span class="line">            session-&gt;<span class="built_in">inc_seqnum</span> ();</span><br><span class="line">            <span class="built_in">launch_sibling</span> (session);</span><br><span class="line">            <span class="built_in">send_attach</span> (session, ephemeral_engine, peer_identity, <span class="literal">false</span>);</span><br><span class="line">            <span class="built_in">terminate</span> ();</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//  Try to find the session corresponding to the peer&#x27;s identity.</span></span><br><span class="line">        <span class="comment">//  If found, send the engine to that session and destroy this object.</span></span><br><span class="line">        <span class="comment">//  Note that session&#x27;s seqnum is incremented by find_session rather</span></span><br><span class="line">        <span class="comment">//  than by send_attach.</span></span><br><span class="line">        session = socket-&gt;<span class="built_in">find_session</span> (peer_identity);</span><br><span class="line">        <span class="keyword">if</span> (session) &#123;</span><br><span class="line">            <span class="built_in">send_attach</span> (session, ephemeral_engine, peer_identity, <span class="literal">false</span>);</span><br><span class="line">            <span class="built_in">terminate</span> ();</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  There&#x27;s no such named session. We have to create one. Note that</span></span><br><span class="line">        <span class="comment">//  seqnum is incremented to account for attach command before the</span></span><br><span class="line">        <span class="comment">//  session is launched. That way we are sure it won&#x27;t terminate before</span></span><br><span class="line">        <span class="comment">//  being attached.</span></span><br><span class="line">        session = <span class="built_in">new</span> (std::nothrow) <span class="built_in">named_session_t</span> (io_thread, socket,</span><br><span class="line">            options, peer_identity);</span><br><span class="line">        <span class="built_in">alloc_assert</span> (session);</span><br><span class="line">        session-&gt;<span class="built_in">inc_seqnum</span> ();</span><br><span class="line">        <span class="built_in">launch_sibling</span> (session);</span><br><span class="line">        <span class="built_in">send_attach</span> (session, ephemeral_engine, peer_identity, <span class="literal">false</span>);</span><br><span class="line">        <span class="built_in">terminate</span> ();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在主动发起connect时，zmq_init_t是由zmq_connecter_t创建的，其session成员指向connect_session_t（继承自session_t）。当zmq_init_t的dispatch_engine被调用时，直接向connect_session_t发送attach
+zmq_engine_t的请求。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">session_t</span>::<span class="built_in">process_attach</span> (i_engine *engine_,</span><br><span class="line">    <span class="type">const</span> <span class="type">blob_t</span> &amp;peer_identity_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// omit ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Check whether the required pipes already exist. If not so, we&#x27;ll</span></span><br><span class="line">    <span class="comment">//  create them and bind them to the socket object.</span></span><br><span class="line">    <span class="keyword">if</span> (!pipes_attached) &#123;</span><br><span class="line">        <span class="built_in">zmq_assert</span> (!in_pipe &amp;&amp; !out_pipe);</span><br><span class="line">        pipes_attached = <span class="literal">true</span>;</span><br><span class="line">        <span class="type">reader_t</span> *socket_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">writer_t</span> *socket_writer = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create the pipes, as required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_in) &#123;</span><br><span class="line">            <span class="built_in">create_pipe</span> (socket, <span class="keyword">this</span>, options.hwm, options.swap, &amp;socket_reader,</span><br><span class="line">                &amp;out_pipe);</span><br><span class="line">            out_pipe-&gt;<span class="built_in">set_event_sink</span> (<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (options.requires_out) &#123;</span><br><span class="line">            <span class="built_in">create_pipe</span> (<span class="keyword">this</span>, socket, options.hwm, options.swap, &amp;in_pipe,</span><br><span class="line">                &amp;socket_writer);</span><br><span class="line">            in_pipe-&gt;<span class="built_in">set_event_sink</span> (<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Bind the pipes to the socket object.</span></span><br><span class="line">        <span class="keyword">if</span> (socket_reader || socket_writer)</span><br><span class="line">            <span class="built_in">send_bind</span> (socket, socket_reader, socket_writer, peer_identity_);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Plug in the engine.</span></span><br><span class="line">    engine = engine_;</span><br><span class="line">    engine-&gt;<span class="built_in">plug</span> (io_thread, <span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Trigger the notfication about the attachment.</span></span><br><span class="line">    <span class="built_in">attached</span> (peer_identity_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在if中执行的代码其实和socket_base_t::connect函数靠后的if中的代码作用相似。都是在0mq的socket和session_t之间建立传输zmq_msg_t的管道。这一次zmq_engine_t
+plug函数的inout_参数时session_t。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">zmq::create_pipe</span> <span class="params">(<span class="type">object_t</span> *reader_parent_, <span class="type">object_t</span> *writer_parent_,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">uint64_t</span> hwm_, <span class="type">int64_t</span> swap_size_, <span class="type">reader_t</span> **reader_, <span class="type">writer_t</span> **writer_)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">uint64_t</span> lwm = (hwm_ &gt; max_wm_delta * <span class="number">2</span>) ?</span><br><span class="line">        hwm_ - max_wm_delta : (hwm_ + <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create all three objects pipe consists of: the pipe per se, reader and</span></span><br><span class="line">    <span class="comment">//  writer. The pipe will be handled by reader and writer, its never passed</span></span><br><span class="line">    <span class="comment">//  to the user. Reader and writer are returned to the user.</span></span><br><span class="line">    <span class="type">pipe_t</span> *pipe = <span class="built_in">new</span> (std::nothrow) <span class="built_in">pipe_t</span> ();</span><br><span class="line">    <span class="built_in">alloc_assert</span> (pipe);</span><br><span class="line">    *reader_ = <span class="built_in">new</span> (std::nothrow) <span class="built_in">reader_t</span> (reader_parent_, pipe, lwm);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (*reader_);</span><br><span class="line">    *writer_ = <span class="built_in">new</span> (std::nothrow) <span class="built_in">writer_t</span> (writer_parent_, pipe, *reader_,</span><br><span class="line">        hwm_, swap_size_);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (*writer_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当tcp/ipc的socket可读或可写时分别调用的是session_t的write和read函数，即从tcp/ipc读出数据，由decoder解包，由session_t写入传输zmq_msg_t的管道，再由0mq
+socket读给应用程序；应用程序写入zmq_msg_t，0mq
+socket将之写入传输管道，session_t从中读取zmq_msg_t，再由encoder_t打包发送到tcp/ipc。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/zeromq/" rel="tag"># zeromq</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2012/03/05/zeromq-mailbox/" rel="prev" title="zeromq mailbox">
+      <i class="fa fa-chevron-left"></i> zeromq mailbox
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2012/03/09/zeromq-bind/" rel="next" title="zeromq bind">
+      zeromq bind <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+    <script src="https://giscus.app/client.js"
+        data-repo="kezhuw/giscus.blog.kezhuw.name" 
+        data-repo-id="R_kgDOHk_ukw" 
+        data-category="giscus"
+        data-category-id="DIC_kwDOHk_uk84CP8Ba"
+        data-mapping="pathname" 
+        data-reactions-enabled="1" 
+        data-emit-metadata="1" 
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        data-input-position="bottom"
+        data-loading="lazy"
+        async>
+    </script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

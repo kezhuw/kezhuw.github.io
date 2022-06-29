@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Lua coroutine Lua coroutine 是协作式多任务的一种实现。coroutine 经常被 C&#x2F;C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。 这种同步调用的流程： val, err &#x3D; synchronous_call_in_lua(...)    -- function call in lua coroutine     &#x3D;&#x3D;&gt;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lua coroutine 和 C# async">
+<meta property="og:url" content="http://blog.kezhuw.name/2014/03/23/lua-coroutine-and-csharp-async/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="Lua coroutine Lua coroutine 是协作式多任务的一种实现。coroutine 经常被 C&#x2F;C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。 这种同步调用的流程： val, err &#x3D; synchronous_call_in_lua(...)    -- function call in lua coroutine     &#x3D;&#x3D;&gt;">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-03-23T14:45:44.000Z">
+<meta property="article:modified_time" content="2014-12-21T14:46:42.000Z">
+<meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="lua">
+<meta property="article:tag" content="coroutine">
+<meta property="article:tag" content="c#">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/2014/03/23/lua-coroutine-and-csharp-async/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Lua coroutine 和 C# async | Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/03/23/lua-coroutine-and-csharp-async/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Lua coroutine 和 C# async
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 23 2014 22:45:44" itemprop="dateCreated datePublished" datetime="2014-03-23T22:45:44+08:00">Mar 23 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 22:46:42" itemprop="dateModified" datetime="2014-12-21T22:46:42+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="lua-coroutine">Lua coroutine</h2>
+<p>Lua coroutine 是<a
+target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing">协作式多任务</a>的一种实现。coroutine
+经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua
+层的同步调用。</p>
+<p>这种同步调用的流程：</p>
+<pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
+    ==&gt; coroutine.yield
+        ==&gt; C/C++ 发起异步请求会话
+        ==| (time consumed)
+        ==| C/C++ 异步会话完成（消息/回调）
+    &lt;== coroutine.resume
+val, err = ... -- &lt;== return from function
+do_someting(...)</code></pre>
+<p>这个流程很像阻塞式的系统调用：</p>
+<pre><code>n = read(fd, buf, len)        // system call in userland
+    ==&gt; syscallenter(...)     // in kernel mode
+        |=&gt; sys_read(...)     // in system call
+        |== kernel activity   // asynchronous wait if data is not available yet
+        |==
+    &lt;== syscallret(...)       // return from syscall
+n = ...                       // return from read in userland</code></pre>
+<h2 id="c-asyncawait">C# async/await</h2>
+<p>async/await 是 C# 5
+引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a
+target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Continuation-passing_style">CPS</a>
+变换。</p>
+<blockquote>
+<p>C# 5.0 introduces the async and await keywords. These keywords let
+you write asynchronous code that has the same structure and simplicity
+as synchronous code, as well as eliminating the “plumbing” of
+asynchronous programming. The await keyword simplifies the attaching of
+continuations.</p>
+</blockquote>
+<p>即将如下代码：</p>
+<pre><code>var result = await expression;
+statement(s);</code></pre>
+<p>转换为：</p>
+<pre><code>var awaiter = expression.GetAwaiter();
+awaiter.OnCompleted (() =&gt;
+&#123;
+    var result = awaiter.GetResult();
+    statement(s);
+&#125;);</code></pre>
+<p>从上面的代码可以看出，这段代码是非阻塞的， <code>statement(s)</code>
+是在 callback 中执行的。</p>
+<h2 id="总结">总结</h2>
+<p>Lua coroutine 和 C# async/await 都可以用来编写形如同步的代码。Lua
+coroutine 中的函数调用是同步阻塞的（从调用者角度），由 C/C++
+通过异步方式实现，其执行流程和一般的同步阻塞的系统调用类似。C#
+async/await 则是由编译器实施的 CPS 变换，是异步非阻塞的。</p>
+<p>下面一段 C# 代码的流程，如果由 Lua 编写，输出顺序则相反。</p>
+<pre><code>//Title of this code
+//Rextester.Program.Main is the entry point for your code. Don&#39;t change it.
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Rextester &#123;
+
+    public class Program
+    &#123;
+
+        static readonly CountdownEvent _countdown = new CountdownEvent(1);
+        static int _value = 5;
+
+        public static void Main(string[] args)
+        &#123;
+            delay(10);
+            dump(&quot;return from delay()&quot;);
+            _value = 10;
+            _countdown.Wait();
+        &#125;
+
+        async static void delay(int msecs) &#123;
+            await Task.Delay(msecs);
+            dump(&quot;in delay():&quot;);
+            _countdown.Signal();
+        &#125;
+
+        static void dump(string prefix) &#123;
+            Console.WriteLine(&quot;&#123;0&#125;: value = &#123;1&#125;&quot;, prefix, _value);
+        &#125;
+
+    &#125;
+
+&#125;</code></pre>
+<p>输出： return from delay(): value = 5 in delay():: value = 10</p>
+<h2 id="阅读">阅读</h2>
+<ul>
+<li>C# 5.0 in a Nutshell</li>
+<li><a
+target="_blank" rel="noopener" href="http://www.zhihu.com/question/19732473/answer/20851256">怎样理解阻塞非阻塞与同步异步的区别</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lua/" rel="tag"># lua</a>
+              <a href="/tags/coroutine/" rel="tag"># coroutine</a>
+              <a href="/tags/csharp/" rel="tag"># c#</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2013/12/14/two-arguments-version-accumulate/" rel="prev" title="两参数版本的 std::accumulate">
+      <i class="fa fa-chevron-left"></i> 两参数版本的 std::accumulate
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/04/17/game-server-architecture-design/" rel="next" title="游戏服务器结构的设计">
+      游戏服务器结构的设计 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+    <script src="https://giscus.app/client.js"
+        data-repo="kezhuw/giscus.blog.kezhuw.name" 
+        data-repo-id="R_kgDOHk_ukw" 
+        data-category="giscus"
+        data-category-id="DIC_kwDOHk_uk84CP8Ba"
+        data-mapping="pathname" 
+        data-reactions-enabled="1" 
+        data-emit-metadata="1" 
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        data-input-position="bottom"
+        data-loading="lazy"
+        async>
+    </script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#lua-coroutine"><span class="nav-number">1.</span> <span class="nav-text">Lua coroutine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#c-asyncawait"><span class="nav-number">2.</span> <span class="nav-text">C# async&#x2F;await</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%85%E8%AF%BB"><span class="nav-number">4.</span> <span class="nav-text">阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

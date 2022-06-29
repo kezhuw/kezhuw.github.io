@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。 在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如： 如果聊天&#x2F;好友服务内嵌到逻辑服务器上时，玩家如果需要">
+<meta property="og:type" content="article">
+<meta property="og:title" content="游戏服务器结构的设计">
+<meta property="og:url" content="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。 在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如： 如果聊天&#x2F;好友服务内嵌到逻辑服务器上时，玩家如果需要">
+<meta property="og:locale">
+<meta property="article:published_time" content="2014-04-17T11:57:50.000Z">
+<meta property="article:modified_time" content="2015-04-05T17:44:29.000Z">
+<meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="game development">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>游戏服务器结构的设计 | Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          游戏服务器结构的设计
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 17 2014 19:57:50" itemprop="dateCreated datePublished" datetime="2014-04-17T19:57:50+08:00">Apr 17 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Apr 6 2015 1:44:29" itemprop="dateModified" datetime="2015-04-06T01:44:29+08:00">Apr 6 2015</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。</p>
+<p>在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如：
+如果聊天/好友服务内嵌到逻辑服务器上时，玩家如果需要与其他服务器上的好友（在跨服功能中加为好友的）通信时就会很麻烦。</p>
+<p>大多可能有很大压力的全局功能都采用服务器集群的做法，集群中的成员：</p>
+<ul>
+<li>一个或多个（分层的或平行的）管理服务器，职责：
+<ul>
+<li>根据某种策略（id
+哈希/映射，服务器压力统计等）路由外部请求到具体的工作服务器；</li>
+<li>工作服务器的新增（外部请求或根据工作强度向其他服务请求启动新的工作服务器）；</li>
+<li>工作服务器的停机</li>
+</ul></li>
+<li>多个工作服务器，职责：
+<ul>
+<li>根据请求 id，处理对应的模块实体；</li>
+<li>向管理服务器汇报服务器压力</li>
+</ul></li>
+</ul>
+<p>实现：</p>
+<p>gate</p>
+<ul>
+<li>多个 gate 管理服务器，外网接入：
+<ul>
+<li>由 DNS 根据线路等指向或者固定 ip，client 接入时，会根据玩家的线路和
+gate 的压力情况选择适合的 gate ip:port 返回给玩家；</li>
+<li>gate 接入，外网 ip:port 注册</li>
+</ul></li>
+<li>多个 gate ，外网接入：
+<ul>
+<li>玩家接入，认证等等；</li>
+<li>向 gate 管理服务器发送在线压力情况；</li>
+<li>和在线统计服务器和逻辑服务器合作，负责玩家的登入及之后的消息中转</li>
+</ul></li>
+</ul>
+<p>登入</p>
+<ul>
+<li><p>一个或多个在线统计服务器：</p>
+<ul>
+<li>如果不存在玩家记录，根据策略（id
+哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx,
+ref: yyy]；</li>
+<li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx,
+ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
+<li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。</li>
+<li>做成无状态的服务，所有数据都存
+Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。
+（服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a
+target="_blank" rel="noopener" href="http://redis.io/commands/eval">Lua Script</a>
+都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
+</ul></li>
+<li><p>多个逻辑服务器：</p>
+<ul>
+<li>玩家个体逻辑的大部分功能都由该服务器实现
+（如果玩家逻辑功能比较复杂，可以用动态语言+虚拟机方式实现，这样当某个玩家或某个功能出现异常时，缩小影响范围）；</li>
+<li>在玩家登出后的有限时间内清空玩家数据，并向在线服务器（或
+Redis）发送清空玩家对该服务器的引用[player: zzz, ref: yyy]</li>
+</ul></li>
+</ul>
+<p>client 在 gate 完成登录认证，由 gate
+向在线统计服务器发送请求选择逻辑服务器 [id: xxx, ref: yyy] ， gate
+向逻辑服务器发送玩家的登入请求 [player: zzz, ref: yyy]
+，玩家进入游戏。</p>
+<p>公会：</p>
+<p>玩家在某个服务器上登录之后，所有的公会操作请求都转发到公会的管理服务器上去，
+公会管理服务器根据公会 id 将玩家的请求路由到负责该公会的工作服务器。</p>
+<p>副本</p>
+<ul>
+<li>一个副本管理服务器：
+选择或定位特定副本所在的副本服务器；转发玩家/副本消息包</li>
+<li>多个副本服务器： 处理副本场景同步，副本战斗</li>
+</ul>
+<p>玩家创建副本：副本管理服务器根据副本服务器的压力情况将创建请求发给特定的副本服务器，并记录副本实例和副本服务器的对应关系。</p>
+<p>玩家进入副本：找到副本对应的副本服务器，并转发玩家的请求。</p>
+<p>聊天/好友：</p>
+<p>玩家在某个服务器上登录之后，由所在服务器向聊天服务发送登录通知，聊天服务会加载其好友列表并通知在线好友；之后玩家的聊天信息都由其所在服务器转发到聊天服务器，由聊天服务器将聊天信息发送到目标玩家所在的逻辑服务器，再转发给玩家。</p>
+<p>缺点： 聊天消息太多，导致逻辑服务器流量压力。 ==&gt; 优化：可以由
+gate
+直接转发玩家的聊天消息到聊天服务器或者通过其他线路来做即把整个聊天功能和游戏系统完全隔离（保留登录下线的协议）。</p>
+<p>其他：
+我个人认为其实游戏里面的聊天/好友做成独立服务之后，其实就是一个聊天平台，而游戏里的聊天不过是这个聊天工具里面的一个分组而已。</p>
+<p>其他服务： 各种监控服务器:
+监控特定服务的压力/宕机情况，必要情况下发出警告或向服务启动管理程序发送请求，启动某个服务。</p>
+<p>服务启动管理程序： 根据监控服务器的请求，动态启动特定服务。</p>
+<p>PS: 我去一家游戏公司面试，面试官让我总结下分区式游戏和 one world
+游戏服务器的不同。回来后就写了这个，总的来说，我个人认为，在将全局模块服务化之后，分区式游戏服务器可以很容易的扩展并支撑
+one world 游戏。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/game-development/" rel="tag"># game development</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2014/03/23/lua-coroutine-and-csharp-async/" rel="prev" title="Lua coroutine 和 C# async">
+      <i class="fa fa-chevron-left"></i> Lua coroutine 和 C# async
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2014/05/07/bool-like-enumeration_in_cpp/" rel="next" title="bool like enumeration in C++">
+      bool like enumeration in C++ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+    <script src="https://giscus.app/client.js"
+        data-repo="kezhuw/giscus.blog.kezhuw.name" 
+        data-repo-id="R_kgDOHk_ukw" 
+        data-category="giscus"
+        data-category-id="DIC_kwDOHk_uk84CP8Ba"
+        data-mapping="pathname" 
+        data-reactions-enabled="1" 
+        data-emit-metadata="1" 
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        data-input-position="bottom"
+        data-loading="lazy"
+        async>
+    </script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

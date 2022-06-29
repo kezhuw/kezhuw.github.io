@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="This is my second time to read through Raft Algorithm, and it is hard to recall what I have learned in first reading. This time I decide to record my thoughts for future recall. Hope it is useful to n">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A step by step approach to raft consensus algorithm">
+<meta property="og:url" content="http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="This is my second time to read through Raft Algorithm, and it is hard to recall what I have learned in first reading. This time I decide to record my thoughts for future recall. Hope it is useful to n">
+<meta property="og:locale">
+<meta property="og:image" content="http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/server-states.png">
+<meta property="article:published_time" content="2018-03-20T05:40:22.000Z">
+<meta property="article:modified_time" content="2018-04-12T00:55:07.000Z">
+<meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="raft">
+<meta property="article:tag" content="consensus">
+<meta property="article:tag" content="Distributed Systems">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/server-states.png">
+
+<link rel="canonical" href="http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>A step by step approach to raft consensus algorithm | Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          A step by step approach to raft consensus algorithm
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 20 2018 13:40:22" itemprop="dateCreated datePublished" datetime="2018-03-20T13:40:22+08:00">Mar 20 2018</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Apr 12 2018 8:55:07" itemprop="dateModified" datetime="2018-04-12T08:55:07+08:00">Apr 12 2018</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>This is my second time to read through <a
+target="_blank" rel="noopener" href="https://raft.github.io/">Raft</a> <a
+target="_blank" rel="noopener" href="https://purl.stanford.edu/qr033xr6097">Algorithm</a>, and it is
+hard to recall what I have learned in first reading. This time I decide
+to record my thoughts for future recall. Hope it is useful to newbies in
+distributed systems like me.</p>
+<h2 id="what-does-consensus-algorithm-mean">What does consensus
+algorithm mean ?</h2>
+<p><strong>Consensus algorithm is the process used to achieve agreement
+on shared state among <a
+target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">faulty
+processes</a> in distributed system.</strong></p>
+<h2 id="introduce-replicated-state-machines">Introduce Replicated State
+Machines</h2>
+<p>Here, we define state machine as
+<code>State' = Machine(State, Input)</code> for simplicity. A state
+machine can be defined with its start state, and makes progress with
+sequence of inputs, produces sequence of intermediate states. For
+examples:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&#x27; = Machine(State, Input)</span><br><span class="line">State&#x27;&#x27; = Machine(State&#x27;, Input&#x27;)</span><br><span class="line">State&#x27;&#x27;&#x27; = Machine(State&#x27;&#x27;, Input&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
+<p>Given a state machine, how can we figure out that it is a replicated
+state machine ?</p>
+<p>First, <strong>replicated state machine is deterministic</strong>.
+Given same start state with same sequence of inputs, the state machine
+always produce same intermediate states.</p>
+<p>Second, two state machines built from same logic on possibly
+different processes or nodes and even possibly different languages must
+be same. Here we define two state machines as same based on
+deterministic: given same start state and same sequence of inputs, if
+two state machines produce same sequence of intermediate states, we say
+these two state machine are same. Thus given multiple copies of same
+state machines with same start state, feeding with same sequence of
+inputs, they must produces same sequence of intermediate states.</p>
+<p>Third, states, including start state and intermediate states, and
+inputs must be self-contained, thus can be replicated to other processes
+or nodes with help of serialization and deserialization.</p>
+<p>The word replicated in <a
+target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/State_machine_replication">replicated
+state machine</a> has duple means: deterministic and replication.
+Occasionally, replicated state machine is used in non distributed
+systems to validate processes using its deterministic. More often,
+replicated state machines are used to validate or repliate processes
+among processes or nodes in distributed systems.</p>
+<h2
+id="how-replicated-state-machines-implemented-in-distributed-systems">How
+replicated state machines implemented in distributed systems ?</h2>
+<p>Replicated state machines are typically implemented using a <a
+target="_blank" rel="noopener" href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">replicated
+log</a>, this is particular due to the fact that state machine process
+sequence of inputs one by one in order, non batch, non concurrency, I
+guess. Here, replicated in replicated log means replication cross
+processes or nodes.</p>
+<p>In replciated log, inputs to state machines are appended as sequence
+of entries or records in order, these entries will be replicated to
+replicated logs reside in other nodes in later time, and feeded to state
+machines reside in their nodes for apply eventually.</p>
+<p>Thus if given identical sequence entries from replicated log,
+multiple copies of same state machine will produce same sequence of
+states. But how can we promise identical sequence cross different faulty
+nodes in distributed systems ? That is consensus algorithm’s job.</p>
+<h2 id="raft">Raft</h2>
+<blockquote>
+<p>Raft implements consensus by first electing a server as leader, then
+giving the leader complete responsibility for managing the replicated
+log. The leader accepts log entries from clients, replicates them on
+other servers, and tells servers when it is safe to apply log entries to
+their state machines.</p>
+<p>Raft decomposes the consensus problem into two relatively independent
+subproblems:</p>
+<ul>
+<li>Leader election: a new leader must be chosen when starting the
+cluster and when an existing leader fails.</li>
+<li>Log replication: the leader must accept log entries from clients and
+replicate them across the cluster, forcing the other logs to agree with
+its own.</li>
+</ul>
+</blockquote>
+<h3 id="prerequisites">Prerequisites</h3>
+<h4 id="majority-and-minority">Majority and minority</h4>
+<p>For a raft cluster contains odd number of servers, say
+<code>2*N + 1</code>, or even number of servers, say <code>2*N</code>,
+we say majority of the cluster comprises at least <code>N + 1</code>
+servers, and minority of the cluster comprises at most <code>N</code>
+servers.</p>
+<h4 id="server-roles">Server roles</h4>
+<p>At any given time each server is in one of three states: leader,
+follower, or candidate. In normal operation there is exactly one leader
+and all of the other servers are followers. Followers are passive: they
+issue no requests on their own but simply respond to requests from
+leaders and candidates. The leader handles all client requests (if a
+client contacts a follower, the follower redirects it to the leader).
+The third state, candidate, is used to elect a new leader. The following
+figure shows the states and their transitions:</p>
+<img src="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/server-states.png" class="">
+<h4 id="terms">Terms</h4>
+<p>Raft divides time into terms of arbitrary length. Terms are numbered
+with consecutive integers. Each term begins with an election, in which
+one or more candidates attempt to become leader. If a candidate wins the
+election, then it serves as leader for the rest of the term. In some
+situations an election will result in a split vote. In this case the
+term will end with no leader; a new term (with a new election) will
+begin shortly. Raft ensures that there is at most one leader in a given
+term.</p>
+<h4 id="logs">Logs</h4>
+<p>Logs are composed of entries, which are numbered sequentially as
+index. Each entry contains the term in which it was created and a
+command for the state machine. Raft determines which of two logs is more
+up-to-date by comparing the index and term of the last entries in the
+logs. If the logs have last entries with different terms, then the log
+with the later term is more up-to-date. If the logs end with the same
+term, then whichever log is longer is more up-to-date.</p>
+<h3 id="leader-election">Leader election</h3>
+<p>Raft uses a heartbeat mechanism to trigger leader election. When
+servers start up, they begin as followers. A server remains in follower
+state as long as it receives valid RPCs from a leader or candidate.
+Leaders send periodic heartbeats to all followers in order to maintain
+their authority. If a follower receives no communication over a period
+of time called the election timeout, then it assumes there is no viable
+leader and begins an election to choose a new leader.</p>
+<p>To begin an election, a follower increments its current term and
+transitions to candidate state. It then votes for itself and issues
+RequestVote RPCs in parallel to each of the other servers in the
+cluster. A candidate continues in this state until one of three things
+happens:</p>
+<ul>
+<li><p>It wins the election.</p>
+<p>A candidate wins an election if it receives votes from a majority of
+the servers in the full cluster for the same term. Each server will vote
+for at most one candidate in a given term, on a first-come-first-served
+basis with restriction: the voter denies its vote if its own log is more
+up-to-date than that of the candidate. The majority rule ensures that at
+most one candidate can win the election for a particular term. Once a
+candidate wins an election, it becomes leader. It then sends heartbeat
+messages to all of the other servers to establish its authority and
+prevent new elections.</p></li>
+<li><p>Another server establishes itself as leader,</p>
+<p>While waiting for votes, a candidate may receive an AppendEntries RPC
+from another server claiming to be leader. If the leader’s term
+(included in its RPC) is at least as large as the candidate’s current
+term, then the candidate recognizes the leader as legitimate and returns
+to follower state. If the term in the RPC is smaller than the
+candidate’s current term, then the candidate rejects the RPC and
+continues in candidate state.</p></li>
+<li><p>Another election timeout goes by with no winner.</p>
+<p>If many followers become candidates at the same time, votes could be
+split so that no candidate obtains a majority. When this happens, each
+candidate will time out and start a new election by incrementing its
+term and initiating another round of RequestVote RPCs. Raft uses
+randomized election timeouts to ensure that split votes are rare and
+that they are resolved quickly. To prevent split votes in the first
+place, election timeouts are chosen randomly from a fixed interval
+(e.g., 150–300 ms). This spreads out the servers so that in most cases
+only a single server will time out; it wins the election and sends
+heartbeats before any other servers time out. The same mechanism is used
+to handle split votes. Each candidate restarts its randomized election
+timeout at the start of an election, and it waits for that timeout to
+elapse before starting the next election; this reduces the likelihood of
+another split vote in the new election.</p></li>
+</ul>
+<h3 id="log-replication">Log replication</h3>
+<p>Once a leader has been elected, it begins servicing client requests.
+Each client request contains a command to be executed by the replicated
+state machine. The leader appends the command to its log as a new entry,
+then issues AppendEntries RPCs in parallel to each of the other servers
+to replicate the entry. When the entry has been safely replicated, the
+leader applies the entry to its state machine and returns the result of
+that execution to the client. If followers crash or run slowly, or if
+network packets are lost, the leader retries AppendEntries RPCs
+indefinitely (even after it has responded to the client) until all
+followers eventually store all log entries.</p>
+<p>The leader decides when it is safe to apply a log entry to the state
+machines; such an entry is called committed. <strong>A log entry is
+committed once the leader that created the entry has replicated it on a
+majority of the servers.</strong> This also commits all preceding
+entries in the leader’s log, including entries created by previous
+leaders. The leader keeps track of the highest index it knows to be
+committed, and it includes that index in future AppendEntries RPCs
+(including heartbeats) so that the other servers eventually find out.
+Once a follower learns that a log entry is committed, it applies the
+entry to its local state machine (in log order).</p>
+<p>Raft log mechanism was designed to maintain a high level of coherency
+between the logs on different servers. It maintains the following
+properties, which together constitute the Log Matching Property:</p>
+<ol type="1">
+<li><p>If two entries in different logs have the same index and term,
+then they store the same command.</p>
+<p>This property follows from the fact that a leader creates at most one
+entry with a given log index in a given term, and log entries never
+change their position in the log. New leader is elected with a larger
+term than previous leaders.</p></li>
+<li><p>If two entries in different logs have the same index and term,
+then the logs are identical in all preceding entries.</p>
+<p>This property is guaranteed by a consistency check performed by
+AppendEntries. When sending an AppendEntries RPC, the leader includes
+the index and term of the entry in its log that immediately precedes the
+new entries. If the follower does not find an entry in its log with the
+same index and term, then it refuses the new entries. The consistency
+check acts as an induction step: the initial empty state of the logs
+satisfies the Log Matching Property, and the consistency check preserves
+the Log Matching Property whenever logs are extended. As a result,
+whenever AppendEntries returns successfully, the leader knows that the
+follower’s log is identical to its own log up through the new
+entries.</p></li>
+</ol>
+<p>During normal operation, the logs of the leader and followers stay
+consistent, so the AppendEntries consistency check never fails. However,
+leader crashes can leave the logs inconsistent (the old leader may not
+have fully replicated all of the entries in its log). These
+inconsistencies can compound over a series of leader and follower
+crashes. A follower may be missing entries that are present on the
+leader, it may have extra entries that are not present on the leader, or
+both. Missing and extraneous entries in a log may span multiple
+terms.</p>
+<p>In Raft, the leader handles inconsistencies by forcing the followers’
+logs to duplicate its own. This means that conflicting entries in
+follower logs will be overwritten with entries from the leader’s log. To
+bring a follower’s log into consistency with its own, the leader must
+find the latest log entry where the two logs agree, delete any entries
+in the follower’s log after that point, and send the follower all of the
+leader’s entries after that point. All of these actions happen in
+response to the consistency check performed by AppendEntries RPCs. The
+leader maintains a nextIndex for each follower, which is the index of
+the next log entry the leader will send to that follower. When a leader
+first comes to power, it initializes all nextIndex values to the index
+just after the last one in ts log. If a follower’s log is inconsistent
+with the leader’s, the AppendEntries consistency check will fail in the
+next AppendEntries RPC. After a rejection, the leader decrements the
+follower’s nextIndex and retries the AppendEntries RPC. Eventually the
+nextIndex will reach a point where the leader and follower logs match.
+When this happens, AppendEntries will succeed, which removes any
+conflicting entries in the follower’s log and appends entries from the
+leader’s log (if any). Once AppendEntries succeeds, the follower’s log
+is consistent with the leader’s, and it will remain that way for the
+rest of the term.</p>
+<h2 id="safety">Safety</h2>
+<p>Raft guarantees that each of these properties is true at all
+times:</p>
+<ul>
+<li><p>Election Safety: At most one leader can be elected in a given
+term.</p>
+<p>Each server will vote for at most on candidate in a given term, and a
+candidate must win votes from majority of the cluster to be elected as
+leader.</p></li>
+<li><p>Leader Append-Only: A leader never overwrites or deletes entries
+in its log; it only appends new entries.</p></li>
+<li><p>Log Matching Property: If two logs contain an entry with the same
+index and term, then the logs are identical in all entries up through
+the given index.</p></li>
+<li><p>Leader Completeness Property: If a log entry is committed in a
+given term, then that entry will be present in the logs of the leaders
+for all higher-numbered terms.</p>
+<p>A log entry is committed once the leader that created the entry has
+replicated it on a majority of the servers (at least <code>N+1</code>).
+New leader elected afterward wins votes from majority (at least
+<code>N+1</code>) servers. From inequation
+<code>(N+1) + (N+1) = 2*N + 2 &gt; 2*N + 1</code>, we knows that at
+least one server from later majority contains that committed log entry.
+With up-to-date election restriction, we can conclude that the new
+leader has that committed log entry.</p></li>
+<li><p>State Machine Safety: If a server has applied a log entry at a
+given index to its state machine, no other server will ever apply a
+different log entry for the same index.</p>
+<p>At the time a server applies a log entry to its state machine, its
+log must be identical to the leader’s log up through that entry, and the
+entry must be committed. Consider the lowest term in which any server
+applies a given log index; the Leader Completeness Property guarantees
+that the leaders for all higher terms will store that same log entry, so
+servers that apply the index in later terms will apply the same value.
+Thus, the State Machine Safety Property holds.</p></li>
+<li><p>Raft requires servers to apply entries in log index order.</p>
+<p>Combined with the State Machine Safety Property, this means that all
+servers will apply exactly the same set of log entries to their state
+machines, in the same order.</p></li>
+</ul>
+<p><strong>Raft guarantees that committed entries are durable and will
+eventually be executed by all of the available state
+machines.</strong></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/raft/" rel="tag"># raft</a>
+              <a href="/tags/consensus/" rel="tag"># consensus</a>
+              <a href="/tags/Distributed-Systems/" rel="tag"># Distributed Systems</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/31/spring-aspectj-load-time-weaving/" rel="prev" title="AspectJ Load-Time Weaving for Spring">
+      <i class="fa fa-chevron-left"></i> AspectJ Load-Time Weaving for Spring
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/12/Understanding-Spanner/" rel="next" title="Understanding Spanner">
+      Understanding Spanner <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+    <script src="https://giscus.app/client.js"
+        data-repo="kezhuw/giscus.blog.kezhuw.name" 
+        data-repo-id="R_kgDOHk_ukw" 
+        data-category="giscus"
+        data-category-id="DIC_kwDOHk_uk84CP8Ba"
+        data-mapping="pathname" 
+        data-reactions-enabled="1" 
+        data-emit-metadata="1" 
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        data-input-position="bottom"
+        data-loading="lazy"
+        async>
+    </script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-does-consensus-algorithm-mean"><span class="nav-number">1.</span> <span class="nav-text">What does consensus
+algorithm mean ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#introduce-replicated-state-machines"><span class="nav-number">2.</span> <span class="nav-text">Introduce Replicated State
+Machines</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-replicated-state-machines-implemented-in-distributed-systems"><span class="nav-number">3.</span> <span class="nav-text">How
+replicated state machines implemented in distributed systems ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#raft"><span class="nav-number">4.</span> <span class="nav-text">Raft</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prerequisites"><span class="nav-number">4.1.</span> <span class="nav-text">Prerequisites</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#majority-and-minority"><span class="nav-number">4.1.1.</span> <span class="nav-text">Majority and minority</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#server-roles"><span class="nav-number">4.1.2.</span> <span class="nav-text">Server roles</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#terms"><span class="nav-number">4.1.3.</span> <span class="nav-text">Terms</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#logs"><span class="nav-number">4.1.4.</span> <span class="nav-text">Logs</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leader-election"><span class="nav-number">4.2.</span> <span class="nav-text">Leader election</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#log-replication"><span class="nav-number">4.3.</span> <span class="nav-text">Log replication</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#safety"><span class="nav-number">5.</span> <span class="nav-text">Safety</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

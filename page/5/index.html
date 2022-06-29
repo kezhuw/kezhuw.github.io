@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Recording">
+<meta property="og:url" content="http://blog.kezhuw.name/page/5/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:locale">
+<meta property="article:author" content="Kezhu Wang">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/page/5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2013/03/23/cpp-interface-implementation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2013/03/23/cpp-interface-implementation/" class="post-title-link" itemprop="url">C++ 接口与实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 23 2013 10:35:07" itemprop="dateCreated datePublished" datetime="2013-03-23T10:35:07+08:00">Mar 23 2013</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 22:46:59" itemprop="dateModified" datetime="2014-12-21T22:46:59+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>封装是 C++ 面向对象三大特性之一。C++
+通过将数据和对数据操作的函数绑定在一个类里来表达封装。从字面意义和 C++
+的历史(C with class)来看，封装对于 C++ 来说是根本的。</p>
+<p>《代码大全2》6.2节
+中提到了一个良好的封装应该“避免把私有的实现细节放入类的接口中”，并介绍了
+《Effective C++》 中提到的 pImpl 惯用技法。</p>
+<p>在我看来 C++
+中类的实现方式明显无法很好的表达封装，只是粗暴的将函数及其操作的数据绑在一起，而忽视了可见性的控制。C++
+对运行时性能苛求可能是其罪魁祸首。</p>
+<p>实际上我认为封装从根本上就是一个错误的观点，数据和对数据操作的函数从来就不是一个整体。</p>
+<p>好吧，本文要说只是另一种定义 C++ 类的方式，类似 Objective-C 类的
+interface/implementation 。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// foo_interface.hpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;boost/noncopyable.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Interface</span> : boost::noncopyable &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">Bar</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.hpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;foo_interface.hpp&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;boost/shared_ptr.hpp&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> boost::shared_ptr&lt;Interface&gt; Reference;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// foo.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;foo.hpp&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> foo &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">implementation</span> : <span class="keyword">public</span> Interface &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">Bar</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bar0</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">implementation</span>() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> priv_data0;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bar0</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">Interface::Bar</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">BOOST_AUTO</span>(impl, <span class="built_in">static_cast</span>&lt;implementation&gt;(<span class="keyword">this</span>));</span><br><span class="line">    <span class="keyword">return</span> impl-&gt;<span class="built_in">Bar</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Reference <span class="title">New</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reference</span>(<span class="keyword">new</span> <span class="built_in">implementation</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>foo::Interface 中只包含 foo 对外提供的接口函数，没有数据成员。</p>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2013/03/23/cpp-interface-implementation/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/04/10/zeromq-atomic-msg/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2012/04/10/zeromq-atomic-msg/" class="post-title-link" itemprop="url">zeromq atomic msg</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 10 2012 13:04:47" itemprop="dateCreated datePublished" datetime="2012-04-10T13:04:47+08:00">Apr 10 2012</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:42:23" itemprop="dateModified" datetime="2014-12-21T20:42:23+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>先引用一下，0mq manual 的话： 0MQ ensures atomic delivery of
+messages; peers shall receive either all message parts of a message or
+none at all.</p>
+<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t
+负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t
+的管道中取得数据。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">ypipe_t</span> &lt; <span class="type">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="type">pipe_t</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Write an item to the pipe.  Don&#x27;t flush it yet. If incomplete is</span></span><br><span class="line"><span class="comment">//  set to true the item is assumed to be continued by items</span></span><br><span class="line"><span class="comment">//  subsequently written to the pipe. Incomplete items are never</span></span><br><span class="line"><span class="comment">//  flushed down the stream.</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">write</span> <span class="params">(<span class="type">const</span> T &amp;value_, <span class="type">bool</span> incomplete_)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//  Place the value to the queue, add new terminator element.</span></span><br><span class="line">    queue.<span class="built_in">back</span> () = value_;</span><br><span class="line">    queue.<span class="built_in">push</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Move the &quot;flush up to here&quot; poiter.</span></span><br><span class="line">    <span class="keyword">if</span> (!incomplete_)</span><br><span class="line">	f = &amp;queue.<span class="built_in">back</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE
+标志决定。只有当 multipart message 的最后一部分写入管道时，f
+才会更新。当 encoder_t 读取 zmq_msg_t
+，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t
+从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
+<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的
+lock-free 的数据结构实现。</p>
+<p>没什么好写的啊，看代码就OVER了。凑数。</p>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2012/04/10/zeromq-atomic-msg/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/04/01/zeromq-nonblocking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2012/04/01/zeromq-nonblocking/" class="post-title-link" itemprop="url">zeromq nonblocking</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 1 2012 14:40:50" itemprop="dateCreated datePublished" datetime="2012-04-01T14:40:50+08:00">Apr 1 2012</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:41:56" itemprop="dateModified" datetime="2014-12-21T20:41:56+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Virtual interface to be exposed by object that want to be notified</span></span><br><span class="line"><span class="comment">// about events on file descriptors.</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">i_poll_events</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">i_poll_events</span> () &#123;&#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for reading.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">in_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for writing.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">out_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called when timer expires.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">timer_event</span> <span class="params">(<span class="type">int</span> id_)</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>0mq 中实现（或部分实现）了这些接口的类包括： io_thread_t, reaper_t,
+zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2012/04/01/zeromq-nonblocking/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/03/09/zeromq-bind/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2012/03/09/zeromq-bind/" class="post-title-link" itemprop="url">zeromq bind</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 9 2012 4:42:46" itemprop="dateCreated datePublished" datetime="2012-03-09T04:42:46+08:00">Mar 9 2012</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:41:37" itemprop="dateModified" datetime="2014-12-21T20:41:37+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>这里只看tcp/ipc部分，下面代码摘自socket_base_t的bind函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (protocol == <span class="string">&quot;tcp&quot;</span> || protocol == <span class="string">&quot;ipc&quot;</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Choose I/O thread to run the listerner in.</span></span><br><span class="line">        <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">        <span class="keyword">if</span> (!io_thread) &#123;</span><br><span class="line">            errno = EMTHREAD;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create and run the listener.</span></span><br><span class="line">        <span class="type">zmq_listener_t</span> *listener = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_listener_t</span> (</span><br><span class="line">            io_thread, <span class="keyword">this</span>, options);</span><br><span class="line">        <span class="built_in">alloc_assert</span> (listener);</span><br><span class="line">        <span class="type">int</span> rc = listener-&gt;<span class="built_in">set_address</span> (protocol.<span class="built_in">c_str</span>(), address.<span class="built_in">c_str</span> ());</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">delete</span> listener;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">launch_child</span> (listener);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>bind创建一个zmq_listener_t挂到socket上去了。zmq_listener_t在其set_address函数中就开始监听tcp/ipc连接。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> zmq::<span class="type">zmq_listener_t</span>::<span class="built_in">set_address</span> (<span class="type">const</span> <span class="type">char</span> *protocol_, <span class="type">const</span> <span class="type">char</span> *addr_)</span><br><span class="line">&#123;</span><br><span class="line">     <span class="keyword">return</span> tcp_listener.<span class="built_in">set_address</span> (protocol_, addr_, options.backlog);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> zmq::<span class="type">tcp_listener_t</span>::<span class="built_in">set_address</span> (<span class="type">const</span> <span class="type">char</span> *protocol_, <span class="type">const</span> <span class="type">char</span> *addr_,</span><br><span class="line">    <span class="type">int</span> backlog_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strcmp</span> (protocol_, <span class="string">&quot;tcp&quot;</span>) == <span class="number">0</span> ) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Resolve the sockaddr to bind to.</span></span><br><span class="line">        <span class="type">int</span> rc = <span class="built_in">resolve_ip_interface</span> (&amp;addr, &amp;addr_len, addr_);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create a listening socket.</span></span><br><span class="line">        s = <span class="built_in">open_socket</span> (addr.ss_family, SOCK_STREAM, IPPROTO_TCP);</span><br><span class="line">        <span class="keyword">if</span> (s == <span class="number">-1</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Allow reusing of the address.</span></span><br><span class="line">        <span class="type">int</span> flag = <span class="number">1</span>;</span><br><span class="line">        rc = <span class="built_in">setsockopt</span> (s, SOL_SOCKET, SO_REUSEADDR, &amp;flag, <span class="built_in">sizeof</span> (<span class="type">int</span>));</span><br><span class="line">        <span class="built_in">errno_assert</span> (rc == <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Set the non-blocking flag.</span></span><br><span class="line">    	flag = <span class="built_in">fcntl</span> (s, F_GETFL, <span class="number">0</span>);</span><br><span class="line">    	<span class="keyword">if</span> (flag == <span class="number">-1</span>)</span><br><span class="line">            flag = <span class="number">0</span>;</span><br><span class="line">    	rc = <span class="built_in">fcntl</span> (s, F_SETFL, flag | O_NONBLOCK);</span><br><span class="line">        <span class="built_in">errno_assert</span> (rc != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Bind the socket to the network interface and port.</span></span><br><span class="line">        rc = <span class="built_in">bind</span> (s, (<span class="keyword">struct</span> sockaddr*) &amp;addr, addr_len);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> err = errno;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">close</span> () != <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            errno = err;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Listen for incomming connections.</span></span><br><span class="line">        rc = <span class="built_in">listen</span> (s, backlog_);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> err = errno;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">close</span> () != <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            errno = err;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span> (protocol_, <span class="string">&quot;ipc&quot;</span>) == <span class="number">0</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Get rid of the file associated with the UNIX domain socket that</span></span><br><span class="line">        <span class="comment">//  may have been left behind by the previous run of the application.</span></span><br><span class="line">        ::<span class="built_in">unlink</span> (addr_);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Convert the address into sockaddr_un structure.</span></span><br><span class="line">        <span class="type">int</span> rc = <span class="built_in">resolve_local_path</span> (&amp;addr, &amp;addr_len, addr_);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create a listening socket.</span></span><br><span class="line">        s = <span class="built_in">socket</span> (AF_UNIX, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (s == <span class="number">-1</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Set the non-blocking flag.</span></span><br><span class="line">        <span class="type">int</span> flag = <span class="built_in">fcntl</span> (s, F_GETFL, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (flag == <span class="number">-1</span>) </span><br><span class="line">            flag = <span class="number">0</span>;</span><br><span class="line">        rc = <span class="built_in">fcntl</span> (s, F_SETFL, flag | O_NONBLOCK);</span><br><span class="line">        <span class="built_in">errno_assert</span> (rc != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Bind the socket to the file path.</span></span><br><span class="line">        rc = <span class="built_in">bind</span> (s, (<span class="keyword">struct</span> sockaddr*) &amp;addr, addr_len);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> err = errno;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">close</span> () != <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            errno = err;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        has_file = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Listen for incomming connections.</span></span><br><span class="line">        rc = <span class="built_in">listen</span> (s, backlog_);</span><br><span class="line">        <span class="keyword">if</span> (rc != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">int</span> err = errno;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">close</span> () != <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            errno = err;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        errno = EPROTONOSUPPORT;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>set_address函数用一个非阻塞的 tcp/ipc socket 去监听 tcp/ipc
+连接。下面是 zmq_listener_t 的process_plug函数，这个函数被 socket_base_t
+的 bind 调用的 launch_child 触发，被 io_thread 调用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_listener_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Start polling for incoming connections.</span></span><br><span class="line">    handle = <span class="built_in">add_fd</span> (tcp_listener.<span class="built_in">get_fd</span> ());</span><br><span class="line">    <span class="built_in">set_pollin</span> (handle);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zmq::<span class="type">fd_t</span> zmq::<span class="type">tcp_listener_t</span>::<span class="built_in">get_fd</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>process_plug将正在进行监听的 tcp/ipc socket　加入轮询。下面看
+zmq_listener_t 的 in_event
+函数，该函数在有新连接请求时被调用（负责监听的 socket 可读）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_listener_t</span>::<span class="built_in">in_event</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">fd_t</span> fd = tcp_listener.<span class="built_in">accept</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  If connection was reset by the peer in the meantime, just ignore it.</span></span><br><span class="line">    <span class="comment">//  <span class="doctag">TODO:</span> Handle specific errors like ENFILE/EMFILE etc.</span></span><br><span class="line">    <span class="keyword">if</span> (fd == retired_fd)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose I/O thread to run connecter in. Given that we are already</span></span><br><span class="line">    <span class="comment">//  running in an I/O thread, there must be at least one available.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (io_thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create and launch an init object. </span></span><br><span class="line">    <span class="type">zmq_init_t</span> *init = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_init_t</span> (io_thread, socket,</span><br><span class="line">        <span class="literal">NULL</span>, fd, options);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (init);</span><br><span class="line">    <span class="built_in">launch_child</span> (init);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2012/03/09/zeromq-bind/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2012/03/07/zeromq-connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2012/03/07/zeromq-connect/" class="post-title-link" itemprop="url">zeromq connect</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Mar 7 2012 7:56:12" itemprop="dateCreated datePublished" datetime="2012-03-07T07:56:12+08:00">Mar 7 2012</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 20:41:21" itemprop="dateModified" datetime="2014-12-21T20:41:21+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>zmq_connect直接调用socket_base_t的connect函数。这里暂且只看tcp和ipc部分。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> zmq::<span class="type">socket_base_t</span>::<span class="built_in">connect</span> (<span class="type">const</span> <span class="type">char</span> *addr_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">unlikely</span> (ctx_terminated)) &#123;</span><br><span class="line">        errno = ETERM;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Parse addr_ string.</span></span><br><span class="line">    std::string protocol;</span><br><span class="line">    std::string address;</span><br><span class="line">    <span class="type">int</span> rc = <span class="built_in">parse_uri</span> (addr_, protocol, address);</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// omit...</span></span><br><span class="line">    <span class="comment">//  Parsed address for validation</span></span><br><span class="line">    sockaddr_storage addr;</span><br><span class="line">    <span class="type">socklen_t</span> addr_len;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;tcp&quot;</span>)</span><br><span class="line">        rc = <span class="built_in">resolve_ip_hostname</span> (&amp;addr, &amp;addr_len, address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;ipc&quot;</span>)</span><br><span class="line">        rc = <span class="built_in">resolve_local_path</span> (&amp;addr, &amp;addr_len, address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="keyword">if</span> (rc != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose the I/O thread to run the session in.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="keyword">if</span> (!io_thread) &#123;</span><br><span class="line">        errno = EMTHREAD;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create session.</span></span><br><span class="line">    <span class="type">connect_session_t</span> *session = <span class="built_in">new</span> (std::nothrow) <span class="built_in">connect_session_t</span> (</span><br><span class="line">        io_thread, <span class="keyword">this</span>, options, protocol.<span class="built_in">c_str</span> (), address.<span class="built_in">c_str</span> ());</span><br><span class="line">    <span class="built_in">alloc_assert</span> (session);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  If &#x27;immediate connect&#x27; feature is required, we&#x27;ll create the pipes</span></span><br><span class="line">    <span class="comment">//  to the session straight away. Otherwise, they&#x27;ll be created by the</span></span><br><span class="line">    <span class="comment">//  session once the connection is established.</span></span><br><span class="line">    <span class="keyword">if</span> (options.immediate_connect) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">reader_t</span> *inpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">writer_t</span> *inpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">reader_t</span> *outpipe_reader = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="type">writer_t</span> *outpipe_writer = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create inbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_in)</span><br><span class="line">            <span class="built_in">create_pipe</span> (<span class="keyword">this</span>, session, options.hwm, options.swap,</span><br><span class="line">                &amp;inpipe_reader, &amp;inpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Create outbound pipe, if required.</span></span><br><span class="line">        <span class="keyword">if</span> (options.requires_out)</span><br><span class="line">            <span class="built_in">create_pipe</span> (session, <span class="keyword">this</span>, options.hwm, options.swap,</span><br><span class="line">                &amp;outpipe_reader, &amp;outpipe_writer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the socket object.</span></span><br><span class="line">        <span class="built_in">attach_pipes</span> (inpipe_reader, outpipe_writer, <span class="built_in">blob_t</span> ());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//  Attach the pipes to the session object.</span></span><br><span class="line">        session-&gt;<span class="built_in">attach_pipes</span> (outpipe_reader, inpipe_writer, <span class="built_in">blob_t</span> ());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Activate the session. Make it a child of this socket.</span></span><br><span class="line">    <span class="built_in">launch_child</span> (session);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">own_t</span>::<span class="built_in">launch_child</span> (<span class="type">own_t</span> *object_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Specify the owner of the object.</span></span><br><span class="line">    object_-&gt;<span class="built_in">set_owner</span> (<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Plug the object into the I/O thread.</span></span><br><span class="line">    <span class="built_in">send_plug</span> (object_);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Take ownership of the object.</span></span><br><span class="line">    <span class="built_in">send_own</span> (<span class="keyword">this</span>, object_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>0mq
+socket为每个connect创建一个connect_session_t，代表主动发起的连接。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">connect_session_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Start connection process immediately.</span></span><br><span class="line">    <span class="built_in">start_connecting</span> (<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> zmq::<span class="type">connect_session_t</span>::<span class="built_in">start_connecting</span> (<span class="type">bool</span> wait_)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Choose I/O thread to run connecter in. Given that we are already</span></span><br><span class="line">    <span class="comment">//  running in an I/O thread, there must be at least one available.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (io_thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create the connecter object.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Both TCP and IPC transports are using the same infrastructure.</span></span><br><span class="line">    <span class="keyword">if</span> (protocol == <span class="string">&quot;tcp&quot;</span> || protocol == <span class="string">&quot;ipc&quot;</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">zmq_connecter_t</span> *connecter = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_connecter_t</span> (</span><br><span class="line">            io_thread, <span class="keyword">this</span>, options, protocol.<span class="built_in">c_str</span> (), address.<span class="built_in">c_str</span> (),</span><br><span class="line">            wait_);</span><br><span class="line">        <span class="built_in">alloc_assert</span> (connecter);</span><br><span class="line">        <span class="built_in">launch_child</span> (connecter);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">zmq_assert</span> (<span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>zmq_connect_t负责发起连接以及连接失败后重连。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">process_plug</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (wait)</span><br><span class="line">        <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">start_connecting</span> ();</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">start_connecting</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//  Open the connecting socket.</span></span><br><span class="line">    <span class="type">int</span> rc = tcp_connecter.<span class="built_in">open</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connect may succeed in synchronous manner.</span></span><br><span class="line">    <span class="keyword">if</span> (rc == <span class="number">0</span>) &#123;</span><br><span class="line">        handle = <span class="built_in">add_fd</span> (tcp_connecter.<span class="built_in">get_fd</span> ());</span><br><span class="line">        handle_valid = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">out_event</span> ();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Connection establishment may be dealyed. Poll for its completion.</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (rc == <span class="number">-1</span> &amp;&amp; errno == EAGAIN) &#123;</span><br><span class="line">        handle = <span class="built_in">add_fd</span> (tcp_connecter.<span class="built_in">get_fd</span> ());</span><br><span class="line">        handle_valid = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">set_pollout</span> (handle);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Handle any other error condition by eventual reconnect.</span></span><br><span class="line">    wait = <span class="literal">true</span>;</span><br><span class="line">    <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于ipc或者本机tcp端口的连接可能立即成功，对于处于连接过程中的fd将其置入io_thread_t的线程中polling。如失败，则重连。下面是zmq_connect_t的out_event函数，该函数在连接成功时被调用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> zmq::<span class="type">zmq_connecter_t</span>::<span class="built_in">out_event</span> ()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">fd_t</span> fd = tcp_connecter.<span class="built_in">connect</span> ();</span><br><span class="line">    <span class="built_in">rm_fd</span> (handle);</span><br><span class="line">    handle_valid = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Handle the error condition by attempt to reconnect.</span></span><br><span class="line">    <span class="keyword">if</span> (fd == retired_fd) &#123;</span><br><span class="line">        tcp_connecter.<span class="built_in">close</span> ();</span><br><span class="line">        wait = <span class="literal">true</span>;</span><br><span class="line">        <span class="built_in">add_reconnect_timer</span>();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Choose I/O thread to run connecter in. Given that we are already</span></span><br><span class="line">    <span class="comment">//  running in an I/O thread, there must be at least one available.</span></span><br><span class="line">    <span class="type">io_thread_t</span> *io_thread = <span class="built_in">choose_io_thread</span> (options.affinity);</span><br><span class="line">    <span class="built_in">zmq_assert</span> (io_thread);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Create an init object. </span></span><br><span class="line">    <span class="type">zmq_init_t</span> *init = <span class="built_in">new</span> (std::nothrow) <span class="built_in">zmq_init_t</span> (io_thread, <span class="literal">NULL</span>,</span><br><span class="line">        session, fd, options);</span><br><span class="line">    <span class="built_in">alloc_assert</span> (init);</span><br><span class="line">    <span class="built_in">launch_sibling</span> (init);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Shut the connecter down.</span></span><br><span class="line">    <span class="built_in">terminate</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当连接建立起来之后，通过zmq_init_t进行最出的数据（identity）交换。zmq_init_t被直接挂接到了session_t(connect_session_t)上去了，而zmq_connecter_t被terminate()。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2012/03/07/zeromq-connect/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
