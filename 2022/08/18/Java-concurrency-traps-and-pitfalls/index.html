@@ -20,19 +20,21 @@
     var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="游戏中各种怪物都会有自己的掉落物品列表。 最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id + 数量），掉落物品2 …… 。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。 一种更好的掉落表可能是这样的：掉落分类1，掉落 id 1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，…… 这样程序可以对不同的掉落分类进行不同的处理，并且 id 的">
+  <meta name="description" content="Concurrency is hard. Java has no exception. In this post and possible future posts, I will record traps and pitfalls, I experienced or heard, in Java. Nested write in ConcurrentHashMap.compute could d">
 <meta property="og:type" content="article">
-<meta property="og:title" content="游戏掉落表设计">
-<meta property="og:url" content="http://blog.kezhuw.name/2013/12/01/game-drop-item/index.html">
+<meta property="og:title" content="Java concurrency traps and pitfalls 1&#x2F;N">
+<meta property="og:url" content="http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/index.html">
 <meta property="og:site_name" content="Recording">
-<meta property="og:description" content="游戏中各种怪物都会有自己的掉落物品列表。 最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id + 数量），掉落物品2 …… 。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。 一种更好的掉落表可能是这样的：掉落分类1，掉落 id 1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，…… 这样程序可以对不同的掉落分类进行不同的处理，并且 id 的">
+<meta property="og:description" content="Concurrency is hard. Java has no exception. In this post and possible future posts, I will record traps and pitfalls, I experienced or heard, in Java. Nested write in ConcurrentHashMap.compute could d">
 <meta property="og:locale">
-<meta property="article:published_time" content="2013-12-01T04:18:31.000Z">
-<meta property="article:modified_time" content="2015-04-05T17:45:22.000Z">
+<meta property="article:published_time" content="2022-08-18T10:11:12.000Z">
+<meta property="article:modified_time" content="2022-08-18T16:59:44.783Z">
 <meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="concurrency">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://blog.kezhuw.name/2013/12/01/game-drop-item/">
+<link rel="canonical" href="http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/">
 
 
 <script id="page-configurations">
@@ -45,7 +47,7 @@
   };
 </script>
 
-  <title>游戏掉落表设计 | Recording</title>
+  <title>Java concurrency traps and pitfalls 1/N | Recording</title>
   
 
 
@@ -171,7 +173,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2013/12/01/game-drop-item/">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -184,7 +186,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          游戏掉落表设计
+          Java concurrency traps and pitfalls 1/N
         </h1>
 
         <div class="post-meta">
@@ -194,14 +196,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: Dec 1 2013 12:18:31" itemprop="dateCreated datePublished" datetime="2013-12-01T12:18:31+08:00">Dec 1 2013</time>
+              <time title="Created: Aug 18 2022 18:11:12" itemprop="dateCreated datePublished" datetime="2022-08-18T18:11:12+08:00">Aug 18 2022</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Apr 6 2015 1:45:22" itemprop="dateModified" datetime="2015-04-06T01:45:22+08:00">Apr 6 2015</time>
+                <time title="Modified: Aug 19 2022 0:59:44" itemprop="dateModified" datetime="2022-08-19T00:59:44+08:00">Aug 19 2022</time>
               </span>
 
           
@@ -215,10 +217,49 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>游戏中各种怪物都会有自己的掉落物品列表。</p>
-<p>最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id + 数量），掉落物品2 …… 。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。</p>
-<p>一种更好的掉落表可能是这样的：掉落分类1，掉落 id 1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，……</p>
-<p>这样程序可以对不同的掉落分类进行不同的处理，并且 id 的含义可以局限于分类之下，例如：可以将“分类1”视为虚拟物品，“分类2”视为普通物品，“分类3”视为某种特殊物品，等等。</p>
+        <p>Concurrency is hard. Java has no exception. In this post and possible future posts, I will record traps and pitfalls, I experienced or heard, in Java.</p>
+<h2 id="Nested-write-in-ConcurrentHashMap-compute-could-deadlock">Nested write in <code>ConcurrentHashMap.compute</code> could deadlock</h2>
+<p><code>ConcurrentHashMap</code> uses bucket level lock in write operations (e.g. <code>put</code>, <code>compute</code>) to protect bucket nodes. If nested writing key falls to the same bucket <code>ConcurrentHashMap.compute</code> is serving, then it deadlocks. The javadoc of <code>ConcurrentHashMap.compute</code> and its siblings warn this.</p>
+<blockquote>
+<p>Some attempted update operations on this map by other threads may be blocked while computation is in progress, so the computation should be short and simple, and must not attempt to update any other mappings of this Map.</p>
+</blockquote>
+<p>It encountered this once in production code and the “update” is shadowed by <code>ServiceLoader</code>.</p>
+<p>There are others encountering this.</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://bugs.openjdk.org/browse/JDK-8062841">JDK-8062841: ConcurrentHashMap.computeIfAbsent stuck in an endless loop</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/micrometer-metrics/micrometer/issues/2087">Deadlock due to ConcurrentHashMap.compute in PrometheusMeterRegistry</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.jooq.org/avoid-recursion-in-concurrenthashmap-computeifabsent/">Avoid Recursion in ConcurrentHashMap.computeIfAbsent()</a></li>
+</ul>
+<h2 id="CompletableFuture-complete-will-run-non-async-computations-if-it-completes-the-future"><code>CompletableFuture.complete</code> will run non-async computations if it completes the future</h2>
+<blockquote>
+<p>Actions supplied for dependent completions of non-async methods may be performed by the thread that completes the current CompletableFuture, or by any other caller of a completion method.</p>
+</blockquote>
+<p>I think it is not a good design, it makes <code>CompletableFuture.complete</code> vulnerable to <code>CompletableFuture.then</code>, <code>CompletableFuture.when</code> and <code>CompletableFuture.handle</code>. I did see code in production utilize this subtlety to build strong happen-before relation between <code>when</code> and code after <code>complete</code>.</p>
+<p>There are others encountering this.</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/40393489/java-completablefuture-complete-block">Java CompletableFuture.complete() block</a></li>
+</ul>
+<p>There is <code>CompletableFuture.completeAsync</code>, but not <code>CompletableFuture.completeExceptionallyAsync</code>.</p>
+<h2 id="CompletableFuture-get-may-swallow-InterruptedException-if-waiting-future-completes-immediately-after-Thread-interrupt"><code>CompletableFuture.get</code> may swallow <code>InterruptedException</code> if waiting future completes immediately after <code>Thread.interrupt</code></h2>
+<p>This is what I <a target="_blank" rel="noopener" href="https://github.com/kezhuw/openjdk-completablefuture-interruptedexception">found</a> in investigating <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/FLINK-19489">FLINK-19489</a> and reported in <a target="_blank" rel="noopener" href="https://bugs.openjdk.org/browse/JDK-8254350">JDK-8254350</a>. It is only fixed in <a target="_blank" rel="noopener" href="https://github.com/openjdk/jdk16/pull/17">Java 16</a> and later.</p>
+<h2 id="ConcurrentHashMap-size-or-ConcurrentHashMap-isEmpty-does-not-sync-with-concurrent-ConcurrentHashMap-remove"><code>ConcurrentHashMap.size</code> or <code>ConcurrentHashMap.isEmpty</code> does not sync with concurrent <code>ConcurrentHashMap.remove</code></h2>
+<blockquote>
+<p>Bear in mind that the results of aggregate status methods including size, isEmpty, and containsValue are typically useful only when a map is not undergoing concurrent updates in other threads. Otherwise the results of these methods reflect transient states that may be adequate for monitoring or estimation purposes, but not for program control.</p>
+</blockquote>
+<p>Normally, we don’t rely on <code>size</code> or <code>isEmpty</code> to detect concurrent removing. The subtlety is that <code>size</code> or <code>isEmpty</code> after <code>remove</code> could detect state before <code>remove</code> if concurrent <code>remove</code> succeed. Let’s image following sequences.</p>
+<ul>
+<li>A <code>ConcurrentHashMap</code> with key <code>a</code>.</li>
+<li><code>thread-1</code> and <code>thread-2</code> <code>remove</code> key <code>a</code> concurrently.</li>
+<li><code>size</code> or <code>isEmpty</code> after <code>remove</code> in <code>thread-1</code> may not observe <code>remove</code>.</li>
+</ul>
+<p>I am aware of this in investigating <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/FLINK-19448">FLINK-19448</a> where I linked <a target="_blank" rel="noopener" href="https://replit.com/@kezhuw/openjdk11-concurrent-hashmap-unsynchronized-size">repl</a> for evaluation.</p>
+<h2 id="Thread-getState-could-run-into-Thread-State-BLOCKED-due-to-class-loading"><code>Thread.getState</code> could run into <code>Thread.State.BLOCKED</code> due to class loading</h2>
+<blockquote>
+<p>Returns the state of this thread. This method is designed for use in monitoring of the system state, not for synchronization control.</p>
+</blockquote>
+<p>I found this in investigating <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/FLINK-19864">FLINK-19864</a>. Here is the <a target="_blank" rel="noopener" href="https://replit.com/@kezhuw/thread-state-blocked-class-loading">repl</a>.</p>
+<h2 id="Conclusion">Conclusion</h2>
+<p>Shit happens. Murphy wins. There is no silver bullet, we need caution and enough eyeballs.</p>
 
     </div>
 
@@ -227,6 +268,10 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/concurrency/" rel="tag"># concurrency</a>
+          </div>
 
         
 
@@ -234,13 +279,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2013/07/15/address-const-expression/" rel="prev" title="地址常量表达式">
-      <i class="fa fa-chevron-left"></i> 地址常量表达式
+    <a href="/2022/06/12/Understanding-Spanner/" rel="prev" title="Understanding Spanner">
+      <i class="fa fa-chevron-left"></i> Understanding Spanner
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2013/12/14/two-arguments-version-accumulate/" rel="next" title="两参数版本的 std::accumulate">
-      两参数版本的 std::accumulate <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -320,6 +362,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Nested-write-in-ConcurrentHashMap-compute-could-deadlock"><span class="nav-number">1.</span> <span class="nav-text">Nested write in ConcurrentHashMap.compute could deadlock</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletableFuture-complete-will-run-non-async-computations-if-it-completes-the-future"><span class="nav-number">2.</span> <span class="nav-text">CompletableFuture.complete will run non-async computations if it completes the future</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletableFuture-get-may-swallow-InterruptedException-if-waiting-future-completes-immediately-after-Thread-interrupt"><span class="nav-number">3.</span> <span class="nav-text">CompletableFuture.get may swallow InterruptedException if waiting future completes immediately after Thread.interrupt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ConcurrentHashMap-size-or-ConcurrentHashMap-isEmpty-does-not-sync-with-concurrent-ConcurrentHashMap-remove"><span class="nav-number">4.</span> <span class="nav-text">ConcurrentHashMap.size or ConcurrentHashMap.isEmpty does not sync with concurrent ConcurrentHashMap.remove</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Thread-getState-could-run-into-Thread-State-BLOCKED-due-to-class-loading"><span class="nav-number">5.</span> <span class="nav-text">Thread.getState could run into Thread.State.BLOCKED due to class loading</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">6.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

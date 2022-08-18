@@ -166,6 +166,95 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/08/18/Java-concurrency-traps-and-pitfalls/" class="post-title-link" itemprop="url">Java concurrency traps and pitfalls 1/N</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Aug 18 2022 18:11:12" itemprop="dateCreated datePublished" datetime="2022-08-18T18:11:12+08:00">Aug 18 2022</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Aug 19 2022 0:59:44" itemprop="dateModified" datetime="2022-08-19T00:59:44+08:00">Aug 19 2022</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Concurrency is hard. Java has no exception. In this post and possible future posts, I will record traps and pitfalls, I experienced or heard, in Java.</p>
+<h2 id="Nested-write-in-ConcurrentHashMap-compute-could-deadlock">Nested write in <code>ConcurrentHashMap.compute</code> could deadlock</h2>
+<p><code>ConcurrentHashMap</code> uses bucket level lock in write operations (e.g. <code>put</code>, <code>compute</code>) to protect bucket nodes. If nested writing key falls to the same bucket <code>ConcurrentHashMap.compute</code> is serving, then it deadlocks. The javadoc of <code>ConcurrentHashMap.compute</code> and its siblings warn this.</p>
+<blockquote>
+<p>Some attempted update operations on this map by other threads may be blocked while computation is in progress, so the computation should be short and simple, and must not attempt to update any other mappings of this Map.</p>
+</blockquote>
+<p>It encountered this once in production code and the “update” is shadowed by <code>ServiceLoader</code>.</p>
+<p>There are others encountering this.</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://bugs.openjdk.org/browse/JDK-8062841">JDK-8062841: ConcurrentHashMap.computeIfAbsent stuck in an endless loop</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/micrometer-metrics/micrometer/issues/2087">Deadlock due to ConcurrentHashMap.compute in PrometheusMeterRegistry</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.jooq.org/avoid-recursion-in-concurrenthashmap-computeifabsent/">Avoid Recursion in ConcurrentHashMap.computeIfAbsent()</a></li>
+</ul>
+<h2 id="CompletableFuture-complete-will-run-non-async-computations-if-it-completes-the-future"><code>CompletableFuture.complete</code> will run non-async computations if it completes the future</h2>
+<blockquote>
+<p>Actions supplied for dependent completions of non-async methods may be performed by the thread that completes the current CompletableFuture, or by any other caller of a completion method.</p>
+</blockquote>
+<p>I think it is not a good design, it makes <code>CompletableFuture.complete</code> vulnerable to <code>CompletableFuture.then</code>, <code>CompletableFuture.when</code> and <code>CompletableFuture.handle</code>. I did see code in production utilize this subtlety to build strong happen-before relation between <code>when</code> and code after <code>complete</code>.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/08/18/Java-concurrency-traps-and-pitfalls/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
     <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2022/06/12/Understanding-Spanner/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -211,99 +300,55 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>It has been decade since <a target="_blank" rel="noopener" href="https://research.google/pubs/pub39966/">Spanner</a> published, and
-several Spanner inspired open source projects has been approached to
-prevailing, says <a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/">CockroachDB</a> and <a target="_blank" rel="noopener" href="https://github.com/yugabyte/yugabyte-db/">YugabyteDB</a> <a target="_blank" rel="noopener" href="https://www.cockroachlabs.com/blog/living-without-atomic-clocks/">in
-lack of TrueTime</a>. It should be much easier to understand Spanner
-with these pioneer open source projects today.</p>
-<h2 id="what-are-tablet-paxos-group-directory-and-fragment">What are
-tablet, paxos group, directory and fragment ?</h2>
+          <p>It has been decade since <a target="_blank" rel="noopener" href="https://research.google/pubs/pub39966/">Spanner</a> published, and several Spanner inspired open source projects has been approached to prevailing, says <a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/">CockroachDB</a> and <a target="_blank" rel="noopener" href="https://github.com/yugabyte/yugabyte-db/">YugabyteDB</a> <a target="_blank" rel="noopener" href="https://www.cockroachlabs.com/blog/living-without-atomic-clocks/">in lack of TrueTime</a>. It should be much easier to understand Spanner with these pioneer open source projects today.</p>
+<h2 id="What-are-tablet-paxos-group-directory-and-fragment">What are tablet, paxos group, directory and fragment ?</h2>
 <blockquote>
-<p>A directory is the unit of data placement. All data in a directory
-has the same replication configuration.</p>
+<p>A directory is the unit of data placement. All data in a directory has the same replication configuration.</p>
 </blockquote>
 <blockquote>
-<p>a Spanner tablet is a container that may encapsulate multiple
-partitions of the row space. We made this decision so that it would be
-possible to colocate multiple directories that are frequently accessed
-together.</p>
+<p>a Spanner tablet is a container that may encapsulate multiple partitions of the row space. We made this decision so that it would be possible to colocate multiple directories that are frequently accessed together.</p>
 </blockquote>
 <blockquote>
-<p>A directory is also the smallest unit whose geographic-replication
-properties (or placement, for short) can be specified by an application.
-The design of our placement-specification language separates
-responsibilities for managing replication configurations. Administrators
-control two dimensions: the number and types of replicas, and the
-geographic placement of those replicas. They create a menu of named
-options in these two dimensions (e.g., North America, replicated 5 ways
-with 1 witness). An application controls how data is replicated, by
-tagging each database and/or individual directories with a combination
-of those options. For example, an application might store each
-end-user’s data in its own directory, which would enable user A’s data
-to have three replicas in Europe, and user B’s data to have five
-replicas in North America.</p>
+<p>A directory is also the smallest unit whose geographic-replication properties (or placement, for short) can be specified by an application. The design of our placement-specification language separates responsibilities for managing replication configurations. Administrators control two dimensions: the number and types of replicas, and the geographic placement of those replicas. They create a menu of named options in these two dimensions (e.g., North America, replicated 5 ways with 1 witness). An application controls how data is replicated, by tagging each database and/or individual directories with a combination of those options. For example, an application might store each end-user’s data in its own directory, which would enable user A’s data to have three replicas in Europe, and user B’s data to have five replicas in North America.</p>
 </blockquote>
 <blockquote>
-<p>For expository clarity we have over-simplified. In fact, Spanner will
-shard a directory into multiple fragments if it grows too large.
-Fragments may be served from different Paxos groups (and therefore
-different servers). Movedir actually moves fragments, and not whole
-directories, between groups.</p>
+<p>For expository clarity we have over-simplified. In fact, Spanner will shard a directory into multiple fragments if it grows too large. Fragments may be served from different Paxos groups (and therefore different servers). Movedir actually moves fragments, and not whole directories, between groups.</p>
 </blockquote>
-<p>I map these to CockroachDB's concepts.</p>
+<p>I map these to CockroachDB’s concepts.</p>
 <table>
-<colgroup>
-<col style="width: 23%">
-<col style="width: 26%">
-<col style="width: 50%">
-</colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Spanner</th>
 <th>CockroachDB</th>
 <th>What</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Tablet</td>
 <td><a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/blob/eeb72360fe8e5bdc9ed123612c4e71b975b52124/pkg/kv/kvserver/store.go#L434">Store</a></td>
 <td>Colocation container for different fragments/ranges</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Paxos group</td>
-<td><a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/blob/eeb72360fe8e5bdc9ed123612c4e71b975b52124/docs/design.md#raft---consistency-of-range-replicas">Multi
-raft group</a></td>
-<td>Tablet's consensus group</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/blob/eeb72360fe8e5bdc9ed123612c4e71b975b52124/docs/design.md#raft---consistency-of-range-replicas">Multi raft group</a></td>
+<td>Tablet’s consensus group</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Fragment</td>
-<td><a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/blob/eeb72360fe8e5bdc9ed123612c4e71b975b52124/pkg/kv/kvserver/replica.go#L188">Range
-Replica</a></td>
+<td><a target="_blank" rel="noopener" href="https://github.com/cockroachdb/cockroach/blob/eeb72360fe8e5bdc9ed123612c4e71b975b52124/pkg/kv/kvserver/replica.go#L188">Range Replica</a></td>
 <td>Continuous key space</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Directory</td>
-<td>Table, database and other <a target="_blank" rel="noopener" href="https://www.cockroachlabs.com/docs/stable/configure-replication-zones.html">Replication
-zones</a></td>
-<td>Logical container of fragments/ranges for data placement
-specification</td>
+<td>Table, database and other <a target="_blank" rel="noopener" href="https://www.cockroachlabs.com/docs/stable/configure-replication-zones.html">Replication zones</a></td>
+<td>Logical container of fragments/ranges for data placement specification</td>
 </tr>
 </tbody>
 </table>
-<h2 id="why-long-lived-leader">Why long-lived leader ?</h2>
+<h2 id="Why-long-lived-leader">Why long-lived leader ?</h2>
 <blockquote>
-<p>Spanner’s Paxos implementation uses timed leases to make leadership
-long-lived (10 seconds by default). A potential leader sends requests
-for timed lease votes; upon receiving a quorum of lease votes the leader
-knows it has a lease. A replica extends its lease vote implicitly on a
-successful write, and the leader requests lease-vote extensions if they
-are near expiration. Define a leader’s lease interval as starting when
-it discovers it has a quorum of lease votes, and as ending when it no
-longer has a quorum of lease votes (because some have expired). Spanner
-depends on the following disjointness invariant: for each Paxos group,
-each Paxos leader’s lease interval is disjoint from every other
-leader’s.</p>
+<p>Spanner’s Paxos implementation uses timed leases to make leadership long-lived (10 seconds by default). A potential leader sends requests for timed lease votes; upon receiving a quorum of lease votes the leader knows it has a lease. A replica extends its lease vote implicitly on a successful write, and the leader requests lease-vote extensions if they are near expiration. Define a leader’s lease interval as starting when it discovers it has a quorum of lease votes, and as ending when it no longer has a quorum of lease votes (because some have expired). Spanner depends on the following disjointness invariant: for each Paxos group, each Paxos leader’s lease interval is disjoint from every other leader’s.</p>
 </blockquote>
           <!--noindex-->
             <div class="post-button">
@@ -376,39 +421,28 @@ leader’s.</p>
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>This is my second time to read through <a target="_blank" rel="noopener" href="https://raft.github.io/">Raft</a> <a target="_blank" rel="noopener" href="https://purl.stanford.edu/qr033xr6097">Algorithm</a>, and it is
-hard to recall what I have learned in first reading. This time I decide
-to record my thoughts for future recall. Hope it is useful to newbies in
-distributed systems like me.</p>
-<h2 id="what-does-consensus-algorithm-mean">What does consensus
-algorithm mean ?</h2>
-<p><strong>Consensus algorithm is the process used to achieve agreement
-on shared state among <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">faulty
+          <p>This is my second time to read through <a target="_blank" rel="noopener" href="https://raft.github.io/">Raft</a> <a target="_blank" rel="noopener" href="https://purl.stanford.edu/qr033xr6097">Algorithm</a>, and it is hard to<br>
+recall what I have learned in first reading. This time I decide to record my thoughts for future<br>
+recall. Hope it is useful to newbies in distributed systems like me.</p>
+<h2 id="What-does-consensus-algorithm-mean">What does consensus algorithm mean ?</h2>
+<p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">faulty<br>
 processes</a> in distributed system.</strong></p>
-<h2 id="introduce-replicated-state-machines">Introduce Replicated State
-Machines</h2>
-<p>Here, we define state machine as
-<code>State' = Machine(State, Input)</code> for simplicity. A state
-machine can be defined with its start state, and makes progress with
-sequence of inputs, produces sequence of intermediate states. For
-examples:</p>
+<h2 id="Introduce-Replicated-State-Machines">Introduce Replicated State Machines</h2>
+<p>Here, we define state machine as <code>State' = Machine(State, Input)</code> for simplicity. A state machine<br>
+can be defined with its start state, and makes progress with sequence of inputs, produces sequence<br>
+of intermediate states. For examples:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&#x27; = Machine(State, Input)</span><br><span class="line">State&#x27;&#x27; = Machine(State&#x27;, Input&#x27;)</span><br><span class="line">State&#x27;&#x27;&#x27; = Machine(State&#x27;&#x27;, Input&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
-<p>Given a state machine, how can we figure out that it is a replicated
-state machine ?</p>
-<p>First, <strong>replicated state machine is deterministic</strong>.
-Given same start state with same sequence of inputs, the state machine
-always produce same intermediate states.</p>
-<p>Second, two state machines built from same logic on possibly
-different processes or nodes and even possibly different languages must
-be same. Here we define two state machines as same based on
-deterministic: given same start state and same sequence of inputs, if
-two state machines produce same sequence of intermediate states, we say
-these two state machine are same. Thus given multiple copies of same
-state machines with same start state, feeding with same sequence of
-inputs, they must produces same sequence of intermediate states.</p>
-<p>Third, states, including start state and intermediate states, and
-inputs must be self-contained, thus can be replicated to other processes
-or nodes with help of serialization and deserialization.</p>
+<p>Given a state machine, how can we figure out that it is a replicated state machine ?</p>
+<p>First, <strong>replicated state machine is deterministic</strong>. Given same start state with same sequence of<br>
+inputs, the state machine always produce same intermediate states.</p>
+<p>Second, two state machines built from same logic on possibly different processes or nodes and<br>
+even possibly different languages must be same. Here we define two state machines as same based<br>
+on deterministic: given same start state and same sequence of inputs, if two state machines<br>
+produce same sequence of intermediate states, we say these two state machine are same. Thus given<br>
+multiple copies of same state machines with same start state, feeding with same sequence of inputs,<br>
+they must produces same sequence of intermediate states.</p>
+<p>Third, states, including start state and intermediate states, and inputs must be self-contained,<br>
+thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/#more" rel="contents">
@@ -474,50 +508,16 @@ or nodes with help of serialization and deserialization.</p>
     <div class="post-body" itemprop="articleBody">
 
       
-          <p><a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html">Spring
-AOP</a> is proxy-based, using either <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html">JDK
-dynamic proxy</a> or <a target="_blank" rel="noopener" href="https://github.com/cglib/cglib">CGLIB</a>.
-Spring's <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html">Cache
-Abstraction</a>, <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/transaction.html">Transaction
-Management</a> and <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-annotation-support">Asynchronous
-Execution</a> are all built upon AOP proxies.</p>
-<p>However proxy can intercept only external method calls. Which means
-that self-invocation, in effect, a method within the target object
-calling another method of the target object, will not lead to an actual
-interception at runtime.</p>
+          <p><a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html">Spring AOP</a> is proxy-based, using either <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html">JDK dynamic proxy</a> or <a target="_blank" rel="noopener" href="https://github.com/cglib/cglib">CGLIB</a>. Spring’s <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html">Cache Abstraction</a>, <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/transaction.html">Transaction Management</a> and <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-annotation-support">Asynchronous Execution</a> are all built upon AOP proxies.</p>
+<p>However proxy can intercept only external method calls. Which means that self-invocation, in effect, a method within the target object calling another method of the target object, will not lead to an actual interception at runtime.</p>
 <p>Thus, the following code will not function correctly.</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> Class SomeServiceImpl <span class="keyword">implements</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Cacheable(value = &quot;SomeCache&quot;, key = &quot;#kind + &#x27;#&#x27; + #id&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> Object <span class="title function_">methodBase</span><span class="params">(String kind, String id)</span> &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">methodA</span><span class="params">(String id)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">&quot;a&quot;</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">methodB</span><span class="params">(String id)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> methodBase(<span class="string">&quot;b&quot;</span>, id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="aspectj-load-time-weaving">AspectJ Load-Time Weaving</h2>
-<p>Spring provides a library named <code>spring-aspects</code> and <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/AdviceMode.html"><code>AdviceMode.ASPECTJ</code></a>
-which can be used as value of <code>mode</code> filed for
-<code>@EnableCaching</code>, <code>@EnableTransactionManagement</code>
-and <code>@EnableAsync</code> annotations to support AspectJ load-time
-weaving. But that is not enough, AspectJ load-time weaver is required to
-weave aspect for target class.</p>
-<p>AspectJ Load-Time Weaver weave target class by transforming class
-file bytecode using a <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html"><code>ClassFileTransformer</code></a>
-named <a target="_blank" rel="noopener" href="http://git.eclipse.org/c/aspectj/org.aspectj.git/tree/loadtime5/java5-src/org/aspectj/weaver/loadtime/ClassPreProcessorAgentAdapter.java"><code>ClassPreProcessorAgentAdapter</code></a>
-from <code>aspectjweaver.jar</code>. This transformation can be
-performed either at JVM level through <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html"><code>Instrumentation</code></a>
-interface or at per <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html"><code>ClassLoader</code></a>
-level. A method with signature similar to
-<code>void addTransformer(ClassFileTransformer transformer)</code> is
-required to apply the transformation in class loading phase,
-<code>Instrumentation</code> support this method natively, while not all
-class loaders support this.</p>
-<h3 id="custom-class-loader-to-apply-class-file-transformation">Custom
-class loader to apply class file transformation</h3>
-<p>Spring's [<code>@EnableLoadTimeWeaving</code>]<span class="citation" data-cites="EnableLoadTimeWeaving">[@EnableLoadTimeWeaving]</span>
-creates a bean named <code>loadTimeWeaver</code> to inject a <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html"><code>ClassFileTransformer</code></a>,
-which is capable to weave target class with desired apsect, to bean
-class loader. Unfortunately, <a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-boot/issues/739">Spring
-Boot does not support this approach</a>.</p>
-<p>Due to the fact that <code>loadTimeWeaver</code> is a bean and
-classloading is happening at bean definition parsing phase which
-certainly happens before bean creation phase in same application
-context, thus [<code>@EnableLoadTimeWeaving</code>]<span class="citation" data-cites="EnableLoadTimeWeaving">[@EnableLoadTimeWeaving]</span>
-should be enabled in a application context which is a ancestor of the
-application context where target class located in.</p>
+<h2 id="AspectJ-Load-Time-Weaving">AspectJ Load-Time Weaving</h2>
+<p>Spring provides a library named <code>spring-aspects</code> and <a target="_blank" rel="noopener" href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/AdviceMode.html"><code>AdviceMode.ASPECTJ</code></a> which can be used as value of <code>mode</code> filed for <code>@EnableCaching</code>, <code>@EnableTransactionManagement</code> and <code>@EnableAsync</code> annotations to support AspectJ load-time weaving. But that is not enough, AspectJ load-time weaver is required to weave aspect for target class.</p>
+<p>AspectJ Load-Time Weaver weave target class by transforming class file bytecode using a <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html"><code>ClassFileTransformer</code></a> named <a target="_blank" rel="noopener" href="http://git.eclipse.org/c/aspectj/org.aspectj.git/tree/loadtime5/java5-src/org/aspectj/weaver/loadtime/ClassPreProcessorAgentAdapter.java"><code>ClassPreProcessorAgentAdapter</code></a> from <code>aspectjweaver.jar</code>. This transformation can be performed either at JVM level through <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html"><code>Instrumentation</code></a> interface or at per <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html"><code>ClassLoader</code></a> level. A method with signature similar to <code>void addTransformer(ClassFileTransformer transformer)</code> is required to apply the transformation in class loading phase, <code>Instrumentation</code> support this method natively, while not all class loaders support this.</p>
+<h3 id="Custom-class-loader-to-apply-class-file-transformation">Custom class loader to apply class file transformation</h3>
+<p>Spring’s <a target="_blank" rel="noopener" href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html"><code>@EnableLoadTimeWeaving</code></a> creates a bean named <code>loadTimeWeaver</code> to inject a <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html"><code>ClassFileTransformer</code></a>, which is capable to weave target class with desired apsect, to bean class loader. Unfortunately, <a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-boot/issues/739">Spring Boot does not support this approach</a>.</p>
+<p>Due to the fact that <code>loadTimeWeaver</code> is a bean and classloading is happening at bean definition parsing phase which certainly happens before bean creation phase in same application context, thus <a target="_blank" rel="noopener" href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/EnableLoadTimeWeaving.html"><code>@EnableLoadTimeWeaving</code></a> should be enabled in a application context which is a ancestor of the application context where target class located in.</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2017/08/31/spring-aspectj-load-time-weaving/#more" rel="contents">
@@ -589,137 +589,19 @@ application context where target class located in.</p>
     <div class="post-body" itemprop="articleBody">
 
       
-          <p><strong>Spring profile allows conditional registration of
-beans/components in runtime based on constants specified declaratively
-in configuration or programmatically in code.</strong> Let see some use
-cases.</p>
-<h2 id="activate-component-based-on-active-profile">Activate <span class="citation" data-cites="Component">@Component</span> based on
-active profile</h2>
-<p>Suppose we have a service interface called <code>SomeService</code>
-which has a method called <code>doSomething</code>:</p>
+          <p><strong>Spring profile allows conditional registration of beans/components in runtime based on constants specified declaratively in configuration or programmatically in code.</strong> Let see some use cases.</p>
+<h2 id="Activate-Component-based-on-active-profile">Activate @Component based on active profile</h2>
+<p>Suppose we have a service interface called <code>SomeService</code> which has a method called <code>doSomething</code>:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeService.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>SomeService</code> should only do real work in production
-environment and trivials in others. We can do this way:</p>
+<p><code>SomeService</code> should only do real work in production environment and trivials in others. We can do this way:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeServiceImpl.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile(&quot;production&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SomeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// Do real work ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile(&quot;!production&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NoOpSomeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// Do trivial things ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Now, based on whether <code>production</code> profile is declared or
-not, <code>SomeServiceImpl</code> or <code>NoOpSomeServiceImpl</code>
-will serve requests as <code>SomeService</code>.</p>
-<h2 id="register-bean-based-on-active-profile">Register <span class="citation" data-cites="Bean">@Bean</span> based on active
-profile</h2>
+<p>Now, based on whether <code>production</code> profile is declared or not, <code>SomeServiceImpl</code> or <code>NoOpSomeServiceImpl</code> will serve requests as <code>SomeService</code>.</p>
+<h2 id="Register-Bean-based-on-active-profile">Register @Bean based on active profile</h2>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WebConfiguration</span> &#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@Profile(&#123;&quot;dev&quot;, &quot;!featureA&quot;&#125;)</span></span><br><span class="line">    <span class="keyword">public</span> CustomBean <span class="title function_">customBean</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// instantiate, configure and return bean ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2017/04/08/spring-profile/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Kezhu Wang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Recording">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/" class="post-title-link" itemprop="url">Don't use context path in web application behind reverse proxy</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: Aug 20 2016 22:24:05" itemprop="dateCreated datePublished" datetime="2016-08-20T22:24:05+08:00">Aug 20 2016</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Aug 21 2016 7:32:57" itemprop="dateModified" datetime="2016-08-21T07:32:57+08:00">Aug 21 2016</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Recently, I and my colleague build a small web project together using
-<a target="_blank" rel="noopener" href="https://spring.io/">Spring</a>. We use a context path other
-than "/", say, "/abc" which is the project name. This setting is
-consistent with existing projects in my team.</p>
-<p>But after we deploy this project behind nginx, we encounter problem.
-In nginx, we config something like this:</p>
-<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:5000/abc/;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>It works fine for handwritten url from client. But the url links in
-the response html, which is generated by this application and points to
-resources inside this application, does not work. <em>All url forwarded
-by nginx will be prefixed with "/abc", which is the context path of this
-application in web container.</em> While the application generated url
-links have that prefix already. This results in wrong url links for
-those resources.</p>
-<p>There are workarounds to solve this, though, but after investigation
-and thinking, I concludes to:</p>
-<p><strong>If you use reverse proxy to forward HTTP request, then don't
-use context path in your application, instead let reverse proxy set
-context path for you.</strong></p>
-<p>First, if you use context path other than "/" in your application and
-you want your application visited via top domain without subpath, then
-you must hardcode that context path in reverse proxy. The same
-information is hardcoded in two places, your application and the reverse
-proxy.</p>
-<p>Second, if you use context path "/" in your application and you want
-your application visited via subpath, reverse proxy such as nginx can
-set <code>X-Forwarded-Prefix</code> for your application to generate url
-links prefixed with that subpath. If the framework backing your
-application respect this header, you probably don't notice that.</p>
-<p>The underlying cause behind this conclusion is that both web
-application and reverse proxy are passive. They accept request, handle
-it, response it. The solution comes from the fact that reverse proxy
-stand before web application so that it can add extra informations for
-web application to handle in programming approach without the need to
-handcode such informations.</p>
-<p>Links:<br>
-http://stackoverflow.com/questions/10429487/context-path-for-tomcat-web-application-fronted-with-nginx-as-reverse-proxy
-http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-directly-to-tomcat-webapp-with-context</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -808,14 +690,14 @@ http://stackoverflow.com/questions/19866203/nginx-configuration-to-pass-site-dir
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

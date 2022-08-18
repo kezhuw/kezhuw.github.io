@@ -166,6 +166,93 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2015/04/25/split-read-write-events-in-epoll/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2015/04/25/split-read-write-events-in-epoll/" class="post-title-link" itemprop="url">epoll 的读写分离</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 25 2015 19:43:12" itemprop="dateCreated datePublished" datetime="2015-04-25T19:43:12+08:00">Apr 25 2015</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Jul 15 2016 0:56:10" itemprop="dateModified" datetime="2016-07-15T00:56:10+08:00">Jul 15 2016</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>FreeBSD 下的 <a target="_blank" rel="noopener" href="http://www.freebsd.org/cgi/man.cgi?query=kqueue">kqueue</a> 监听的单位是 (ident, filter) ， Linux 下的 <a target="_blank" rel="noopener" href="http://man7.org/linux/man-pages/man7/epoll.7.html">epoll</a> 监听的单位是单个 fd 。在 Linux 下，通常你需要对 epoll 监听的 fd 做一些额外的记录工作，以便下次更改时查询。这里直接用 <a target="_blank" rel="noopener" href="http://redis.io/">Redis</a> 的代码做个示例。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FreeBSD kqueue</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">aeApiAddEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="type">int</span> fd, <span class="type">int</span> mask)</span> &#123;</span><br><span class="line">    aeApiState *state = eventLoop-&gt;apidata;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">kevent</span> <span class="title">ke</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_READABLE) &#123;</span><br><span class="line">        EV_SET(&amp;ke, fd, EVFILT_READ, EV_ADD, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">if</span> (kevent(state-&gt;kqfd, &amp;ke, <span class="number">1</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>) == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_WRITABLE) &#123;</span><br><span class="line">        EV_SET(&amp;ke, fd, EVFILT_WRITE, EV_ADD, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">if</span> (kevent(state-&gt;kqfd, &amp;ke, <span class="number">1</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>) == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">aeApiDelEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="type">int</span> fd, <span class="type">int</span> mask)</span> &#123;</span><br><span class="line">    aeApiState *state = eventLoop-&gt;apidata;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">kevent</span> <span class="title">ke</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_READABLE) &#123;</span><br><span class="line">        EV_SET(&amp;ke, fd, EVFILT_READ, EV_DELETE, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        kevent(state-&gt;kqfd, &amp;ke, <span class="number">1</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_WRITABLE) &#123;</span><br><span class="line">        EV_SET(&amp;ke, fd, EVFILT_WRITE, EV_DELETE, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        kevent(state-&gt;kqfd, &amp;ke, <span class="number">1</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码可以看到，FreeBSD kqueue 在改变 fd 的监听事件时不需要做额外的记录工作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Linux epoll</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">aeApiAddEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="type">int</span> fd, <span class="type">int</span> mask)</span> &#123;</span><br><span class="line">    aeApiState *state = eventLoop-&gt;apidata;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">ee</span> =</span> &#123;<span class="number">0</span>&#125;; <span class="comment">/* avoid valgrind warning */</span></span><br><span class="line">    <span class="comment">/* If the fd was already monitored for some event, we need a MOD</span></span><br><span class="line"><span class="comment">     * operation. Otherwise we need an ADD operation. */</span></span><br><span class="line">    <span class="type">int</span> op = eventLoop-&gt;events[fd].mask == AE_NONE ?</span><br><span class="line">            EPOLL_CTL_ADD : EPOLL_CTL_MOD;</span><br><span class="line"></span><br><span class="line">    ee.events = <span class="number">0</span>;</span><br><span class="line">    mask |= eventLoop-&gt;events[fd].mask; <span class="comment">/* Merge old events */</span></span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_READABLE) ee.events |= EPOLLIN;</span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_WRITABLE) ee.events |= EPOLLOUT;</span><br><span class="line">    ee.data.fd = fd;</span><br><span class="line">    <span class="keyword">if</span> (epoll_ctl(state-&gt;epfd,op,fd,&amp;ee) == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">aeApiDelEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="type">int</span> fd, <span class="type">int</span> delmask)</span> &#123;</span><br><span class="line">    aeApiState *state = eventLoop-&gt;apidata;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">ee</span> =</span> &#123;<span class="number">0</span>&#125;; <span class="comment">/* avoid valgrind warning */</span></span><br><span class="line">    <span class="type">int</span> mask = eventLoop-&gt;events[fd].mask &amp; (~delmask);</span><br><span class="line"></span><br><span class="line">    ee.events = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_READABLE) ee.events |= EPOLLIN;</span><br><span class="line">    <span class="keyword">if</span> (mask &amp; AE_WRITABLE) ee.events |= EPOLLOUT;</span><br><span class="line">    ee.data.fd = fd;</span><br><span class="line">    <span class="keyword">if</span> (mask != AE_NONE) &#123;</span><br><span class="line">        epoll_ctl(state-&gt;epfd,EPOLL_CTL_MOD,fd,&amp;ee);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* Note, Kernel &lt; 2.6.9 requires a non null event pointer even for</span></span><br><span class="line"><span class="comment">         * EPOLL_CTL_DEL. */</span></span><br><span class="line">        epoll_ctl(state-&gt;epfd,EPOLL_CTL_DEL,fd,&amp;ee);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码可以看到，Linux epoll 在改变 fd 的监听事件时需要查询之前监听的事件，记录当前监听的事件。<br>
+这样 API 的调用者就无需做额外的记录工作，但读写事件需要额外的同步机制去保证线程安全。</p>
+<blockquote>
+<p>Q3  Is the epoll file descriptor itself poll/epoll/selectable?</p>
+<p>A3  Yes.  If an epoll file descriptor has events waiting, then it will indicate as being readable.</p>
+<p>---- epoll(7)</p>
+</blockquote>
+<p>下面的代码利用了 epoll fd 本身在有等待事件时是可读的特性，展示了一种新的在 Linux epoll 下对 fd 读写<br>
+事件进行监听的方法。该方法分离了 fd 的读和写，这样我们就可以把 fd 的读和写交给不同的线程去处理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// initialization</span></span><br><span class="line"><span class="type">int</span> epfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="type">int</span> readfd = epoll_create(<span class="number">1</span>);</span><br><span class="line"><span class="type">int</span> writefd = epoll_create(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">event</span>;</span></span><br><span class="line">event.events = EPOLLIN;</span><br><span class="line"></span><br><span class="line">event.data.fd = readfd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, readfd, &amp;event);</span><br><span class="line"></span><br><span class="line">event.data.fd = writefd;</span><br><span class="line">epoll_ctl(epfd, EPOLL_CTL_ADD, writefd, &amp;event);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// wait read event</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">ev</span>;</span></span><br><span class="line">ev.data.fd = fd;</span><br><span class="line">ev.events = EPOLLIN; <span class="comment">// with possible other flags.</span></span><br><span class="line">epoll_ctl(readfd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// wait write event</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">ev</span>;</span></span><br><span class="line">ev.data.fd = fd;</span><br><span class="line">ev.events = EPOLLOUT; <span class="comment">// with possible other flags.</span></span><br><span class="line"><span class="comment">// No bookkeeping needed for read flags.</span></span><br><span class="line">epoll_ctl(writefd, EPOLL_CTL_ADD, fd, &amp;ev);</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2015/04/25/split-read-write-events-in-epoll/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
     <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2015/04/06/global-mail-sending-in-game-server/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -206,16 +293,11 @@
 
       
           <p>游戏开发、运营过程中通常会有 “给全服所有玩家发送邮件” 的需求。</p>
-<p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向
-“全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
+<p>我个人的想法是，给每封全服邮件一个版本号，玩家上线时或定期向 “全服邮件中心” 查询更新的全服邮件。下面是 C++ 版本的示例代码：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global Mail Centra</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">version_t</span> = uint64;</span><br><span class="line"><span class="keyword">using</span> <span class="type">mail_id_t</span> = uint64;</span><br><span class="line"></span><br><span class="line">std::map&lt;<span class="type">version_t</span>, <span class="type">mail_id_t</span>&gt; _mails;</span><br><span class="line"></span><br><span class="line">std::tuple&lt;<span class="type">version_t</span>, std::vector&lt;<span class="type">mail_id_t</span>&gt;&gt; <span class="built_in">fetchNewerMail</span>(<span class="type">version_t</span> currentVersion) &#123;</span><br><span class="line">    <span class="keyword">auto</span> newerVersion = currentVersion;</span><br><span class="line">    std::vector&lt;<span class="type">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> it = _mails.<span class="built_in">upper_bound</span>(currentVersion); it != _mails.<span class="built_in">end</span>(); ++it) &#123;</span><br><span class="line">        newerVersion = it-&gt;first;</span><br><span class="line">        newerMails.<span class="built_in">push_back</span>(it-&gt;second);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> std::<span class="built_in">make_tuple</span>(newerVersion, newerMails);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Global Mail Proxy in Player Module</span></span><br><span class="line"><span class="type">version_t</span> _currentVersion;</span><br><span class="line"></span><br><span class="line"><span class="function">std::vector&lt;<span class="type">mail_id_t</span>&gt; <span class="title">checkGlobalMails</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">version_t</span> newerVersion;</span><br><span class="line">    std::vector&lt;<span class="type">mail_id_t</span>&gt; newerMails;</span><br><span class="line">    std::<span class="built_in">tie</span>(newerVersion, newerMails) = <span class="built_in">fetchNewerMails</span>(_currentVersion);</span><br><span class="line">    <span class="keyword">if</span> (newerVersion != _currentVersion) &#123;</span><br><span class="line">        _currentVersion = newerVersion;</span><br><span class="line">        <span class="comment">// update _currentVersion to backend data storage</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newerMails;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的
-coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心”
-根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a target="_blank" rel="noopener" href="https://github.com/cloudwu/skynet/">skynet</a>
-中，可以这样做：</p>
+<p>如果服务器框架有很好的 coroutine 支持，玩家模块可以用一个独立的 coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；“全服邮件中心” 根据自身状态决定立即或延迟回复以恢复对方的执行流。例如，在 <a target="_blank" rel="noopener" href="https://github.com/cloudwu/skynet/">skynet</a> 中，可以这样做：</p>
 <figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">update_global_mails</span><span class="params">()</span></span></span><br><span class="line">    <span class="keyword">local</span> currentVersion = get_current_version()</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">true</span> <span class="keyword">do</span></span><br><span class="line">        newerVersion, newerMails = skynet.call(<span class="string">&quot;.global_mail_centra&quot;</span>, <span class="string">&quot;lua&quot;</span>, <span class="string">&quot;fetchNewerMails&quot;</span>, currentVersion)</span><br><span class="line">        <span class="keyword">if</span> newerVersion != currentVersion <span class="keyword">then</span></span><br><span class="line">            // synchronized to player<span class="string">&#x27;s mailbox (other module in same process), blocking call</span></span><br><span class="line"><span class="string">            currentVersion = newerVersion</span></span><br><span class="line"><span class="string">            // update currentVersion to backend data storage</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">skynet.fork(update_global_mails)</span></span><br></pre></td></tr></table></figure>
-<p>推荐阅读：<a target="_blank" rel="noopener" href="http://blog.codingnow.com/2014/07/skynet_response.html">skynet
-中如何实现邮件达到通知服务</a></p>
+<p>推荐阅读：<a target="_blank" rel="noopener" href="http://blog.codingnow.com/2014/07/skynet_response.html">skynet 中如何实现邮件达到通知服务</a></p>
 
           <!--noindex-->
             <div class="post-button">
@@ -291,22 +373,19 @@ coroutine <em>不停的</em>向 “全服邮件中心” 获取邮件更新；�
           <h2 id="参与并理解策划需求">参与并理解策划需求</h2>
 <p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
 <h2 id="隔离是必须的">隔离是必须的</h2>
-<p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug
-最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API
-交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层
-API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
-<p>这种分案有很多优点： *
-便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。
-* 降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。 *
-子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。
-* 容易定位造成 bug 的子系统。 * <em>心情舒坦，利于长寿</em>。</p>
+<p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API 交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层 API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
+<p>这种分案有很多优点：</p>
+<ul>
+<li>便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。</li>
+<li>降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。</li>
+<li>子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。</li>
+<li>容易定位造成 bug 的子系统。</li>
+<li><em>心情舒坦，利于长寿</em>。</li>
+</ul>
 <h2 id="代码质量">代码质量</h2>
-<p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta)
-代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
+<p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta) 代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
 <h3 id="潜在即是必然">潜在即是必然</h3>
-<p><strong>一个发生概率为百万分之一的 bug
-，在线上运行时是必然会发生的</strong>。</p>
-<h3 id="bug-修复要趁早">bug 修复要趁早</h3>
+<p><strong>一个发生概率为百万分之一的 bug ，在线上运行时是必然会发生的</strong>。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2015/03/20/opinion-on-game-server-development/#more" rel="contents">
@@ -378,22 +457,16 @@ API 以约定的协议与其他子系统进行交互，子系统之间实现源�
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在很早的时候，我就接触到 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs">Algorithms
-+ Data Structures = Programs</a> 这样的概念。</p>
+          <p>在很早的时候，我就接触到 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs">Algorithms + Data Structures = Programs</a> 这样的概念。</p>
 <p>在几年的工作之后的现今，我不认为这个等式可以表达所有的程序，也许只是我所工作的领域无法让我体会到这个等式的价值。</p>
 <p>下面是我尝试去总结自己的经历，得到的另一个等式。</p>
 <pre><code>模块 + 模块间的通信 = 程序
-modules + communications between modules = program</code></pre>
-<p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++
-语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
-<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持，
-<a target="_blank" rel="noopener" href="http://www.erlang.org/">Erlang</a> 是其中之一。 Erlang 中的
-process
-就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
-<p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。
-Erlang 中的消息可以跨节点进行传输，</p>
-<p>对在 C/C++
-中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
+modules + communications between modules = program
+</code></pre>
+<p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++ 语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
+<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持， <a target="_blank" rel="noopener" href="http://www.erlang.org/">Erlang</a> 是其中之一。 Erlang 中的 process 就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
+<p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。 Erlang 中的消息可以跨节点进行传输，</p>
+<p>对在 C/C++ 中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
 <p>在软件开发中引入的大多数“抽象”和“分层”（如果不是全部）都会引起性能的损失，但是今天的大部分程序仍然是运行在“进程”和“虚拟地址空间”的抽象之上。</p>
 
           <!--noindex-->
@@ -467,11 +540,8 @@ Erlang 中的消息可以跨节点进行传输，</p>
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在 Stack Overflow 上回答了一个问题： <a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context">How
-can I use an enum class in a boolean context?</a>，记录下。</p>
-<p>C++ 11 的 <code>explicit operator bool()</code>
-可以让类类型的值使用在条件语句中，但无法对 <code>enum</code>
-类型提供支持。</p>
+          <p>在 Stack Overflow 上回答了一个问题： <a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context">How can I use an enum class in a boolean context?</a>，记录下。</p>
+<p>C++ 11 的 <code>explicit operator bool()</code> 可以让类类型的值使用在条件语句中，但无法对 <code>enum</code> 类型提供支持。</p>
 <p>下面是我使用的一种方法：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Error</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> <span class="built_in">Error</span>(<span class="keyword">decltype</span>(Value) value = None) : <span class="built_in">Value</span>(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>使用：</p>
@@ -480,138 +550,6 @@ can I use an enum class in a boolean context?</a>，记录下。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2014/05/07/bool-like-enumeration_in_cpp/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Kezhu Wang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Recording">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2014/04/17/game-server-architecture-design/" class="post-title-link" itemprop="url">游戏服务器结构的设计</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: Apr 17 2014 19:57:50" itemprop="dateCreated datePublished" datetime="2014-04-17T19:57:50+08:00">Apr 17 2014</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Apr 6 2015 1:44:29" itemprop="dateModified" datetime="2015-04-06T01:44:29+08:00">Apr 6 2015</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。</p>
-<p>在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如：
-如果聊天/好友服务内嵌到逻辑服务器上时，玩家如果需要与其他服务器上的好友（在跨服功能中加为好友的）通信时就会很麻烦。</p>
-<p>大多可能有很大压力的全局功能都采用服务器集群的做法，集群中的成员：</p>
-<ul>
-<li>一个或多个（分层的或平行的）管理服务器，职责：
-<ul>
-<li>根据某种策略（id
-哈希/映射，服务器压力统计等）路由外部请求到具体的工作服务器；</li>
-<li>工作服务器的新增（外部请求或根据工作强度向其他服务请求启动新的工作服务器）；</li>
-<li>工作服务器的停机</li>
-</ul></li>
-<li>多个工作服务器，职责：
-<ul>
-<li>根据请求 id，处理对应的模块实体；</li>
-<li>向管理服务器汇报服务器压力</li>
-</ul></li>
-</ul>
-<p>实现：</p>
-<p>gate</p>
-<ul>
-<li>多个 gate 管理服务器，外网接入：
-<ul>
-<li>由 DNS 根据线路等指向或者固定 ip，client 接入时，会根据玩家的线路和
-gate 的压力情况选择适合的 gate ip:port 返回给玩家；</li>
-<li>gate 接入，外网 ip:port 注册</li>
-</ul></li>
-<li>多个 gate ，外网接入：
-<ul>
-<li>玩家接入，认证等等；</li>
-<li>向 gate 管理服务器发送在线压力情况；</li>
-<li>和在线统计服务器和逻辑服务器合作，负责玩家的登入及之后的消息中转</li>
-</ul></li>
-</ul>
-<p>登入</p>
-<ul>
-<li><p>一个或多个在线统计服务器：</p>
-<ul>
-<li>如果不存在玩家记录，根据策略（id
-哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx,
-ref: yyy]；</li>
-<li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx,
-ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
-<li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。</li>
-<li>做成无状态的服务，所有数据都存
-Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。
-（服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a target="_blank" rel="noopener" href="http://redis.io/commands/eval">Lua Script</a>
-都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
-</ul></li>
-<li><p>多个逻辑服务器：</p>
-<ul>
-<li>玩家个体逻辑的大部分功能都由该服务器实现
-（如果玩家逻辑功能比较复杂，可以用动态语言+虚拟机方式实现，这样当某个玩家或某个功能出现异常时，缩小影响范围）；</li>
-<li>在玩家登出后的有限时间内清空玩家数据，并向在线服务器（或
-Redis）发送清空玩家对该服务器的引用[player: zzz, ref: yyy]</li>
-</ul></li>
-</ul>
-<p>client 在 gate 完成登录认证，由 gate
-向在线统计服务器发送请求选择逻辑服务器 [id: xxx, ref: yyy] ， gate
-向逻辑服务器发送玩家的登入请求 [player: zzz, ref: yyy]
-，玩家进入游戏。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2014/04/17/game-server-architecture-design/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -700,14 +638,14 @@ Redis）发送清空玩家对该服务器的引用[player: zzz, ref: yyy]</li>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

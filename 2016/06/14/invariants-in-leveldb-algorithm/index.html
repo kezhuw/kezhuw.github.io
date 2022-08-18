@@ -210,72 +210,60 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Recently, I write a <a
-target="_blank" rel="noopener" href="https://github.com/google/leveldb">LevelDB</a> <a
-target="_blank" rel="noopener" href="https://github.com/kezhuw/leveldb">implementation in Go</a>. In
-this post, I summarize some invariants in algorithm used by LevelDB
-implementations.</p>
-<h2 id="sequence-number">Sequence Number</h2>
-<p>Sequence number is a monotonically increasing 56 bits integer value.
-Every time a key is written to LevelDB, it is tagged with a sequence
-number one larger than sequence number tagged with previous key written
-to LevelDB. <strong>If two entries in LevelDB have same user level keys,
-the one with larger sequence must shadow the other.</strong></p>
-<h2 id="sorted-memory-tables">Sorted Memory Tables</h2>
-<p>Writes are first recorded in a mutable memory table. If that memory
-table is full, it is marked as immutable and a new memory table is
-created to record writes. The memory table marked as immutable is then
-compacted to a sorted disk table in level 0 and deleted. Thus we
-conclude that:</p>
-<p><strong>If a key appears in mutable memory table, it is newest.
-Otherwise, if it appears in immutable memory table, it is
-newest.</strong></p>
-<h2 id="compaction">Compaction</h2>
-<p>When an immutable memory table is compacted to a sorted table in
-Level 0, it is assigned with a file number larger than all existing file
-numbers in this Level. Thus we have:</p>
-<p><strong>Entries stored in newer file in Level 0 shadow entries with
-same user keys in older files.</strong></p>
-<p>When there are too many files in Level 0 or too many data in Level 1
-or above, we start level compaction. In level N compaction, we select a
-file set from level N, such that no remaining files overlap this file
-set in user key level. Then we compact this file set with all
-overlapping files from level N+1, and produce sorted tables in level
-N+1. Thus we conclude to two invariants.</p>
-<p><strong>No files in level 1 or above overlap other files in the same
-level.</strong></p>
-<p><strong>Entries stored in level N shadow entries with same user keys
-above level N.</strong></p>
-<h2 id="snapshot">Snapshot</h2>
-<p>Snapshot in LevelDB is represented by a sequence number. When
-retrieving entries from a snapshot, entries whose sequence number are
-larger than the snapshot's are ignored. In compaction, we record the
-smallest sequence number among alive snapshots, and we never delete keys
-shadowed only by entry with sequence number larger that this smallest
-sequence number. After enforcing these restrictions on retrieve and
-compaction, we guarantee that:</p>
-<p><strong>The state a snapshot captured is frozen in its creation
-time.</strong></p>
-<h2 id="get">Get</h2>
-<p>According to invariants we guarantee, we first search mutable memory
-table, then immutable memory table, then sorted tables in level 0 from
-newest to oldest, then sorted tables in level 1 and above. If we find a
-write for the key, we can return the result to caller without further
-searching.</p>
-<h2 id="iteration">Iteration</h2>
-<p>Entries in memory tables and disk level tables may overlap each
-other. But files in level 1 and above have no overlapping files in same
-level. So we concatenate files in level N to form level iterator for
-level N. Then we merge those iterators with iterators from memory
-tables, level 0 tables to construct iterator over a whole LevelDB
-database. In iteration, we filter out entries shadowed by larger
-sequence number.</p>
-<h2 id="optimizations">Optimizations</h2>
-<p>Implementations can make their private optimizations without break
-those invariants. One such optimization in offical C++ implementation is
-that immutable memory table can be compacted to level 1 or above if it
-is not overlapping with younger level. Aggressive optimization, for
-example, concurrent compaction is also possible.</p>
+        <p>Recently, I write a <a target="_blank" rel="noopener" href="https://github.com/google/leveldb">LevelDB</a> <a target="_blank" rel="noopener" href="https://github.com/kezhuw/leveldb">implementation in Go</a>. In this post, I summarize<br>
+some invariants in algorithm used by LevelDB implementations.</p>
+<h2 id="Sequence-Number">Sequence Number</h2>
+<p>Sequence number is a monotonically increasing 56 bits integer value. Every<br>
+time a key is written to LevelDB, it is tagged with a sequence number one<br>
+larger than sequence number tagged with previous key written to LevelDB.<br>
+<strong>If two entries in LevelDB have same user level keys, the one with larger<br>
+sequence must shadow the other.</strong></p>
+<h2 id="Sorted-Memory-Tables">Sorted Memory Tables</h2>
+<p>Writes are first recorded in a mutable memory table. If that memory table is<br>
+full, it is marked as immutable and a new memory table is created to record<br>
+writes. The memory table marked as immutable is then compacted to a sorted<br>
+disk table in level 0 and deleted. Thus we conclude that:</p>
+<p><strong>If a key appears in mutable memory table, it is newest. Otherwise, if it<br>
+appears in immutable memory table, it is newest.</strong></p>
+<h2 id="Compaction">Compaction</h2>
+<p>When an immutable memory table is compacted to a sorted table in Level 0, it<br>
+is assigned with a file number larger than all existing file numbers in this<br>
+Level. Thus we have:</p>
+<p><strong>Entries stored in newer file in Level 0 shadow entries with same user keys<br>
+in older files.</strong></p>
+<p>When there are too many files in Level 0 or too many data in Level 1 or above,<br>
+we start level compaction. In level N compaction, we select a file set from<br>
+level N, such that no remaining files overlap this file set in user key level.<br>
+Then we compact this file set with all overlapping files from level N+1, and<br>
+produce sorted tables in level N+1. Thus we conclude to two invariants.</p>
+<p><strong>No files in level 1 or above overlap other files in the same level.</strong></p>
+<p><strong>Entries stored in level N shadow entries with same user keys above level N.</strong></p>
+<h2 id="Snapshot">Snapshot</h2>
+<p>Snapshot in LevelDB is represented by a sequence number. When retrieving entries<br>
+from a snapshot, entries whose sequence number are larger than the snapshot’s<br>
+are ignored. In compaction, we record the smallest sequence number among alive<br>
+snapshots, and we never delete keys shadowed only by entry with sequence number<br>
+larger that this smallest sequence number. After enforcing these restrictions<br>
+on retrieve and compaction, we guarantee that:</p>
+<p><strong>The state a snapshot captured is frozen in its creation time.</strong></p>
+<h2 id="Get">Get</h2>
+<p>According to invariants we guarantee, we first search mutable memory table,<br>
+then immutable memory table, then sorted tables in level 0 from newest to<br>
+oldest, then sorted tables in level 1 and above. If we find a write for the<br>
+key, we can return the result to caller without further searching.</p>
+<h2 id="Iteration">Iteration</h2>
+<p>Entries in memory tables and disk level tables may overlap each other. But<br>
+files in level 1 and above have no overlapping files in same level. So we<br>
+concatenate files in level N to form level iterator for level N. Then we<br>
+merge those iterators with iterators from memory tables, level 0 tables to<br>
+construct iterator over a whole LevelDB database. In iteration, we filter<br>
+out entries shadowed by larger sequence number.</p>
+<h2 id="Optimizations">Optimizations</h2>
+<p>Implementations can make their private optimizations without break those<br>
+invariants. One such optimization in offical C++ implementation is that<br>
+immutable memory table can be compacted to level 1 or above if it is not<br>
+overlapping with younger level. Aggressive optimization, for example,<br>
+concurrent compaction is also possible.</p>
 
     </div>
 
@@ -380,7 +368,7 @@ example, concurrent compaction is also possible.</p>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#sequence-number"><span class="nav-number">1.</span> <span class="nav-text">Sequence Number</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sorted-memory-tables"><span class="nav-number">2.</span> <span class="nav-text">Sorted Memory Tables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compaction"><span class="nav-number">3.</span> <span class="nav-text">Compaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#snapshot"><span class="nav-number">4.</span> <span class="nav-text">Snapshot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get"><span class="nav-number">5.</span> <span class="nav-text">Get</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iteration"><span class="nav-number">6.</span> <span class="nav-text">Iteration</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optimizations"><span class="nav-number">7.</span> <span class="nav-text">Optimizations</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Sequence-Number"><span class="nav-number">1.</span> <span class="nav-text">Sequence Number</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sorted-Memory-Tables"><span class="nav-number">2.</span> <span class="nav-text">Sorted Memory Tables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compaction"><span class="nav-number">3.</span> <span class="nav-text">Compaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Snapshot"><span class="nav-number">4.</span> <span class="nav-text">Snapshot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Get"><span class="nav-number">5.</span> <span class="nav-text">Get</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Iteration"><span class="nav-number">6.</span> <span class="nav-text">Iteration</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Optimizations"><span class="nav-number">7.</span> <span class="nav-text">Optimizations</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -394,14 +382,14 @@ example, concurrent compaction is also possible.</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

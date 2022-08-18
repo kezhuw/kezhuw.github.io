@@ -216,22 +216,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>先引用一下，0mq manual 的话： 0MQ ensures atomic delivery of
-messages; peers shall receive either all message parts of a message or
-none at all.</p>
-<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t
-负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t
-的管道中取得数据。</p>
+        <p>先引用一下，0mq manual 的话：<br>
+0MQ ensures atomic delivery of messages; peers shall receive either all message parts of a message or none at all.</p>
+<p>在 0mq 中最终数据的发送和接收是由 encoder_t 和 decoder_t 负责包装。他们都是由 io 线程调用，从应用发送 zmq_msg_t 的管道中取得数据。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">ypipe_t</span> &lt; <span class="type">zmq_msg_t</span>, message_pipe_granularity &gt; <span class="type">pipe_t</span>;</span><br></pre></td></tr></table></figure>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Lock-free queue implementation.</span></span><br><span class="line"><span class="comment">//  Only a single thread can read from the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  Only a single thread can write to the pipe at any specific moment.</span></span><br><span class="line"><span class="comment">//  T is the type of the object in the queue.</span></span><br><span class="line"><span class="comment">//  N is granularity of the pipe, i.e. how many items are needed to</span></span><br><span class="line"><span class="comment">//  perform next memory allocation.</span></span><br></pre></td></tr></table></figure>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  Write an item to the pipe.  Don&#x27;t flush it yet. If incomplete is</span></span><br><span class="line"><span class="comment">//  set to true the item is assumed to be continued by items</span></span><br><span class="line"><span class="comment">//  subsequently written to the pipe. Incomplete items are never</span></span><br><span class="line"><span class="comment">//  flushed down the stream.</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">write</span> <span class="params">(<span class="type">const</span> T &amp;value_, <span class="type">bool</span> incomplete_)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//  Place the value to the queue, add new terminator element.</span></span><br><span class="line">    queue.<span class="built_in">back</span> () = value_;</span><br><span class="line">    queue.<span class="built_in">push</span> ();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//  Move the &quot;flush up to here&quot; poiter.</span></span><br><span class="line">    <span class="keyword">if</span> (!incomplete_)</span><br><span class="line">	f = &amp;queue.<span class="built_in">back</span> ();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE
-标志决定。只有当 multipart message 的最后一部分写入管道时，f
-才会更新。当 encoder_t 读取 zmq_msg_t
-，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t
-从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
-<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的
-lock-free 的数据结构实现。</p>
+<p>write 函数的 incomplete_ 参数由外部的包装函数根据 ZMQ_SNDMORE 标志决定。只有当 multipart message 的最后一部分写入管道时，f 才会更新。当 encoder_t 读取 zmq_msg_t ，准备发送时，他不会读到一个未全部写完的 multipart message。decoder_t 从网络上接收数据后，在未读到最好一个部分时不会更新 f。</p>
+<p>其实 ypipe_t 是个挺有意思的两端可以同时允许一个线程读、一个线程写的 lock-free 的数据结构实现。</p>
 <p>没什么好写的啊，看代码就OVER了。凑数。</p>
 
     </div>
@@ -350,14 +342,14 @@ lock-free 的数据结构实现。</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

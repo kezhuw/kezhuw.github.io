@@ -211,47 +211,28 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>People coming from C or C++ may think that there is no <a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues">memory
-leak</a> in languages with <a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)">garbage
-collection</a>. But the truth is:</p>
-<p><strong>Memory leak does exist in languages with automatic garbage
-collection.</strong></p>
-<p>In perspective of human beings, garbage means something will never
-being used after sometime. Unfortunately, computer can't understand
-this. Computer uses a concept <a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Unreachable_memory">unreachable</a>
-to detect whether an object is garbage or not. There is a gap, as you
-may already known, that is "reachable but no longer used".</p>
-<p>Here, I show you a memory leak case using <a
-target="_blank" rel="noopener" href="https://golang.org/doc/effective_go.html">Go</a>. Also, it can
-happen in other garbage collection language, like Java. Goroutine is so
-lightweight and convenient in Go. Sometimes, you may use it to do some
-background jobs. Suppose, I write following code for a database
-library:</p>
+        <p>People coming from C or C++ may think that there is no <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Memory_leak#Programming_issues">memory leak</a> in languages with <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)">garbage collection</a>. But the truth is:</p>
+<p><strong>Memory leak does exist in languages with automatic garbage collection.</strong></p>
+<p>In perspective of human beings, garbage means something will never being used after sometime. Unfortunately, computer can’t<br>
+understand this. Computer uses a concept <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Unreachable_memory">unreachable</a> to detect whether<br>
+an object is garbage or not. There is a gap, as you may already known, that is “reachable but no longer used”.</p>
+<p>Here, I show you a memory leak case using <a target="_blank" rel="noopener" href="https://golang.org/doc/effective_go.html">Go</a>. Also, it can happen in other garbage collection language, like Java.<br>
+Goroutine is so lightweight and convenient in Go. Sometimes, you may use it to do some background jobs.<br>
+Suppose, I write following code for a database library:</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;runtime&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Request <span class="keyword">struct</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> DB <span class="keyword">struct</span> &#123;</span><br><span class="line">	closed <span class="type">bool</span></span><br><span class="line">	reqC   <span class="keyword">chan</span> Request</span><br><span class="line">	mutex  sync.Mutex</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Close() &#123;</span><br><span class="line">	db.mutex.Lock()</span><br><span class="line">	<span class="keyword">if</span> db.closed &#123;</span><br><span class="line">		db.mutex.Unlock()</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	db.closed = <span class="literal">true</span></span><br><span class="line">	db.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">&quot;db closing&quot;</span>)</span><br><span class="line">	<span class="built_in">close</span>(db.reqC)</span><br><span class="line">	runtime.SetFinalizer(db, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">backgroundWork</span><span class="params">(db *DB)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> <span class="keyword">range</span> db.reqC &#123;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">&quot;db channel closed&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Open</span><span class="params">(address <span class="type">string</span>, name <span class="type">string</span>)</span></span> (*DB, <span class="type">error</span>) &#123;</span><br><span class="line">	db := &amp;DB&#123;reqC: <span class="built_in">make</span>(<span class="keyword">chan</span> Request, <span class="number">100</span>)&#125;</span><br><span class="line">	runtime.SetFinalizer(db, (*DB).Close)</span><br><span class="line">	<span class="keyword">go</span> backgroundWork(db)</span><br><span class="line">	<span class="keyword">return</span> db, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</span><br><span class="line">	Open(<span class="string">&quot;tcp://127.0.0.1:4444&quot;</span>, <span class="string">&quot;test&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	test()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		time.Sleep(<span class="number">5</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>You may find that, database object created in function
-<code>test</code> is a garbage, but it never and will never got
-collected. The object is reachable from function
-<code>backgroundWork</code> called in goroutine fired by
-<code>go backgroundWork(db)</code> in <code>Open</code>.</p>
-<p><strong>If we want garbage collector to collect object for us, we
-should not reference the object in any case.</strong> In above code, we
-should not reference database object in <code>backgroundWork</code>. Let
-us make some changes:</p>
+<p>You may find that, database object created in function <code>test</code> is a garbage, but it never and will never got collected.<br>
+The object is reachable from function <code>backgroundWork</code> called in goroutine fired by <code>go backgroundWork(db)</code> in <code>Open</code>.</p>
+<p><strong>If we want garbage collector to collect object for us, we should not reference the object in any case.</strong> In above code,<br>
+we should not reference database object in <code>backgroundWork</code>. Let us make some changes:</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">backgroundWork</span><span class="params">(reqC <span class="keyword">chan</span> Request)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> <span class="keyword">range</span> reqC &#123;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">&quot;db channel closed&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Open</span><span class="params">(address <span class="type">string</span>, name <span class="type">string</span>)</span></span> (*DB, <span class="type">error</span>) &#123;</span><br><span class="line">	db := &amp;DB&#123;reqC: <span class="built_in">make</span>(<span class="keyword">chan</span> Request, <span class="number">100</span>)&#125;</span><br><span class="line">	runtime.SetFinalizer(db, (*DB).Close)</span><br><span class="line">	<span class="keyword">go</span> backgroundWork(db.reqC)</span><br><span class="line">	<span class="keyword">return</span> db, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Now, we run the programm and find that the database object got
-collected.</p>
-<p>I recommend three principles when you use thread or goroutine as
-background workhorse for API objects: * Don't reference, directly or
-indirectly, API objects in background threads or goroutines * Shutdown
-background threads or goroutines in API objects' finalizer/closer
-function * Care about "double free" issue, including manual-manual,
-manual-automatic gc</p>
-<p>If you do want reference API object in background workhorse, use its
-<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Weak_reference">weak
-reference</a>.</p>
+<p>Now, we run the programm and find that the database object got collected.</p>
+<p>I recommend three principles when you use thread or goroutine as background workhorse for API objects:</p>
+<ul>
+<li>Don’t reference, directly or indirectly, API objects in background threads or goroutines</li>
+<li>Shutdown background threads or goroutines in API objects’ finalizer/closer function</li>
+<li>Care about “double free” issue, including manual-manual, manual-automatic gc</li>
+</ul>
+<p>If you do want reference API object in background workhorse, use its <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Weak_reference">weak reference</a>.</p>
 
     </div>
 
@@ -370,14 +351,14 @@ reference</a>.</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

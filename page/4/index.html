@@ -166,6 +166,132 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2014/04/17/game-server-architecture-design/" class="post-title-link" itemprop="url">游戏服务器结构的设计</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: Apr 17 2014 19:57:50" itemprop="dateCreated datePublished" datetime="2014-04-17T19:57:50+08:00">Apr 17 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Apr 6 2015 1:44:29" itemprop="dateModified" datetime="2015-04-06T01:44:29+08:00">Apr 6 2015</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>每个全局功能（需要和其他玩家交互的功能，例如聊天，公会，副本和场景等）都作为一个独立服务来做，方便扩展。这个服务可以是逻辑服务器内嵌的（如果没有与其他服务器交互的需求），也可以是一个单独的服务器，甚至一个服务器集群。</p>
+<p>在分区游戏中，很多时候某些全局功能都作为一个功能模块内嵌到逻辑上去了，这样在某些需要服务器间玩家交互的功能时，就会很难做。例如： 如果聊天/好友服务内嵌到逻辑服务器上时，玩家如果需要与其他服务器上的好友（在跨服功能中加为好友的）通信时就会很麻烦。</p>
+<p>大多可能有很大压力的全局功能都采用服务器集群的做法，集群中的成员：</p>
+<ul>
+<li>一个或多个（分层的或平行的）管理服务器，职责：
+<ul>
+<li>根据某种策略（id 哈希/映射，服务器压力统计等）路由外部请求到具体的工作服务器；</li>
+<li>工作服务器的新增（外部请求或根据工作强度向其他服务请求启动新的工作服务器）；</li>
+<li>工作服务器的停机</li>
+</ul>
+</li>
+<li>多个工作服务器，职责：
+<ul>
+<li>根据请求 id，处理对应的模块实体；</li>
+<li>向管理服务器汇报服务器压力</li>
+</ul>
+</li>
+</ul>
+<p>实现：</p>
+<p>gate</p>
+<ul>
+<li>多个 gate 管理服务器，外网接入：
+<ul>
+<li>由 DNS 根据线路等指向或者固定 ip，client 接入时，会根据玩家的线路和 gate 的压力情况选择适合的 gate ip:port 返回给玩家；</li>
+<li>gate 接入，外网 ip:port 注册</li>
+</ul>
+</li>
+<li>多个 gate ，外网接入：
+<ul>
+<li>玩家接入，认证等等；</li>
+<li>向 gate 管理服务器发送在线压力情况；</li>
+<li>和在线统计服务器和逻辑服务器合作，负责玩家的登入及之后的消息中转</li>
+</ul>
+</li>
+</ul>
+<p>登入</p>
+<ul>
+<li>
+<p>一个或多个在线统计服务器：</p>
+<ul>
+<li>如果不存在玩家记录，根据策略（id 哈希，服务器压力等）选择一个逻辑服务器供玩家登录 [player: zzz, id: xxx, ref: yyy]；</li>
+<li>如果存在玩家记录，直接返回其所在逻辑服务器 [player: zzz, id: xxx, ref: yyy+1]（引用加1,防止逻辑服务器的错位删除）</li>
+<li>监控逻辑服务器的状态，逻辑服务器宕机后，标记其状态为宕机，避免玩家登入时再次接入已经宕机的逻辑服务器。</li>
+<li>做成无状态的服务，所有数据都存 Redis（这些数据都是在线玩家和所在逻辑服务器的映射，只需存在内存中），避免过多的逻辑，以及宕机后的自动恢复。 （服务与存储分开的关键是，数据能够原子的更新， Redis 的 <a target="_blank" rel="noopener" href="http://redis.io/commands/eval">Lua Script</a> 都可以做到这点。当然，也可以写一个定制的内存服务程序来解决这点。）</li>
+</ul>
+</li>
+<li>
+<p>多个逻辑服务器：</p>
+<ul>
+<li>玩家个体逻辑的大部分功能都由该服务器实现 （如果玩家逻辑功能比较复杂，可以用动态语言+虚拟机方式实现，这样当某个玩家或某个功能出现异常时，缩小影响范围）；</li>
+<li>在玩家登出后的有限时间内清空玩家数据，并向在线服务器（或 Redis）发送清空玩家对该服务器的引用[player: zzz, ref: yyy]</li>
+</ul>
+</li>
+</ul>
+<p>client 在 gate 完成登录认证，由 gate 向在线统计服务器发送请求选择逻辑服务器 [id: xxx, ref: yyy] ， gate 向逻辑服务器发送玩家的登入请求 [player: zzz, ref: yyy] ，玩家进入游戏。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2014/04/17/game-server-architecture-design/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
     <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/03/23/lua-coroutine-and-csharp-async/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -211,10 +337,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="lua-coroutine">Lua coroutine</h2>
-<p>Lua coroutine 是<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing">协作式多任务</a>的一种实现。coroutine
-经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua
-层的同步调用。</p>
+          <h2 id="Lua-coroutine">Lua coroutine</h2>
+<p>Lua coroutine 是<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
 <p>这种同步调用的流程：</p>
 <pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
     ==&gt; coroutine.yield
@@ -223,7 +347,8 @@
         ==| C/C++ 异步会话完成（消息/回调）
     &lt;== coroutine.resume
 val, err = ... -- &lt;== return from function
-do_someting(...)</code></pre>
+do_someting(...)
+</code></pre>
 <p>这个流程很像阻塞式的系统调用：</p>
 <pre><code>n = read(fd, buf, len)        // system call in userland
     ==&gt; syscallenter(...)     // in kernel mode
@@ -231,17 +356,12 @@ do_someting(...)</code></pre>
         |== kernel activity   // asynchronous wait if data is not available yet
         |==
     &lt;== syscallret(...)       // return from syscall
-n = ...                       // return from read in userland</code></pre>
-<h2 id="c-asyncawait">C# async/await</h2>
-<p>async/await 是 C# 5
-引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Continuation-passing_style">CPS</a>
-变换。</p>
+n = ...                       // return from read in userland
+</code></pre>
+<h2 id="C-async-await">C# async/await</h2>
+<p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Continuation-passing_style">CPS</a> 变换。</p>
 <blockquote>
-<p>C# 5.0 introduces the async and await keywords. These keywords let
-you write asynchronous code that has the same structure and simplicity
-as synchronous code, as well as eliminating the “plumbing” of
-asynchronous programming. The await keyword simplifies the attaching of
-continuations.</p>
+<p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
 </blockquote>
 <p>即将如下代码：</p>
           <!--noindex-->
@@ -316,8 +436,7 @@ continuations.</p>
 
       
           <p>C++11 的 auto 和 decltype 可以做 “返回值类型推断”。</p>
-<p>我写了个两参数版本的 <a target="_blank" rel="noopener" href="https://github.com/kezhuw/recipes/blob/master/cpp/accumulate.cpp">std::accumulate</a>
-。</p>
+<p>我写了个两参数版本的 <a target="_blank" rel="noopener" href="https://github.com/kezhuw/recipes/blob/master/cpp/accumulate.cpp">std::accumulate</a> 。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;numeric&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;type_traits&gt;</span></span></span><br><span class="line"><span class="keyword">namespace</span> std &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> InputIt&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">accumulate</span><span class="params">(InputIt begin, InputIt end)</span> -&gt; <span class="keyword">typename</span> std::remove_reference&lt;<span class="title">decltype</span><span class="params">(*begin)</span>&gt;::type </span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="keyword">typename</span> std::remove_reference&lt;<span class="keyword">decltype</span>(*begin)&gt;::type ValueType;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">accumulate</span>(begin, end, <span class="built_in">ValueType</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>配上点测试代码。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iterator&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;initializer_list&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(std::vector&lt;ValueType&gt; <span class="type">const</span>&amp; v)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;=========================n&quot;</span>;</span><br><span class="line">    std::<span class="built_in">copy</span>(std::<span class="built_in">begin</span>(v), std::<span class="built_in">end</span>(v), std::<span class="built_in">ostream_iterator</span>&lt;ValueType&gt;(std::cout, <span class="string">&quot;, &quot;</span>));</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;n&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> sum = std::<span class="built_in">accumulate</span>(std::<span class="built_in">begin</span>(v), std::<span class="built_in">end</span>(v));</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;sum = &quot;</span> &lt;&lt; sum &lt;&lt; <span class="string">&quot;n&quot;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;=========================nn&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> ValueType&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test</span><span class="params">(std::initializer_list&lt;ValueType&gt;&amp;&amp; values)</span> </span>&#123;</span><br><span class="line">    <span class="function">std::vector&lt;ValueType&gt; <span class="title">v</span><span class="params">(std::forward&lt;std::initializer_list&lt;ValueType&gt;&gt;(values))</span></span>;</span><br><span class="line">    <span class="built_in">test</span>(v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span></span></span><br><span class="line"><span class="function"><span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test</span>&lt;<span class="type">int</span>&gt;(std::vector&lt;<span class="type">int</span>&gt;&#123;&#125;);</span><br><span class="line">    <span class="built_in">test</span>&lt;<span class="type">int</span>&gt;(&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>&#125;);</span><br><span class="line">    <span class="built_in">test</span>&lt;<span class="type">int</span>&gt;(std::vector&lt;<span class="type">int</span>&gt;&#123;<span class="number">2</span>,<span class="number">2</span>,<span class="number">3</span>&#125;);</span><br><span class="line">    <span class="built_in">test</span>&lt;<span class="type">double</span>&gt;(&#123;<span class="number">1.1</span>, <span class="number">1.2</span>, <span class="number">1.3</span>&#125;);</span><br><span class="line">    <span class="built_in">test</span>&lt;std::string&gt;(&#123;<span class="string">&quot;aa&quot;</span>, <span class="string">&quot;bb&quot;</span>, <span class="string">&quot;cc&quot;</span>, <span class="string">&quot;dd&quot;</span>&#125;);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;cpp : &quot;</span> &lt;&lt; __cplusplus &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -395,13 +514,9 @@ continuations.</p>
 
       
           <p>游戏中各种怪物都会有自己的掉落物品列表。</p>
-<p>最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id +
-数量），掉落物品2 ……
-。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。</p>
-<p>一种更好的掉落表可能是这样的：掉落分类1，掉落 id
-1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，……</p>
-<p>这样程序可以对不同的掉落分类进行不同的处理，并且 id
-的含义可以局限于分类之下，例如：可以将“分类1”视为虚拟物品，“分类2”视为普通物品，“分类3”视为某种特殊物品，等等。</p>
+<p>最原始的掉落列表设计可能就是，掉落金钱，掉落经验，掉落物品1（id + 数量），掉落物品2 …… 。我觉得这样的掉落表设计不够灵活，不能很好的对不同种类（分类？）的物品做不同的处理。</p>
+<p>一种更好的掉落表可能是这样的：掉落分类1，掉落 id 1，掉落数量1，掉落分类2，掉落 id 2，掉落数量2，……</p>
+<p>这样程序可以对不同的掉落分类进行不同的处理，并且 id 的含义可以局限于分类之下，例如：可以将“分类1”视为虚拟物品，“分类2”视为普通物品，“分类3”视为某种特殊物品，等等。</p>
 
           <!--noindex-->
             <div class="post-button">
@@ -474,144 +589,30 @@ continuations.</p>
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>C
-语言中具有静态生存周期的变量的初始化器必须是常量表达式。当初始化器不是常量表达式时，gcc
-和 clang 的报错信息不尽相同。</p>
-<p>gcc 的报错信息是 <q>error: initializer element is not constant</q>
-clang 的报错信息是 <q>error: initializer element is not a compile-time
-constant</q></p>
-<p>clang 用的是“编译时常量”(compile-time constant)，实际上 C99
-标准里没有“编译时常量”这个概念，只有“常量表达式”。</p>
+          <p>C 语言中具有静态生存周期的变量的初始化器必须是常量表达式。当初始化器不是常量表达式时，gcc 和 clang 的报错信息不尽相同。</p>
+<p>gcc 的报错信息是 <q>error: initializer element is not constant</q> clang 的报错信息是 <q>error: initializer element is not a compile-time constant</q></p>
+<p>clang 用的是“编译时常量”(compile-time constant)，实际上 C99 标准里没有“编译时常量”这个概念，只有“常量表达式”。</p>
 <blockquote>
-<p>A constant expression can be evaluated during translation rather than
-runtime, and accordingly may be used in any place that a constant may
-be.</p>
+<p>A constant expression can be evaluated during translation rather than runtime, and accordingly may be used in any place that a constant may be.</p>
 </blockquote>
 <p>C99 规定了初始化器中可用的常量表达式：</p>
 <blockquote>
-<p>More latitude is permitted for constant expressions in initializers.
-Such a constant expression shall be, or evaluate to, one of the
-following: * — an arithmetic constant expression, * — a null pointer
-constant, * — an address constant, or * — an address constant for an
-object type plus or minus an integer constant expression.</p>
-<p>An address constant is a null pointer, a pointer to an lvalue
-designating an object of static storage duration, or a pointer to a
-function designator; it shall be created explicitly using the unary
-&amp; operator or an integer constant cast to pointer type, or
-implicitly by the use of an expression of array or function type. The
-array-subscript [] and member-access . and -&gt; operators, the address
-&amp; and indirection * unary operators, and pointer casts may be used
-in the creation of an address constant, but the value of an object shall
-not be accessed by use of these operators.</p>
+<p>More latitude is permitted for constant expressions in initializers. Such a constant expression shall be, or evaluate to, one of the following:</p>
+<ul>
+<li>— an arithmetic constant expression,</li>
+<li>— a null pointer constant,</li>
+<li>— an address constant, or</li>
+<li>— an address constant for an object type plus or minus an integer constant expression.</li>
+</ul>
+<p>An address constant is a null pointer, a pointer to an lvalue designating an object of static storage duration, or a pointer to a function designator; it shall be created explicitly using the unary &amp; operator or an integer constant cast to pointer type, or implicitly by the use of an expression of array or function type. The array-subscript [] and member-access . and -&gt; operators, the address &amp; and indirection * unary operators, and pointer casts may be used in the creation of an address constant, but the value of an object shall not be accessed by use of these operators.</p>
 </blockquote>
 <p>也就是说，你可以在初始化器中使用变量、变量的成员和函数的地址，也可以在地址的基础上加上个偏移量。</p>
-<p>"address constant" 不能算作 "compile-time constant"。
-尽管编译器可能在生成 ELF
-文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library)
-被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader)
-的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
-<p>c99 标准对于 "address constant"
-的运算只规定了可以加减整数常量表达式。</p>
+<p>“address constant” 不能算作 “compile-time constant”。 尽管编译器可能在生成 ELF 文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library) 被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader) 的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
+<p>c99 标准对于 “address constant” 的运算只规定了可以加减整数常量表达式。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">uintptr_t</span> addr = (<span class="type">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="type">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2013/07/15/address-const-expression/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2013/05/31/cpp-experience/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Kezhu Wang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Recording">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2013/05/31/cpp-experience/" class="post-title-link" itemprop="url">C++ 经验谈</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: May 31 2013 2:34:02" itemprop="dateCreated datePublished" datetime="2013-05-31T02:34:02+08:00">May 31 2013</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Dec 21 2014 22:46:55" itemprop="dateModified" datetime="2014-12-21T22:46:55+08:00">Dec 21 2014</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。</p>
-<p>很遗憾的是 C++
-是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">1</a>。</p>
-<p>即使这样，我认为在日常 C++
-编程时，也应该选择一个相对固定的编程模型，实验并改进之。</p>
-<p>在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。</p>
-<p>下面主要记录一下我写 C++ 的不长的时间里的一些经验。</p>
-<h2 id="避免编译时依赖">避免编译时依赖。</h2>
-<p>C++ 没有现代的 package, import 机制，而是使用了继承自 C 的
-<code>#include</code> 头文件包含机制。C++ 的复杂和 C 的编译模型导致了
-C++ 项目冗长的编译时间。在其他语言中 import/require 可以解决的问题，在
-C++ 中必须要程序员自己付出努力。[2]</p>
-<p>隐式 (implicit)
-的编译依赖不像头文件依赖会导致编译期的错误，却会在运行期招致不可预估的致命错误。比如，当你在编译单元
-CompilationUnitA 中 <code>p = new(CompilationUnitB::ClassB)</code>
-时，你已经埋下了一颗地雷。以后当你改变 CompilationUnitB::ClassB
-的成员而导致其大小 (size) 变化时，你编译 CompilationUnitB ，链接
-CompilationUnitA ，运行，然后不知何时那颗地雷就会炸掉。我觉得就
-<code>new</code> 的编译期行为，C++
-能做的更好，也应该做的更好。好吧，永远不要跨编译单元调用
-<code>new</code> 。</p>
-<p>虚函数调用、跨编译单元的栈上变量/全局变量同样是隐式的编译依赖。</p>
-<h2 id="跨编译单元.so-.dll-.lib时区分接口与实现同一编译单元内不过度区分接口与实现">跨编译单元（.so,
-.dll,
-.lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2013/05/31/cpp-experience/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -700,14 +701,14 @@ CompilationUnitA ，运行，然后不知何时那颗地雷就会炸掉。我觉
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

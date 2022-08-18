@@ -219,36 +219,30 @@
         <h2 id="参与并理解策划需求">参与并理解策划需求</h2>
 <p>能把事情做好的人永远是少数。程序如此，策划也如此。遇到不靠谱的策划，一定好主动沟通，弄清楚<em>它们</em>都在想些什么？！</p>
 <h2 id="隔离是必须的">隔离是必须的</h2>
-<p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug
-最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API
-交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层
-API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
-<p>这种分案有很多优点： *
-便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。
-* 降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。 *
-子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。
-* 容易定位造成 bug 的子系统。 * <em>心情舒坦，利于长寿</em>。</p>
+<p>游戏逻辑相关开发要占用游戏服务器开发的绝大部分时间，也是出现 bug 最多的部分。游戏逻辑的各个子系统之间<em>直接</em>的源码级 API 交互，会随着团队成员和子系统的增加，呈现出急剧的复杂度。更好的方案是，子系统通过唯一的中间层 API 以约定的协议与其他子系统进行交互，子系统之间实现源码级的隔离。</p>
+<p>这种分案有很多优点：</p>
+<ul>
+<li>便于模块分配，降低了源码冲突的可能性，限制了单个子系统 bug 的波及范围。</li>
+<li>降低了系统的整体复杂度，便于<em>人类的大脑</em>理解。</li>
+<li>子系统的实现变更（重构、重写）的代价（负担）会很小，代码质量会越来越好。</li>
+<li>容易定位造成 bug 的子系统。</li>
+<li><em>心情舒坦，利于长寿</em>。</li>
+</ul>
 <h2 id="代码质量">代码质量</h2>
-<p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta)
-代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
+<p>代码质量是一件严肃的事情。所有改 (zao) 善 (ta) 代码质量的行为，都会获得回 (bao) 报 (ying) 的。</p>
 <h3 id="潜在即是必然">潜在即是必然</h3>
-<p><strong>一个发生概率为百万分之一的 bug
-，在线上运行时是必然会发生的</strong>。</p>
+<p><strong>一个发生概率为百万分之一的 bug ，在线上运行时是必然会发生的</strong>。</p>
 <h3 id="bug-修复要趁早">bug 修复要趁早</h3>
 <p>大多数没有第一时间修复的 bug ，会被遗忘。</p>
 <ul>
 <li>对于只给出 workaround 或准备稍后 fix 的 bug ，一定要记录在案。</li>
 <li>对于反应出设计缺陷或业务理解偏差的 bug ，最好重写相关模块。</li>
 </ul>
-<h3 id="警惕-c-中的-设计模式-和-面向对象">警惕 C++ 中的 “设计模式” 和
-“面向对象”</h3>
-<p>就我个人来说，我是很讨厌 C++ 的 “面向对象” 部分的，对 “设计模式”
-也没有好感。我在工作中遇到的一些人，谈起 “设计模式” 、“面向对象”
-来头头是道，写起代码来就很难让人恭维了。</p>
+<h3 id="警惕-C-中的-“设计模式”-和-“面向对象”">警惕 C++ 中的 “设计模式” 和 “面向对象”</h3>
+<p>就我个人来说，我是很讨厌 C++ 的 “面向对象” 部分的，对 “设计模式” 也没有好感。我在工作中遇到的一些人，谈起 “设计模式” 、“面向对象” 来头头是道，写起代码来就很难让人恭维了。</p>
 <p><strong>好代码才是硬道理</strong>。</p>
 <h2 id="协议设计">协议设计</h2>
-<p>请求、回应式的消息一定要有序列 id
-的概念，这样客户端可以轻松的找到与回应消息相匹配的请求消息，进而恢复挂起的执行流。</p>
+<p>请求、回应式的消息一定要有序列 id 的概念，这样客户端可以轻松的找到与回应消息相匹配的请求消息，进而恢复挂起的执行流。</p>
 <h2 id="团队协作">团队协作</h2>
 <p>让每个伙伴都开心的工作!</p>
 <h3 id="团队成员">团队成员</h3>
@@ -256,12 +250,9 @@ API 以约定的协议与其他子系统进行交互，子系统之间实现源�
 <h3 id="代码开放">代码开放</h3>
 <p>代码是团队的共同财产，如果不开放，也便没有了信任的基础。强势的法律声明和有代码安全意识的伙伴才是保障代码安全的正途。就我个人来说，在代码不开放的团队工作时，很难<em>维持</em>贡献代码的激情。</p>
 <h3 id="代码-review">代码 review</h3>
-<p>要让代码 review 成为常态，要鼓励团队成员之间的相互 review
-，鼓励团队成员对任意代码的 review 和修改。代码 review
-可以很好的促进团队成员之间的了解、合作、信任。</p>
-<h3 id="版本控制降低冲突">版本控制，降低冲突</h3>
-<p>首选分布式的版本管理工具，推荐：git + github
-。所有的冲突都意味着某种程度上的耦合，在减少冲突上付出的努力，会节省团队成员大量的时间成本。</p>
+<p>要让代码 review 成为常态，要鼓励团队成员之间的相互 review ，鼓励团队成员对任意代码的 review 和修改。代码 review 可以很好的促进团队成员之间的了解、合作、信任。</p>
+<h3 id="版本控制，降低冲突">版本控制，降低冲突</h3>
+<p>首选分布式的版本管理工具，推荐：git + github 。所有的冲突都意味着某种程度上的耦合，在减少冲突上付出的努力，会节省团队成员大量的时间成本。</p>
 <h2 id="做一个实践者">做一个实践者</h2>
 <p>纸（嘴）上谈兵永远写不出好代码。</p>
 
@@ -368,8 +359,7 @@ API 以约定的协议与其他子系统进行交互，子系统之间实现源�
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E4%B8%8E%E5%B9%B6%E7%90%86%E8%A7%A3%E7%AD%96%E5%88%92%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">参与并理解策划需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%98%AF%E5%BF%85%E9%A1%BB%E7%9A%84"><span class="nav-number">2.</span> <span class="nav-text">隔离是必须的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%B4%A8%E9%87%8F"><span class="nav-number">3.</span> <span class="nav-text">代码质量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BD%9C%E5%9C%A8%E5%8D%B3%E6%98%AF%E5%BF%85%E7%84%B6"><span class="nav-number">3.1.</span> <span class="nav-text">潜在即是必然</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bug-%E4%BF%AE%E5%A4%8D%E8%A6%81%E8%B6%81%E6%97%A9"><span class="nav-number">3.2.</span> <span class="nav-text">bug 修复要趁早</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AD%A6%E6%83%95-c-%E4%B8%AD%E7%9A%84-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%92%8C-%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.3.</span> <span class="nav-text">警惕 C++ 中的 “设计模式” 和
-“面向对象”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">协议设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C"><span class="nav-number">5.</span> <span class="nav-text">团队协作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%A2%E9%98%9F%E6%88%90%E5%91%98"><span class="nav-number">5.1.</span> <span class="nav-text">团队成员</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%BC%80%E6%94%BE"><span class="nav-number">5.2.</span> <span class="nav-text">代码开放</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81-review"><span class="nav-number">5.3.</span> <span class="nav-text">代码 review</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E9%99%8D%E4%BD%8E%E5%86%B2%E7%AA%81"><span class="nav-number">5.4.</span> <span class="nav-text">版本控制，降低冲突</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%9A%E4%B8%80%E4%B8%AA%E5%AE%9E%E8%B7%B5%E8%80%85"><span class="nav-number">6.</span> <span class="nav-text">做一个实践者</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E4%B8%8E%E5%B9%B6%E7%90%86%E8%A7%A3%E7%AD%96%E5%88%92%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">参与并理解策划需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%98%AF%E5%BF%85%E9%A1%BB%E7%9A%84"><span class="nav-number">2.</span> <span class="nav-text">隔离是必须的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%B4%A8%E9%87%8F"><span class="nav-number">3.</span> <span class="nav-text">代码质量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BD%9C%E5%9C%A8%E5%8D%B3%E6%98%AF%E5%BF%85%E7%84%B6"><span class="nav-number">3.1.</span> <span class="nav-text">潜在即是必然</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bug-%E4%BF%AE%E5%A4%8D%E8%A6%81%E8%B6%81%E6%97%A9"><span class="nav-number">3.2.</span> <span class="nav-text">bug 修复要趁早</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AD%A6%E6%83%95-C-%E4%B8%AD%E7%9A%84-%E2%80%9C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E2%80%9D-%E5%92%8C-%E2%80%9C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E2%80%9D"><span class="nav-number">3.3.</span> <span class="nav-text">警惕 C++ 中的 “设计模式” 和 “面向对象”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">协议设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C"><span class="nav-number">5.</span> <span class="nav-text">团队协作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%A2%E9%98%9F%E6%88%90%E5%91%98"><span class="nav-number">5.1.</span> <span class="nav-text">团队成员</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%BC%80%E6%94%BE"><span class="nav-number">5.2.</span> <span class="nav-text">代码开放</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81-review"><span class="nav-number">5.3.</span> <span class="nav-text">代码 review</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%EF%BC%8C%E9%99%8D%E4%BD%8E%E5%86%B2%E7%AA%81"><span class="nav-number">5.4.</span> <span class="nav-text">版本控制，降低冲突</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%81%9A%E4%B8%80%E4%B8%AA%E5%AE%9E%E8%B7%B5%E8%80%85"><span class="nav-number">6.</span> <span class="nav-text">做一个实践者</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -383,14 +373,14 @@ API 以约定的协议与其他子系统进行交互，子系统之间实现源�
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

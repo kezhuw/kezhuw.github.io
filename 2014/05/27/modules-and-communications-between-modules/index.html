@@ -215,23 +215,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>在很早的时候，我就接触到 <a
-target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs">Algorithms
-+ Data Structures = Programs</a> 这样的概念。</p>
+        <p>在很早的时候，我就接触到 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Algorithms_%2B_Data_Structures_%3D_Programs">Algorithms + Data Structures = Programs</a> 这样的概念。</p>
 <p>在几年的工作之后的现今，我不认为这个等式可以表达所有的程序，也许只是我所工作的领域无法让我体会到这个等式的价值。</p>
 <p>下面是我尝试去总结自己的经历，得到的另一个等式。</p>
 <pre><code>模块 + 模块间的通信 = 程序
-modules + communications between modules = program</code></pre>
-<p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++
-语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
-<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持，
-<a target="_blank" rel="noopener" href="http://www.erlang.org/">Erlang</a> 是其中之一。 Erlang 中的
-process
-就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
-<p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。
-Erlang 中的消息可以跨节点进行传输，</p>
-<p>对在 C/C++
-中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
+modules + communications between modules = program
+</code></pre>
+<p>这里的模块不应该狭义的理解为 C/C++ 语言当中的模块化概念，我把 C/C++ 语言当中的模块称之为“源码级模块”。“源码级模块”通过函数调用的方式进行通信，彼此之间是紧耦合的，在多人协作的软件开发活动中会加剧开发人员之间的沟通成本，也没法很好的适应需求变更和扩展。</p>
+<p>与“源码级模块”对应的是“运行时模块”，其模块本身有着对应的运行时的实体表示，对外提供服务。“运行时模块”可以表现为服务器内部对其他模块提供服务的运行时实体，也可以表现为提供运行时服务的服务器。很少有语言层面的“运行时模块”的直接支持， <a target="_blank" rel="noopener" href="http://www.erlang.org/">Erlang</a> 是其中之一。 Erlang 中的 process 就是一个运行时的实体，我将之视为“运行时模块”。在没有提供“运行时模块”支持的语言中，可以通过将整个程序分层，由底层提供“运行时模块”的抽象。相对于“源码级模块”，“运行时模块”具有天然的强隔离性和可扩展性。这两点可以很好的应对软件开发活动中的多人协作和需求变更。</p>
+<p>“运行时模块”通过消息传递的方式进行通信，跨节点的支持需要对消息体进行序列化和反序列化。 Erlang 中的消息可以跨节点进行传输，</p>
+<p>对在 C/C++ 中引入“运行时模块”的一个潜在担忧是可能会导致程序性能的下降，我的想法是承认性能的损失，为此换来的是编程模型的提升。</p>
 <p>在软件开发中引入的大多数“抽象”和“分层”（如果不是全部）都会引起性能的损失，但是今天的大部分程序仍然是运行在“进程”和“虚拟地址空间”的抽象之上。</p>
 
     </div>
@@ -347,14 +340,14 @@ Erlang 中的消息可以跨节点进行传输，</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

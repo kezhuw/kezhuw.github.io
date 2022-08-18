@@ -218,11 +218,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="lua-coroutine">Lua coroutine</h2>
-<p>Lua coroutine 是<a
-target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing">协作式多任务</a>的一种实现。coroutine
-经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua
-层的同步调用。</p>
+        <h2 id="Lua-coroutine">Lua coroutine</h2>
+<p>Lua coroutine 是<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing">协作式多任务</a>的一种实现。coroutine 经常被 C/C++ 这类没用原生轻量级多任务实现的宿主语言通过异步方式实现 Lua 层的同步调用。</p>
 <p>这种同步调用的流程：</p>
 <pre><code>val, err = synchronous_call_in_lua(...)    -- function call in lua coroutine
     ==&gt; coroutine.yield
@@ -231,7 +228,8 @@ target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Computer_multi
         ==| C/C++ 异步会话完成（消息/回调）
     &lt;== coroutine.resume
 val, err = ... -- &lt;== return from function
-do_someting(...)</code></pre>
+do_someting(...)
+</code></pre>
 <p>这个流程很像阻塞式的系统调用：</p>
 <pre><code>n = read(fd, buf, len)        // system call in userland
     ==&gt; syscallenter(...)     // in kernel mode
@@ -239,39 +237,31 @@ do_someting(...)</code></pre>
         |== kernel activity   // asynchronous wait if data is not available yet
         |==
     &lt;== syscallret(...)       // return from syscall
-n = ...                       // return from read in userland</code></pre>
-<h2 id="c-asyncawait">C# async/await</h2>
-<p>async/await 是 C# 5
-引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a
-target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Continuation-passing_style">CPS</a>
-变换。</p>
+n = ...                       // return from read in userland
+</code></pre>
+<h2 id="C-async-await">C# async/await</h2>
+<p>async/await 是 C# 5 引入的，用来简化异步编程的设施，其本质是由编译器实施的 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Continuation-passing_style">CPS</a> 变换。</p>
 <blockquote>
-<p>C# 5.0 introduces the async and await keywords. These keywords let
-you write asynchronous code that has the same structure and simplicity
-as synchronous code, as well as eliminating the “plumbing” of
-asynchronous programming. The await keyword simplifies the attaching of
-continuations.</p>
+<p>C# 5.0 introduces the async and await keywords. These keywords let you write asynchronous code that has the same structure and simplicity as synchronous code, as well as eliminating the “plumbing” of asynchronous programming. The await keyword simplifies the attaching of continuations.</p>
 </blockquote>
 <p>即将如下代码：</p>
 <pre><code>var result = await expression;
-statement(s);</code></pre>
+statement(s);
+</code></pre>
 <p>转换为：</p>
 <pre><code>var awaiter = expression.GetAwaiter();
 awaiter.OnCompleted (() =&gt;
 &#123;
     var result = awaiter.GetResult();
     statement(s);
-&#125;);</code></pre>
-<p>从上面的代码可以看出，这段代码是非阻塞的， <code>statement(s)</code>
-是在 callback 中执行的。</p>
+&#125;);
+</code></pre>
+<p>从上面的代码可以看出，这段代码是非阻塞的， <code>statement(s)</code> 是在 callback 中执行的。</p>
 <h2 id="总结">总结</h2>
-<p>Lua coroutine 和 C# async/await 都可以用来编写形如同步的代码。Lua
-coroutine 中的函数调用是同步阻塞的（从调用者角度），由 C/C++
-通过异步方式实现，其执行流程和一般的同步阻塞的系统调用类似。C#
-async/await 则是由编译器实施的 CPS 变换，是异步非阻塞的。</p>
+<p>Lua coroutine 和 C# async/await 都可以用来编写形如同步的代码。Lua coroutine 中的函数调用是同步阻塞的（从调用者角度），由 C/C++ 通过异步方式实现，其执行流程和一般的同步阻塞的系统调用类似。C# async/await 则是由编译器实施的 CPS 变换，是异步非阻塞的。</p>
 <p>下面一段 C# 代码的流程，如果由 Lua 编写，输出顺序则相反。</p>
 <pre><code>//Title of this code
-//Rextester.Program.Main is the entry point for your code. Don&#39;t change it.
+//Rextester.Program.Main is the entry point for your code. Don't change it.
 
 using System;
 using System.Threading;
@@ -305,13 +295,13 @@ namespace Rextester &#123;
 
     &#125;
 
-&#125;</code></pre>
+&#125;
+</code></pre>
 <p>输出： return from delay(): value = 5 in delay():: value = 10</p>
 <h2 id="阅读">阅读</h2>
 <ul>
 <li>C# 5.0 in a Nutshell</li>
-<li><a
-target="_blank" rel="noopener" href="http://www.zhihu.com/question/19732473/answer/20851256">怎样理解阻塞非阻塞与同步异步的区别</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.zhihu.com/question/19732473/answer/20851256">怎样理解阻塞非阻塞与同步异步的区别</a></li>
 </ul>
 
     </div>
@@ -419,7 +409,7 @@ target="_blank" rel="noopener" href="http://www.zhihu.com/question/19732473/answ
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#lua-coroutine"><span class="nav-number">1.</span> <span class="nav-text">Lua coroutine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#c-asyncawait"><span class="nav-number">2.</span> <span class="nav-text">C# async&#x2F;await</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%85%E8%AF%BB"><span class="nav-number">4.</span> <span class="nav-text">阅读</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lua-coroutine"><span class="nav-number">1.</span> <span class="nav-text">Lua coroutine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-async-await"><span class="nav-number">2.</span> <span class="nav-text">C# async&#x2F;await</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%85%E8%AF%BB"><span class="nav-number">4.</span> <span class="nav-text">阅读</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -433,14 +423,14 @@ target="_blank" rel="noopener" href="http://www.zhihu.com/question/19732473/answ
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

@@ -217,57 +217,27 @@
 
       
         <p>学习一门新的语言时，我觉得最重要的是学习该语言的惯例用法(idioms)，即其编程范式。</p>
-<p>很遗憾的是 C++
-是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a
-target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">1</a>。</p>
-<p>即使这样，我认为在日常 C++
-编程时，也应该选择一个相对固定的编程模型，实验并改进之。</p>
+<p>很遗憾的是 C++ 是一门日渐进化并且日趋复杂的语言，是一个具有多重编程范型的语言，被视为一个语言联邦<a target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">1</a>。</p>
+<p>即使这样，我认为在日常 C++ 编程时，也应该选择一个相对固定的编程模型，实验并改进之。</p>
 <p>在用 C++ 编程时，应该尽量保持谦卑、进取与怀疑。</p>
 <p>下面主要记录一下我写 C++ 的不长的时间里的一些经验。</p>
-<h2 id="避免编译时依赖">避免编译时依赖。</h2>
-<p>C++ 没有现代的 package, import 机制，而是使用了继承自 C 的
-<code>#include</code> 头文件包含机制。C++ 的复杂和 C 的编译模型导致了
-C++ 项目冗长的编译时间。在其他语言中 import/require 可以解决的问题，在
-C++ 中必须要程序员自己付出努力。[2]</p>
-<p>隐式 (implicit)
-的编译依赖不像头文件依赖会导致编译期的错误，却会在运行期招致不可预估的致命错误。比如，当你在编译单元
-CompilationUnitA 中 <code>p = new(CompilationUnitB::ClassB)</code>
-时，你已经埋下了一颗地雷。以后当你改变 CompilationUnitB::ClassB
-的成员而导致其大小 (size) 变化时，你编译 CompilationUnitB ，链接
-CompilationUnitA ，运行，然后不知何时那颗地雷就会炸掉。我觉得就
-<code>new</code> 的编译期行为，C++
-能做的更好，也应该做的更好。好吧，永远不要跨编译单元调用
-<code>new</code> 。</p>
+<h2 id="避免编译时依赖。">避免编译时依赖。</h2>
+<p>C++ 没有现代的 package, import 机制，而是使用了继承自 C 的 <code>#include</code> 头文件包含机制。C++ 的复杂和 C 的编译模型导致了 C++ 项目冗长的编译时间。在其他语言中 import/require 可以解决的问题，在 C++ 中必须要程序员自己付出努力。[2]</p>
+<p>隐式 (implicit) 的编译依赖不像头文件依赖会导致编译期的错误，却会在运行期招致不可预估的致命错误。比如，当你在编译单元 CompilationUnitA 中 <code>p = new(CompilationUnitB::ClassB)</code> 时，你已经埋下了一颗地雷。以后当你改变 CompilationUnitB::ClassB 的成员而导致其大小 (size) 变化时，你编译 CompilationUnitB ，链接 CompilationUnitA ，运行，然后不知何时那颗地雷就会炸掉。我觉得就 <code>new</code> 的编译期行为，C++ 能做的更好，也应该做的更好。好吧，永远不要跨编译单元调用 <code>new</code> 。</p>
 <p>虚函数调用、跨编译单元的栈上变量/全局变量同样是隐式的编译依赖。</p>
-<h2
-id="跨编译单元.so-.dll-.lib时区分接口与实现同一编译单元内不过度区分接口与实现">跨编译单元（.so,
-.dll,
-.lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</h2>
-<p>不同的编译单元应该不存在实现依赖，例如： UnitA::ClassA 不应该 依赖于
-UnitB::ClassB 的内存大小。UnitA 的头文件 UnitA.h 主要的用途是暴露
-(export) UnitA 的接口，如 UnitA::ClassA 中的接口函数。受限于 C++
-对接口与实现之间的支持，UnitA.h 头文件可能写有 UnitA::ClassA
-基于当前实现的某些私有数据，但其他编译单元不应依赖之。</p>
+<h2 id="跨编译单元（-so-dll-lib）时，区分接口与实现-同一编译单元内，不过度区分接口与实现。">跨编译单元（.so, .dll, .lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</h2>
+<p>不同的编译单元应该不存在实现依赖，例如： UnitA::ClassA 不应该 依赖于 UnitB::ClassB 的内存大小。UnitA 的头文件 UnitA.h 主要的用途是暴露 (export) UnitA 的接口，如 UnitA::ClassA 中的接口函数。受限于 C++ 对接口与实现之间的支持，UnitA.h 头文件可能写有 UnitA::ClassA 基于当前实现的某些私有数据，但其他编译单元不应依赖之。</p>
 <p>跨编译单元的接口不应该是虚函数</p>
-<p>跨编译单元的类应该提供显示的创建函数，并尽可能返回引用类型
-(std::shared_ptr, etc.)。</p>
-<h2
-id="以小的具体的类代替模板成员变量集合">以小的、具体的类代替模板（成员）变量（集合）。</h2>
-<p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如：
-<code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class
-Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当
-<code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
-<h2 id="多用库善用-stl-和-boost">多用库，善用 STL 和 boost 。</h2>
+<p>跨编译单元的类应该提供显示的创建函数，并尽可能返回引用类型 (std::shared_ptr, etc.)。</p>
+<h2 id="以小的、具体的类代替模板（成员）变量（集合）。">以小的、具体的类代替模板（成员）变量（集合）。</h2>
+<p>你自己写的类，你可以限制其暴露的接口数量，以及取更有意义的接口名称。比如： <code>std::vector&lt;uint64&gt; repo;</code> 可以改成 <code>class Repository repo;</code> 。这会多一点代码，但我乐于如此，特别当 <code>repo</code> 需要一些辅助信息时，更是如此，保持上级类的干净。</p>
+<h2 id="多用库，善用-STL-和-boost-。">多用库，善用 STL 和 boost 。</h2>
 <p>C++ 的基础库基本上都是模板库，需要根据适用场景进行再封装。</p>
-<h2 id="拒绝复杂">拒绝复杂。</h2>
-<p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++
-的很多坑，就已经很不错了。</p>
-<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">1</a>
-《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦 [2]
-《Effective C++ 中文版》 第三版
-条款31：将文件间的编译依存关系降至最低</p>
-<p>推荐阅读： 孟岩 <a
-target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">用C设计，用C++编码</a></p>
+<h2 id="拒绝复杂。">拒绝复杂。</h2>
+<p>C++ 已经很复杂了，别把自己搞晕了。只要能避免 C++ 的很多坑，就已经很不错了。</p>
+<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">1</a> 《Effective C++ 中文版》 第三版 条款01：视 C++ 为一个语言联邦<br>
+[2] 《Effective C++ 中文版》 第三版 条款31：将文件间的编译依存关系降至最低</p>
+<p>推荐阅读： 孟岩 <a target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1778843">用C设计，用C++编码</a></p>
 
     </div>
 
@@ -372,9 +342,7 @@ target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E7%BC%96%E8%AF%91%E6%97%B6%E4%BE%9D%E8%B5%96"><span class="nav-number">1.</span> <span class="nav-text">避免编译时依赖。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%A8%E7%BC%96%E8%AF%91%E5%8D%95%E5%85%83.so-.dll-.lib%E6%97%B6%E5%8C%BA%E5%88%86%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%90%8C%E4%B8%80%E7%BC%96%E8%AF%91%E5%8D%95%E5%85%83%E5%86%85%E4%B8%8D%E8%BF%87%E5%BA%A6%E5%8C%BA%E5%88%86%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">跨编译单元（.so,
-.dll,
-.lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E5%B0%8F%E7%9A%84%E5%85%B7%E4%BD%93%E7%9A%84%E7%B1%BB%E4%BB%A3%E6%9B%BF%E6%A8%A1%E6%9D%BF%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E9%9B%86%E5%90%88"><span class="nav-number">3.</span> <span class="nav-text">以小的、具体的类代替模板（成员）变量（集合）。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%94%A8%E5%BA%93%E5%96%84%E7%94%A8-stl-%E5%92%8C-boost"><span class="nav-number">4.</span> <span class="nav-text">多用库，善用 STL 和 boost 。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%92%E7%BB%9D%E5%A4%8D%E6%9D%82"><span class="nav-number">5.</span> <span class="nav-text">拒绝复杂。</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E7%BC%96%E8%AF%91%E6%97%B6%E4%BE%9D%E8%B5%96%E3%80%82"><span class="nav-number">1.</span> <span class="nav-text">避免编译时依赖。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%A8%E7%BC%96%E8%AF%91%E5%8D%95%E5%85%83%EF%BC%88-so-dll-lib%EF%BC%89%E6%97%B6%EF%BC%8C%E5%8C%BA%E5%88%86%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E5%90%8C%E4%B8%80%E7%BC%96%E8%AF%91%E5%8D%95%E5%85%83%E5%86%85%EF%BC%8C%E4%B8%8D%E8%BF%87%E5%BA%A6%E5%8C%BA%E5%88%86%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%AE%9E%E7%8E%B0%E3%80%82"><span class="nav-number">2.</span> <span class="nav-text">跨编译单元（.so, .dll, .lib）时，区分接口与实现;同一编译单元内，不过度区分接口与实现。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E5%B0%8F%E7%9A%84%E3%80%81%E5%85%B7%E4%BD%93%E7%9A%84%E7%B1%BB%E4%BB%A3%E6%9B%BF%E6%A8%A1%E6%9D%BF%EF%BC%88%E6%88%90%E5%91%98%EF%BC%89%E5%8F%98%E9%87%8F%EF%BC%88%E9%9B%86%E5%90%88%EF%BC%89%E3%80%82"><span class="nav-number">3.</span> <span class="nav-text">以小的、具体的类代替模板（成员）变量（集合）。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%94%A8%E5%BA%93%EF%BC%8C%E5%96%84%E7%94%A8-STL-%E5%92%8C-boost-%E3%80%82"><span class="nav-number">4.</span> <span class="nav-text">多用库，善用 STL 和 boost 。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%92%E7%BB%9D%E5%A4%8D%E6%9D%82%E3%80%82"><span class="nav-number">5.</span> <span class="nav-text">拒绝复杂。</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -388,14 +356,14 @@ target="_blank" rel="noopener" href="http://blog.csdn.net/myan/article/details/1
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

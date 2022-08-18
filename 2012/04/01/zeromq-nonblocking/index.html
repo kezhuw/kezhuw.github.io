@@ -217,8 +217,7 @@
 
       
         <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Virtual interface to be exposed by object that want to be notified</span></span><br><span class="line"><span class="comment">// about events on file descriptors.</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">i_poll_events</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">i_poll_events</span> () &#123;&#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for reading.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">in_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called by I/O thread when file descriptor is ready for writing.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">out_event</span> <span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Called when timer expires.</span></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">timer_event</span> <span class="params">(<span class="type">int</span> id_)</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>0mq 中实现（或部分实现）了这些接口的类包括： io_thread_t, reaper_t,
-zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
+<p>0mq 中实现（或部分实现）了这些接口的类包括： io_thread_t, reaper_t, zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
 
     </div>
 
@@ -336,14 +335,14 @@ zmq_connect_t, zmq_listener_t, zmq_engine_t等。</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

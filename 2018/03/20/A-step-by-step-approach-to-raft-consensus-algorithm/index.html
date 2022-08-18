@@ -220,283 +220,219 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>This is my second time to read through <a
-target="_blank" rel="noopener" href="https://raft.github.io/">Raft</a> <a
-target="_blank" rel="noopener" href="https://purl.stanford.edu/qr033xr6097">Algorithm</a>, and it is
-hard to recall what I have learned in first reading. This time I decide
-to record my thoughts for future recall. Hope it is useful to newbies in
-distributed systems like me.</p>
-<h2 id="what-does-consensus-algorithm-mean">What does consensus
-algorithm mean ?</h2>
-<p><strong>Consensus algorithm is the process used to achieve agreement
-on shared state among <a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">faulty
+        <p>This is my second time to read through <a target="_blank" rel="noopener" href="https://raft.github.io/">Raft</a> <a target="_blank" rel="noopener" href="https://purl.stanford.edu/qr033xr6097">Algorithm</a>, and it is hard to<br>
+recall what I have learned in first reading. This time I decide to record my thoughts for future<br>
+recall. Hope it is useful to newbies in distributed systems like me.</p>
+<h2 id="What-does-consensus-algorithm-mean">What does consensus algorithm mean ?</h2>
+<p><strong>Consensus algorithm is the process used to achieve agreement on shared state among <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing">faulty<br>
 processes</a> in distributed system.</strong></p>
-<h2 id="introduce-replicated-state-machines">Introduce Replicated State
-Machines</h2>
-<p>Here, we define state machine as
-<code>State' = Machine(State, Input)</code> for simplicity. A state
-machine can be defined with its start state, and makes progress with
-sequence of inputs, produces sequence of intermediate states. For
-examples:</p>
+<h2 id="Introduce-Replicated-State-Machines">Introduce Replicated State Machines</h2>
+<p>Here, we define state machine as <code>State' = Machine(State, Input)</code> for simplicity. A state machine<br>
+can be defined with its start state, and makes progress with sequence of inputs, produces sequence<br>
+of intermediate states. For examples:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">State&#x27; = Machine(State, Input)</span><br><span class="line">State&#x27;&#x27; = Machine(State&#x27;, Input&#x27;)</span><br><span class="line">State&#x27;&#x27;&#x27; = Machine(State&#x27;&#x27;, Input&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
-<p>Given a state machine, how can we figure out that it is a replicated
-state machine ?</p>
-<p>First, <strong>replicated state machine is deterministic</strong>.
-Given same start state with same sequence of inputs, the state machine
-always produce same intermediate states.</p>
-<p>Second, two state machines built from same logic on possibly
-different processes or nodes and even possibly different languages must
-be same. Here we define two state machines as same based on
-deterministic: given same start state and same sequence of inputs, if
-two state machines produce same sequence of intermediate states, we say
-these two state machine are same. Thus given multiple copies of same
-state machines with same start state, feeding with same sequence of
-inputs, they must produces same sequence of intermediate states.</p>
-<p>Third, states, including start state and intermediate states, and
-inputs must be self-contained, thus can be replicated to other processes
-or nodes with help of serialization and deserialization.</p>
-<p>The word replicated in <a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/State_machine_replication">replicated
-state machine</a> has duple means: deterministic and replication.
-Occasionally, replicated state machine is used in non distributed
-systems to validate processes using its deterministic. More often,
-replicated state machines are used to validate or repliate processes
-among processes or nodes in distributed systems.</p>
-<h2
-id="how-replicated-state-machines-implemented-in-distributed-systems">How
-replicated state machines implemented in distributed systems ?</h2>
-<p>Replicated state machines are typically implemented using a <a
-target="_blank" rel="noopener" href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">replicated
-log</a>, this is particular due to the fact that state machine process
-sequence of inputs one by one in order, non batch, non concurrency, I
-guess. Here, replicated in replicated log means replication cross
-processes or nodes.</p>
-<p>In replciated log, inputs to state machines are appended as sequence
-of entries or records in order, these entries will be replicated to
-replicated logs reside in other nodes in later time, and feeded to state
-machines reside in their nodes for apply eventually.</p>
-<p>Thus if given identical sequence entries from replicated log,
-multiple copies of same state machine will produce same sequence of
-states. But how can we promise identical sequence cross different faulty
+<p>Given a state machine, how can we figure out that it is a replicated state machine ?</p>
+<p>First, <strong>replicated state machine is deterministic</strong>. Given same start state with same sequence of<br>
+inputs, the state machine always produce same intermediate states.</p>
+<p>Second, two state machines built from same logic on possibly different processes or nodes and<br>
+even possibly different languages must be same. Here we define two state machines as same based<br>
+on deterministic: given same start state and same sequence of inputs, if two state machines<br>
+produce same sequence of intermediate states, we say these two state machine are same. Thus given<br>
+multiple copies of same state machines with same start state, feeding with same sequence of inputs,<br>
+they must produces same sequence of intermediate states.</p>
+<p>Third, states, including start state and intermediate states, and inputs must be self-contained,<br>
+thus can be replicated to other processes or nodes with help of serialization and deserialization.</p>
+<p>The word replicated in <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/State_machine_replication">replicated state machine</a> has duple means: deterministic and replication.<br>
+Occasionally, replicated state machine is used in non distributed systems to validate processes<br>
+using its deterministic. More often, replicated state machines are used to validate or repliate<br>
+processes among processes or nodes in distributed systems.</p>
+<h2 id="How-replicated-state-machines-implemented-in-distributed-systems">How replicated state machines implemented in distributed systems ?</h2>
+<p>Replicated state machines are typically implemented using a <a target="_blank" rel="noopener" href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">replicated log</a>, this is particular due<br>
+to the fact that state machine process sequence of inputs one by one in order, non batch, non concurrency,<br>
+I guess. Here, replicated in replicated log means replication cross processes or nodes.</p>
+<p>In replciated log, inputs to state machines are appended as sequence of entries or records in order,<br>
+these entries will be replicated to replicated logs reside in other nodes in later time, and feeded<br>
+to state machines reside in their nodes for apply eventually.</p>
+<p>Thus if given identical sequence entries from replicated log, multiple copies of same state machine<br>
+will produce same sequence of states. But how can we promise identical sequence cross different faulty<br>
 nodes in distributed systems ? That is consensus algorithm’s job.</p>
-<h2 id="raft">Raft</h2>
+<h2 id="Raft">Raft</h2>
 <blockquote>
-<p>Raft implements consensus by first electing a server as leader, then
-giving the leader complete responsibility for managing the replicated
-log. The leader accepts log entries from clients, replicates them on
-other servers, and tells servers when it is safe to apply log entries to
-their state machines.</p>
-<p>Raft decomposes the consensus problem into two relatively independent
-subproblems:</p>
+<p>Raft implements consensus by first electing a server as leader, then giving the leader complete responsibility<br>
+for managing the replicated log. The leader accepts log entries from clients, replicates them on other servers,<br>
+and tells servers when it is safe to apply log entries to their state machines.</p>
+<p>Raft decomposes the consensus problem into two relatively independent subproblems:</p>
 <ul>
-<li>Leader election: a new leader must be chosen when starting the
-cluster and when an existing leader fails.</li>
-<li>Log replication: the leader must accept log entries from clients and
-replicate them across the cluster, forcing the other logs to agree with
-its own.</li>
+<li>Leader election: a new leader must be chosen when starting the cluster and when an existing leader fails.</li>
+<li>Log replication: the leader must accept log entries from clients and replicate them across the cluster,<br>
+forcing the other logs to agree with its own.</li>
 </ul>
 </blockquote>
-<h3 id="prerequisites">Prerequisites</h3>
-<h4 id="majority-and-minority">Majority and minority</h4>
-<p>For a raft cluster contains odd number of servers, say
-<code>2*N + 1</code>, or even number of servers, say <code>2*N</code>,
-we say majority of the cluster comprises at least <code>N + 1</code>
-servers, and minority of the cluster comprises at most <code>N</code>
-servers.</p>
-<h4 id="server-roles">Server roles</h4>
-<p>At any given time each server is in one of three states: leader,
-follower, or candidate. In normal operation there is exactly one leader
-and all of the other servers are followers. Followers are passive: they
-issue no requests on their own but simply respond to requests from
-leaders and candidates. The leader handles all client requests (if a
-client contacts a follower, the follower redirects it to the leader).
-The third state, candidate, is used to elect a new leader. The following
-figure shows the states and their transitions:</p>
+<h3 id="Prerequisites">Prerequisites</h3>
+<h4 id="Majority-and-minority">Majority and minority</h4>
+<p>For a raft cluster contains odd number of servers, say <code>2*N + 1</code>, or even number of servers,<br>
+say <code>2*N</code>, we say majority of the cluster comprises at least <code>N + 1</code> servers, and minority of<br>
+the cluster comprises at most <code>N </code> servers.</p>
+<h4 id="Server-roles">Server roles</h4>
+<p>At any given time each server is in one of three states: leader, follower, or candidate. In<br>
+normal operation there is exactly one leader and all of the other servers are followers.<br>
+Followers are passive: they issue no requests on their own but simply respond to requests from<br>
+leaders and candidates. The leader handles all client requests (if a client contacts a follower,<br>
+the follower redirects it to the leader).  The third state, candidate, is used to elect a new leader.<br>
+The following figure shows the states and their transitions:</p>
 <img src="/2018/03/20/A-step-by-step-approach-to-raft-consensus-algorithm/server-states.png" class="">
-<h4 id="terms">Terms</h4>
-<p>Raft divides time into terms of arbitrary length. Terms are numbered
-with consecutive integers. Each term begins with an election, in which
-one or more candidates attempt to become leader. If a candidate wins the
-election, then it serves as leader for the rest of the term. In some
-situations an election will result in a split vote. In this case the
-term will end with no leader; a new term (with a new election) will
-begin shortly. Raft ensures that there is at most one leader in a given
-term.</p>
-<h4 id="logs">Logs</h4>
-<p>Logs are composed of entries, which are numbered sequentially as
-index. Each entry contains the term in which it was created and a
-command for the state machine. Raft determines which of two logs is more
-up-to-date by comparing the index and term of the last entries in the
-logs. If the logs have last entries with different terms, then the log
-with the later term is more up-to-date. If the logs end with the same
-term, then whichever log is longer is more up-to-date.</p>
-<h3 id="leader-election">Leader election</h3>
-<p>Raft uses a heartbeat mechanism to trigger leader election. When
-servers start up, they begin as followers. A server remains in follower
-state as long as it receives valid RPCs from a leader or candidate.
-Leaders send periodic heartbeats to all followers in order to maintain
-their authority. If a follower receives no communication over a period
-of time called the election timeout, then it assumes there is no viable
-leader and begins an election to choose a new leader.</p>
-<p>To begin an election, a follower increments its current term and
-transitions to candidate state. It then votes for itself and issues
-RequestVote RPCs in parallel to each of the other servers in the
-cluster. A candidate continues in this state until one of three things
-happens:</p>
+<h4 id="Terms">Terms</h4>
+<p>Raft divides time into terms of arbitrary length. Terms are numbered with consecutive integers.<br>
+Each term begins with an election, in which one or more candidates attempt to become leader. If<br>
+a candidate wins the election, then it serves as leader for the rest of the term. In some<br>
+situations an election will result in a split vote. In this case the term will end with no leader;<br>
+a new term (with a new election) will begin shortly. Raft ensures that there is at most one leader<br>
+in a given term.</p>
+<h4 id="Logs">Logs</h4>
+<p>Logs are composed of entries, which are numbered sequentially as index. Each entry contains the<br>
+term in which it was created and a command for the state machine. Raft determines which of two<br>
+logs is more up-to-date by comparing the index and term of the last entries in the logs. If the<br>
+logs have last entries with different terms, then the log with the later term is more up-to-date.<br>
+If the logs end with the same term, then whichever log is longer is more up-to-date.</p>
+<h3 id="Leader-election">Leader election</h3>
+<p>Raft uses a heartbeat mechanism to trigger leader election. When servers start up, they begin as<br>
+followers. A server remains in follower state as long as it receives valid RPCs from a leader or<br>
+candidate. Leaders send periodic heartbeats to all followers in order to maintain their authority.<br>
+If a follower receives no communication over a period of time called the election timeout, then it<br>
+assumes there is no viable leader and begins an election to choose a new leader.</p>
+<p>To begin an election, a follower increments its current term and transitions to candidate state. It<br>
+then votes for itself and issues RequestVote RPCs in parallel to each of the other servers in the<br>
+cluster. A candidate continues in this state until one of three things happens:</p>
 <ul>
-<li><p>It wins the election.</p>
-<p>A candidate wins an election if it receives votes from a majority of
-the servers in the full cluster for the same term. Each server will vote
-for at most one candidate in a given term, on a first-come-first-served
-basis with restriction: the voter denies its vote if its own log is more
-up-to-date than that of the candidate. The majority rule ensures that at
-most one candidate can win the election for a particular term. Once a
-candidate wins an election, it becomes leader. It then sends heartbeat
-messages to all of the other servers to establish its authority and
-prevent new elections.</p></li>
-<li><p>Another server establishes itself as leader,</p>
-<p>While waiting for votes, a candidate may receive an AppendEntries RPC
-from another server claiming to be leader. If the leader’s term
-(included in its RPC) is at least as large as the candidate’s current
-term, then the candidate recognizes the leader as legitimate and returns
-to follower state. If the term in the RPC is smaller than the
-candidate’s current term, then the candidate rejects the RPC and
-continues in candidate state.</p></li>
-<li><p>Another election timeout goes by with no winner.</p>
-<p>If many followers become candidates at the same time, votes could be
-split so that no candidate obtains a majority. When this happens, each
-candidate will time out and start a new election by incrementing its
-term and initiating another round of RequestVote RPCs. Raft uses
-randomized election timeouts to ensure that split votes are rare and
-that they are resolved quickly. To prevent split votes in the first
-place, election timeouts are chosen randomly from a fixed interval
-(e.g., 150–300 ms). This spreads out the servers so that in most cases
-only a single server will time out; it wins the election and sends
-heartbeats before any other servers time out. The same mechanism is used
-to handle split votes. Each candidate restarts its randomized election
-timeout at the start of an election, and it waits for that timeout to
-elapse before starting the next election; this reduces the likelihood of
-another split vote in the new election.</p></li>
+<li>
+<p>It wins the election.</p>
+<p>A candidate wins an election if it receives votes from a majority of the servers in the full<br>
+cluster for the same term. Each server will vote for at most one candidate in a given term, on<br>
+a first-come-first-served basis with restriction: the voter denies its vote if its own log is<br>
+more up-to-date than that of the candidate. The majority rule ensures that at most one candidate<br>
+can win the election for a particular term. Once a candidate wins an election, it becomes leader.<br>
+It then sends heartbeat messages to all of the other servers to establish its authority and<br>
+prevent new elections.</p>
+</li>
+<li>
+<p>Another server establishes itself as leader,</p>
+<p>While waiting for votes, a candidate may receive an AppendEntries RPC from another server<br>
+claiming to be leader. If the leader’s term (included in its RPC) is at least as large as the<br>
+candidate’s current term, then the candidate recognizes the leader as legitimate and returns<br>
+to follower state. If the term in the RPC is smaller than the candidate’s current term, then<br>
+the candidate rejects the RPC and continues in candidate state.</p>
+</li>
+<li>
+<p>Another election timeout goes by with no winner.</p>
+<p>If many followers become candidates at the same time, votes could be split so that no candidate<br>
+obtains a majority. When this happens, each candidate will time out and start a new election by<br>
+incrementing its term and initiating another round of RequestVote RPCs. Raft uses randomized<br>
+election timeouts to ensure that split votes are rare and that they are resolved quickly. To<br>
+prevent split votes in the first place, election timeouts are chosen randomly from a fixed<br>
+interval (e.g., 150–300 ms). This spreads out the servers so that in most cases only a single<br>
+server will time out; it wins the election and sends heartbeats before any other servers time out.<br>
+The same mechanism is used to handle split votes. Each candidate restarts its randomized election<br>
+timeout at the start of an election, and it waits for that timeout to elapse before starting the<br>
+next election; this reduces the likelihood of another split vote in the new election.</p>
+</li>
 </ul>
-<h3 id="log-replication">Log replication</h3>
-<p>Once a leader has been elected, it begins servicing client requests.
-Each client request contains a command to be executed by the replicated
-state machine. The leader appends the command to its log as a new entry,
-then issues AppendEntries RPCs in parallel to each of the other servers
-to replicate the entry. When the entry has been safely replicated, the
-leader applies the entry to its state machine and returns the result of
-that execution to the client. If followers crash or run slowly, or if
-network packets are lost, the leader retries AppendEntries RPCs
-indefinitely (even after it has responded to the client) until all
-followers eventually store all log entries.</p>
-<p>The leader decides when it is safe to apply a log entry to the state
-machines; such an entry is called committed. <strong>A log entry is
-committed once the leader that created the entry has replicated it on a
-majority of the servers.</strong> This also commits all preceding
-entries in the leader’s log, including entries created by previous
-leaders. The leader keeps track of the highest index it knows to be
-committed, and it includes that index in future AppendEntries RPCs
-(including heartbeats) so that the other servers eventually find out.
-Once a follower learns that a log entry is committed, it applies the
-entry to its local state machine (in log order).</p>
-<p>Raft log mechanism was designed to maintain a high level of coherency
-between the logs on different servers. It maintains the following
-properties, which together constitute the Log Matching Property:</p>
-<ol type="1">
-<li><p>If two entries in different logs have the same index and term,
-then they store the same command.</p>
-<p>This property follows from the fact that a leader creates at most one
-entry with a given log index in a given term, and log entries never
-change their position in the log. New leader is elected with a larger
-term than previous leaders.</p></li>
-<li><p>If two entries in different logs have the same index and term,
-then the logs are identical in all preceding entries.</p>
-<p>This property is guaranteed by a consistency check performed by
-AppendEntries. When sending an AppendEntries RPC, the leader includes
-the index and term of the entry in its log that immediately precedes the
-new entries. If the follower does not find an entry in its log with the
-same index and term, then it refuses the new entries. The consistency
-check acts as an induction step: the initial empty state of the logs
-satisfies the Log Matching Property, and the consistency check preserves
-the Log Matching Property whenever logs are extended. As a result,
-whenever AppendEntries returns successfully, the leader knows that the
-follower’s log is identical to its own log up through the new
-entries.</p></li>
+<h3 id="Log-replication">Log replication</h3>
+<p>Once a leader has been elected, it begins servicing client requests. Each client request contains a<br>
+command to be executed by the replicated state machine. The leader appends the command to its log as<br>
+a new entry, then issues AppendEntries RPCs in parallel to each of the other servers to replicate the<br>
+entry. When the entry has been safely replicated, the leader applies the entry to its state machine and<br>
+returns the result of that execution to the client. If followers crash or run slowly, or if network packets<br>
+are lost, the leader retries AppendEntries RPCs indefinitely (even after it has responded to the client)<br>
+until all followers eventually store all log entries.</p>
+<p>The leader decides when it is safe to apply a log entry to the state machines; such an entry is<br>
+called committed. <strong>A log entry is committed once the leader that created the entry has replicated<br>
+it on a majority of the servers.</strong> This also commits all preceding entries in the leader’s log,<br>
+including entries created by previous leaders. The leader keeps track of the highest index it knows<br>
+to be committed, and it includes that index in future AppendEntries RPCs (including heartbeats) so<br>
+that the other servers eventually find out. Once a follower learns that a log entry is committed, it<br>
+applies the entry to its local state machine (in log order).</p>
+<p>Raft log mechanism was designed to maintain a high level of coherency between the logs on different<br>
+servers. It maintains the following properties, which together constitute the Log Matching Property:</p>
+<ol>
+<li>
+<p>If two entries in different logs have the same index and term, then they store the same command.</p>
+<p>This property follows from the fact that a leader creates at most one entry with a given log index<br>
+in a given term, and log entries never change their position in the log. New leader is elected with<br>
+a larger term than previous leaders.</p>
+</li>
+<li>
+<p>If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.</p>
+<p>This property is guaranteed by a consistency check performed by AppendEntries. When sending an<br>
+AppendEntries RPC, the leader includes the index and term of the entry in its log that immediately<br>
+precedes the new entries. If the follower does not find an entry in its log with the same index<br>
+and term, then it refuses the new entries. The consistency check acts as an induction step: the<br>
+initial empty state of the logs satisfies the Log Matching Property, and the consistency check<br>
+preserves the Log Matching Property whenever logs are extended. As a result, whenever AppendEntries<br>
+returns successfully, the leader knows that the follower’s log is identical to its own log up through<br>
+the new entries.</p>
+</li>
 </ol>
-<p>During normal operation, the logs of the leader and followers stay
-consistent, so the AppendEntries consistency check never fails. However,
-leader crashes can leave the logs inconsistent (the old leader may not
-have fully replicated all of the entries in its log). These
-inconsistencies can compound over a series of leader and follower
-crashes. A follower may be missing entries that are present on the
-leader, it may have extra entries that are not present on the leader, or
-both. Missing and extraneous entries in a log may span multiple
-terms.</p>
-<p>In Raft, the leader handles inconsistencies by forcing the followers’
-logs to duplicate its own. This means that conflicting entries in
-follower logs will be overwritten with entries from the leader’s log. To
-bring a follower’s log into consistency with its own, the leader must
-find the latest log entry where the two logs agree, delete any entries
-in the follower’s log after that point, and send the follower all of the
-leader’s entries after that point. All of these actions happen in
-response to the consistency check performed by AppendEntries RPCs. The
-leader maintains a nextIndex for each follower, which is the index of
-the next log entry the leader will send to that follower. When a leader
-first comes to power, it initializes all nextIndex values to the index
-just after the last one in ts log. If a follower’s log is inconsistent
-with the leader’s, the AppendEntries consistency check will fail in the
-next AppendEntries RPC. After a rejection, the leader decrements the
-follower’s nextIndex and retries the AppendEntries RPC. Eventually the
-nextIndex will reach a point where the leader and follower logs match.
-When this happens, AppendEntries will succeed, which removes any
-conflicting entries in the follower’s log and appends entries from the
-leader’s log (if any). Once AppendEntries succeeds, the follower’s log
-is consistent with the leader’s, and it will remain that way for the
-rest of the term.</p>
-<h2 id="safety">Safety</h2>
-<p>Raft guarantees that each of these properties is true at all
-times:</p>
+<p>During normal operation, the logs of the leader and followers stay consistent, so the AppendEntries<br>
+consistency check never fails. However, leader crashes can leave the logs inconsistent (the old leader<br>
+may not have fully replicated all of the entries in its log). These inconsistencies can compound over<br>
+a series of leader and follower crashes. A follower may be missing entries that are present on the leader,<br>
+it may have extra entries that are not present on the leader, or both. Missing and extraneous entries<br>
+in a log may span multiple terms.</p>
+<p>In Raft, the leader handles inconsistencies by forcing the followers’ logs to duplicate its own.<br>
+This means that conflicting entries in follower logs will be overwritten with entries from the<br>
+leader’s log. To bring a follower’s log into consistency with its own, the leader must find the<br>
+latest log entry where the two logs agree, delete any entries in the follower’s log after that<br>
+point, and send the follower all of the leader’s entries after that point. All of these actions<br>
+happen in response to the consistency check performed by AppendEntries RPCs. The leader maintains<br>
+a nextIndex for each follower, which is the index of the next log entry the leader will send to<br>
+that follower. When a leader first comes to power, it initializes all nextIndex values to the index<br>
+just after the last one in ts log. If a follower’s log is inconsistent with the leader’s, the<br>
+AppendEntries consistency check will fail in the next AppendEntries RPC. After a rejection, the leader<br>
+decrements the follower’s nextIndex and retries the AppendEntries RPC. Eventually the nextIndex will<br>
+reach a point where the leader and follower logs match. When this happens, AppendEntries will succeed,<br>
+which removes any conflicting entries in the follower’s log and appends entries from the leader’s log (if any).<br>
+Once AppendEntries succeeds, the follower’s log is consistent with the leader’s, and it will remain<br>
+that way for the rest of the term.</p>
+<h2 id="Safety">Safety</h2>
+<p>Raft guarantees that each of these properties is true at all times:</p>
 <ul>
-<li><p>Election Safety: At most one leader can be elected in a given
-term.</p>
-<p>Each server will vote for at most on candidate in a given term, and a
-candidate must win votes from majority of the cluster to be elected as
-leader.</p></li>
-<li><p>Leader Append-Only: A leader never overwrites or deletes entries
-in its log; it only appends new entries.</p></li>
-<li><p>Log Matching Property: If two logs contain an entry with the same
-index and term, then the logs are identical in all entries up through
-the given index.</p></li>
-<li><p>Leader Completeness Property: If a log entry is committed in a
-given term, then that entry will be present in the logs of the leaders
-for all higher-numbered terms.</p>
-<p>A log entry is committed once the leader that created the entry has
-replicated it on a majority of the servers (at least <code>N+1</code>).
-New leader elected afterward wins votes from majority (at least
-<code>N+1</code>) servers. From inequation
-<code>(N+1) + (N+1) = 2*N + 2 &gt; 2*N + 1</code>, we knows that at
-least one server from later majority contains that committed log entry.
-With up-to-date election restriction, we can conclude that the new
-leader has that committed log entry.</p></li>
-<li><p>State Machine Safety: If a server has applied a log entry at a
-given index to its state machine, no other server will ever apply a
-different log entry for the same index.</p>
-<p>At the time a server applies a log entry to its state machine, its
-log must be identical to the leader’s log up through that entry, and the
-entry must be committed. Consider the lowest term in which any server
-applies a given log index; the Leader Completeness Property guarantees
-that the leaders for all higher terms will store that same log entry, so
-servers that apply the index in later terms will apply the same value.
-Thus, the State Machine Safety Property holds.</p></li>
-<li><p>Raft requires servers to apply entries in log index order.</p>
-<p>Combined with the State Machine Safety Property, this means that all
-servers will apply exactly the same set of log entries to their state
-machines, in the same order.</p></li>
+<li>
+<p>Election Safety: At most one leader can be elected in a given term.</p>
+<p>Each server will vote for at most on candidate in a given term, and a candidate must win votes<br>
+from majority of the cluster to be elected as leader.</p>
+</li>
+<li>
+<p>Leader Append-Only: A leader never overwrites or deletes entries in its log; it only appends new entries.</p>
+</li>
+<li>
+<p>Log Matching Property: If two logs contain an entry with the same index and term, then the logs<br>
+are identical in all entries up through the given index.</p>
+</li>
+<li>
+<p>Leader Completeness Property: If a log entry is committed in a given term, then that entry will<br>
+be present in the logs of the leaders for all higher-numbered terms.</p>
+<p>A log entry is committed once the leader that created the entry has replicated it on a majority<br>
+of the servers (at least <code>N+1</code>). New leader elected afterward wins votes from majority (at least <code>N+1</code>)<br>
+servers. From inequation <code>(N+1) + (N+1) = 2*N + 2 &gt; 2*N + 1</code>, we knows that at least one server<br>
+from later majority contains that committed log entry. With up-to-date election restriction, we can<br>
+conclude that the new leader has that committed log entry.</p>
+</li>
+<li>
+<p>State Machine Safety: If a server has applied a log entry at a given index to its state machine,<br>
+no other server will ever apply a different log entry for the same index.</p>
+<p>At the time a server applies a log entry to its state machine, its log must be identical to the<br>
+leader’s log up through that entry, and the entry must be committed. Consider the lowest term<br>
+in which any server applies a given log index; the Leader Completeness Property guarantees that<br>
+the leaders for all higher terms will store that same log entry, so servers that apply the index<br>
+in later terms will apply the same value. Thus, the State Machine Safety Property holds.</p>
+</li>
+<li>
+<p>Raft requires servers to apply entries in log index order.</p>
+<p>Combined with the State Machine Safety Property, this means that all servers will apply exactly<br>
+the same set of log entries to their state machines, in the same order.</p>
+</li>
 </ul>
-<p><strong>Raft guarantees that committed entries are durable and will
-eventually be executed by all of the available state
-machines.</strong></p>
+<p><strong>Raft guarantees that committed entries are durable and will eventually be executed by all of the available state machines.</strong></p>
 
     </div>
 
@@ -603,10 +539,7 @@ machines.</strong></p>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#what-does-consensus-algorithm-mean"><span class="nav-number">1.</span> <span class="nav-text">What does consensus
-algorithm mean ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#introduce-replicated-state-machines"><span class="nav-number">2.</span> <span class="nav-text">Introduce Replicated State
-Machines</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#how-replicated-state-machines-implemented-in-distributed-systems"><span class="nav-number">3.</span> <span class="nav-text">How
-replicated state machines implemented in distributed systems ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#raft"><span class="nav-number">4.</span> <span class="nav-text">Raft</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prerequisites"><span class="nav-number">4.1.</span> <span class="nav-text">Prerequisites</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#majority-and-minority"><span class="nav-number">4.1.1.</span> <span class="nav-text">Majority and minority</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#server-roles"><span class="nav-number">4.1.2.</span> <span class="nav-text">Server roles</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#terms"><span class="nav-number">4.1.3.</span> <span class="nav-text">Terms</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#logs"><span class="nav-number">4.1.4.</span> <span class="nav-text">Logs</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leader-election"><span class="nav-number">4.2.</span> <span class="nav-text">Leader election</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#log-replication"><span class="nav-number">4.3.</span> <span class="nav-text">Log replication</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#safety"><span class="nav-number">5.</span> <span class="nav-text">Safety</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-does-consensus-algorithm-mean"><span class="nav-number">1.</span> <span class="nav-text">What does consensus algorithm mean ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduce-Replicated-State-Machines"><span class="nav-number">2.</span> <span class="nav-text">Introduce Replicated State Machines</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-replicated-state-machines-implemented-in-distributed-systems"><span class="nav-number">3.</span> <span class="nav-text">How replicated state machines implemented in distributed systems ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft"><span class="nav-number">4.</span> <span class="nav-text">Raft</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Prerequisites"><span class="nav-number">4.1.</span> <span class="nav-text">Prerequisites</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Majority-and-minority"><span class="nav-number">4.1.1.</span> <span class="nav-text">Majority and minority</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Server-roles"><span class="nav-number">4.1.2.</span> <span class="nav-text">Server roles</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Terms"><span class="nav-number">4.1.3.</span> <span class="nav-text">Terms</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Logs"><span class="nav-number">4.1.4.</span> <span class="nav-text">Logs</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader-election"><span class="nav-number">4.2.</span> <span class="nav-text">Leader election</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Log-replication"><span class="nav-number">4.3.</span> <span class="nav-text">Log replication</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Safety"><span class="nav-number">5.</span> <span class="nav-text">Safety</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -620,14 +553,14 @@ replicated state machines implemented in distributed systems ?</span></a></li><l
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

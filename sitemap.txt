@@ -1,3 +1,4 @@
+http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/
 http://blog.kezhuw.name/links/index.html
 http://blog.kezhuw.name/about/index.html
 http://blog.kezhuw.name/2022/06/12/Understanding-Spanner/
@@ -46,13 +47,14 @@ http://blog.kezhuw.name/tags/nginx/
 http://blog.kezhuw.name/tags/HTTP/
 http://blog.kezhuw.name/tags/Java/
 http://blog.kezhuw.name/tags/Spring/
-http://blog.kezhuw.name/tags/raft/
-http://blog.kezhuw.name/tags/consensus/
-http://blog.kezhuw.name/tags/Distributed-Systems/
 http://blog.kezhuw.name/tags/Spring-Boot/
 http://blog.kezhuw.name/tags/AspectJ/
 http://blog.kezhuw.name/tags/aop/
+http://blog.kezhuw.name/tags/raft/
+http://blog.kezhuw.name/tags/consensus/
+http://blog.kezhuw.name/tags/Distributed-Systems/
 http://blog.kezhuw.name/tags/Spanner/
 http://blog.kezhuw.name/tags/CockroachDB/
 http://blog.kezhuw.name/tags/YugabyteDB/
 http://blog.kezhuw.name/tags/database/
+http://blog.kezhuw.name/tags/concurrency/
