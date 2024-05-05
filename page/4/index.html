@@ -166,6 +166,84 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/05/07/bool-like-enumeration_in_cpp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2014/05/07/bool-like-enumeration_in_cpp/" class="post-title-link" itemprop="url">bool like enumeration in C++</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: May 7 2014 13:12:49" itemprop="dateCreated datePublished" datetime="2014-05-07T13:12:49+08:00">May 7 2014</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: Dec 21 2014 22:46:35" itemprop="dateModified" datetime="2014-12-21T22:46:35+08:00">Dec 21 2014</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在 Stack Overflow 上回答了一个问题： <a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/9874960/how-can-i-use-an-enum-class-in-a-boolean-context">How can I use an enum class in a boolean context?</a>，记录下。</p>
+<p>C++ 11 的 <code>explicit operator bool()</code> 可以让类类型的值使用在条件语句中，但无法对 <code>enum</code> 类型提供支持。</p>
+<p>下面是我使用的一种方法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Error</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123;</span><br><span class="line">        None                = <span class="number">0</span>,</span><br><span class="line">        Error1              = <span class="number">1</span>,</span><br><span class="line">        Error2              = <span class="number">2</span>,</span><br><span class="line">    &#125; Value;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* implicit */</span> <span class="built_in">Error</span>(<span class="keyword">decltype</span>(Value) value = None) : <span class="built_in">Value</span>(value) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Value != None;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>==(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> a.Value == b.Value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">inline</span> <span class="type">bool</span> <span class="keyword">operator</span>!=(Error a, Error b) &#123;</span><br><span class="line">    <span class="keyword">return</span> !(a==b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Error <span class="title">lastError</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">auto</span> err = <span class="built_in">lastError</span>()) &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">switch</span> (<span class="built_in">lastError</span>().Value) &#123;</span><br><span class="line"><span class="keyword">case</span> Error::None:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> Error::Error1:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">default</span>:</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">lastError</span>() == Error::Error1) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2014/05/07/bool-like-enumeration_in_cpp/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
     <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2014/04/17/game-server-architecture-design/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -540,98 +618,6 @@ n = ...                       // return from read in userland
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2013/07/15/address-const-expression/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Kezhu Wang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Recording">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2013/07/15/address-const-expression/" class="post-title-link" itemprop="url">地址常量表达式</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: Jul 15 2013 7:07:58" itemprop="dateCreated datePublished" datetime="2013-07-15T07:07:58+08:00">Jul 15 2013</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Dec 21 2014 20:45:38" itemprop="dateModified" datetime="2014-12-21T20:45:38+08:00">Dec 21 2014</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>C 语言中具有静态生存周期的变量的初始化器必须是常量表达式。当初始化器不是常量表达式时，gcc 和 clang 的报错信息不尽相同。</p>
-<p>gcc 的报错信息是 <q>error: initializer element is not constant</q> clang 的报错信息是 <q>error: initializer element is not a compile-time constant</q></p>
-<p>clang 用的是“编译时常量”(compile-time constant)，实际上 C99 标准里没有“编译时常量”这个概念，只有“常量表达式”。</p>
-<blockquote>
-<p>A constant expression can be evaluated during translation rather than runtime, and accordingly may be used in any place that a constant may be.</p>
-</blockquote>
-<p>C99 规定了初始化器中可用的常量表达式：</p>
-<blockquote>
-<p>More latitude is permitted for constant expressions in initializers. Such a constant expression shall be, or evaluate to, one of the following:</p>
-<ul>
-<li>— an arithmetic constant expression,</li>
-<li>— a null pointer constant,</li>
-<li>— an address constant, or</li>
-<li>— an address constant for an object type plus or minus an integer constant expression.</li>
-</ul>
-<p>An address constant is a null pointer, a pointer to an lvalue designating an object of static storage duration, or a pointer to a function designator; it shall be created explicitly using the unary &amp; operator or an integer constant cast to pointer type, or implicitly by the use of an expression of array or function type. The array-subscript [] and member-access . and -&gt; operators, the address &amp; and indirection * unary operators, and pointer casts may be used in the creation of an address constant, but the value of an object shall not be accessed by use of these operators.</p>
-</blockquote>
-<p>也就是说，你可以在初始化器中使用变量、变量的成员和函数的地址，也可以在地址的基础上加上个偏移量。</p>
-<p>“address constant” 不能算作 “compile-time constant”。 尽管编译器可能在生成 ELF 文件之时，就决定了变量的虚拟地址，但在作为共享库 (shared library) 被加载时或其他情况下，这些变量的虚拟地址最终还需要加载器 (loader) 的调整。对于这些变量地址的引用，需要加载器的重定位功能。</p>
-<p>c99 标准对于 “address constant” 的运算只规定了可以加减整数常量表达式。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="type">uintptr_t</span> addr = (<span class="type">uintptr_t</span>)<span class="built_in">malloc</span> + (<span class="type">uintptr_t</span>)<span class="built_in">free</span> + <span class="number">0x2345</span>;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2013/07/15/address-const-expression/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -701,14 +687,14 @@ n = ...                       // return from read in userland
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -749,7 +735,7 @@ n = ...                       // return from read in userland
 <div class="copyright">
   
   &copy; 2012 – 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

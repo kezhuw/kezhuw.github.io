@@ -1,3 +1,5 @@
+http://blog.kezhuw.name/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/
+http://blog.kezhuw.name/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/
 http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/
 http://blog.kezhuw.name/links/index.html
 http://blog.kezhuw.name/about/index.html
@@ -9,7 +11,6 @@ http://blog.kezhuw.name/2017/08/31/spring-aspectj-load-time-weaving/
 http://blog.kezhuw.name/2016/08/20/Don-t-use-context-path-in-web-application-behind-reverse-proxy/
 http://blog.kezhuw.name/2015/04/25/split-read-write-events-in-epoll/
 http://blog.kezhuw.name/2016/06/14/invariants-in-leveldb-algorithm/
-http://blog.kezhuw.name/2016/02/25/deterministic-state-machine-based-moba-battleground-synchronization/
 http://blog.kezhuw.name/2016/02/18/go-memory-leak-in-background-goroutine/
 http://blog.kezhuw.name/2015/12/08/desired-cpp-build-system/
 http://blog.kezhuw.name/2015/03/20/opinion-on-game-server-development/
@@ -58,3 +59,4 @@ http://blog.kezhuw.name/tags/CockroachDB/
 http://blog.kezhuw.name/tags/YugabyteDB/
 http://blog.kezhuw.name/tags/database/
 http://blog.kezhuw.name/tags/concurrency/
+http://blog.kezhuw.name/tags/Rust/

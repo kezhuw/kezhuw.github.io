@@ -166,6 +166,84 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/" class="post-title-link" itemprop="url">Async Rust needs Await and 'thread for `Send` `Future`</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: May 5 2024 17:37:31 / Modified: 18:56:20" itemprop="dateCreated datePublished" datetime="2024-05-05T17:37:31+08:00">May 5 2024</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Years ago, I wrote a <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust">client library</a> for <a target="_blank" rel="noopener" href="https://bookkeeper.apache.org/">Apache BookKeeper</a> and chose <code>Send</code>, <code>!Sync</code> and <code>Clone</code> for the client object initially.</p>
+<ol>
+<li><code>Clone</code> and <code>Send</code> so the client can be shared among concurrent tasks.</li>
+<li><code>!Sync</code> so the every clients can have their own data without cross thread synchronization.</li>
+</ol>
+<p>This way the client can batch simultaneous requests in single asynchronous task and serve parallel requests in multiple concurrent asynchronous tasks. But it failed due to <code>.await</code> requires <code>&amp;self</code> to be <code>Send</code> which is not possible <a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust/blob/008c21c9779fd1e3632d9fe908b8afc0c421b26c/library/core/src/marker.rs#L506-L509">by definition</a> if <code>Self</code> is <code>!Sync</code>.</p>
+<p>I <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust/blob/76f2fc88384966b1e367f3dc6f3538938214d214/README.md#send-sync-and-await">complained it a lot</a> with quotes from <a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/what-shall-sync-mean-across-an-await/12020">What shall Sync mean across an .await?</a>. Recently, in developing <a target="_blank" rel="noopener" href="https://github.com/kezhuw/spawns">spawns</a>, I found many async runtimes have <code>spawn_local</code> to spawn <code>!Send</code> tasks. It is boring. I said <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust/blob/76f2fc88384966b1e367f3dc6f3538938214d214/README.md#send-sync-and-await">A future should be <code>Send</code> unless it captures <code>!Send</code></a> before. Currently, some <code>!Send</code> tasks should actually be <code>Send</code>. This time, I want to go further about what make a future <code>!Send</code> and how Rust could solve them.</p>
+<p>Before continue, I want to state two points.</p>
+<h2 id="Codes-before-await-happens-before-codes-after-await"><strong>Codes before <code>.await</code> happens before codes after <code>.await</code>.</strong></h2>
+<p>This is the ground truth in our mental, otherwise everything fucked up. It is same for codes in thread and process.</p>
+<p>Rust future is a combination of states and <code>Future::poll</code>. <code>.await</code> is the call site of <code>Future::poll</code> which advances states. Then above statement become: <code>Future::poll</code> observe data changes from last run. In single thread executor, <code>Future::poll</code> is invoked sequentially, so above statement hold. In multi-thread executor, thread which <code>acquire</code> the future will observe changes made in thread which <code>release</code> that future. Multi-thread executors are considered buggy if they can’t guarantee above statement.</p>
+<h2 id="Futures-are-self-contained-concurrent-execution-units-just-like-threads-to-multi-cores"><strong>Futures are self-contained concurrent execution units, just like threads to multi-cores.</strong></h2>
+<p>From above, we know that codes in future are executed sequentially, we fear no contention inside single future and we are capable to run multiple futures concurrently. Additionally, a <code>Future + Send + 'static</code> is self-contained, it contains nothing <code>!Send</code> or no static to outside. All those are same to what threads provide to us, self-contained sequential execution unit in itself but concurrent with each other. If we are able to use <code>!Send</code> after thread::sleep, we should be able to do the same after <code>.await</code>.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
     <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2022/08/18/Java-concurrency-traps-and-pitfalls/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -540,87 +618,6 @@ thus can be replicated to other processes or nodes with help of serialization an
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default,en-US,en,zh-CN,default">
-    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2017/04/08/spring-profile/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Kezhu Wang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Recording">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/04/08/spring-profile/" class="post-title-link" itemprop="url">Spring Profile</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: Apr 8 2017 14:06:40" itemprop="dateCreated datePublished" datetime="2017-04-08T14:06:40+08:00">Apr 8 2017</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: Mar 21 2018 0:03:30" itemprop="dateModified" datetime="2018-03-21T00:03:30+08:00">Mar 21 2018</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><strong>Spring profile allows conditional registration of beans/components in runtime based on constants specified declaratively in configuration or programmatically in code.</strong> Let see some use cases.</p>
-<h2 id="Activate-Component-based-on-active-profile">Activate @Component based on active profile</h2>
-<p>Suppose we have a service interface called <code>SomeService</code> which has a method called <code>doSomething</code>:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeService.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>SomeService</code> should only do real work in production environment and trivials in others. We can do this way:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In SomeServiceImpl.java</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile(&quot;production&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SomeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// Do real work ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@Profile(&quot;!production&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NoOpSomeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">SomeService</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// Do trivial things ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Now, based on whether <code>production</code> profile is declared or not, <code>SomeServiceImpl</code> or <code>NoOpSomeServiceImpl</code> will serve requests as <code>SomeService</code>.</p>
-<h2 id="Register-Bean-based-on-active-profile">Register @Bean based on active profile</h2>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WebConfiguration</span> &#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@Profile(&#123;&quot;dev&quot;, &quot;!featureA&quot;&#125;)</span></span><br><span class="line">    <span class="keyword">public</span> CustomBean <span class="title function_">customBean</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// instantiate, configure and return bean ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/04/08/spring-profile/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -690,14 +687,14 @@ thus can be replicated to other processes or nodes with help of serialization an
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -738,7 +735,7 @@ thus can be replicated to other processes or nodes with help of serialization an
 <div class="copyright">
   
   &copy; 2012 – 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

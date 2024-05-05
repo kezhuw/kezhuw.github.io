@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="default,en-US,en,zh-CN,default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.kezhuw.name","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Years ago, I wrote a client library for Apache BookKeeper and chose Send, !Sync and Clone for the client object initially.  Clone and Send so the client can be shared among concurrent tasks. !Sync so">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Async Rust needs Await and &#39;thread for &#96;Send&#96; &#96;Future&#96;">
+<meta property="og:url" content="http://blog.kezhuw.name/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/index.html">
+<meta property="og:site_name" content="Recording">
+<meta property="og:description" content="Years ago, I wrote a client library for Apache BookKeeper and chose Send, !Sync and Clone for the client object initially.  Clone and Send so the client can be shared among concurrent tasks. !Sync so">
+<meta property="og:locale">
+<meta property="article:published_time" content="2024-05-05T09:37:31.000Z">
+<meta property="article:modified_time" content="2024-05-05T10:56:20.883Z">
+<meta property="article:author" content="Kezhu Wang">
+<meta property="article:tag" content="Rust">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://blog.kezhuw.name/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Async Rust needs Await and 'thread for `Send` `Future` | Recording</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><link rel="alternate" href="/atom.xml" title="Recording" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Recording</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Commit volatile memory to persistent append-only log</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="links fa-fw"></i>Links</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://blog.kezhuw.name/2024/05/05/Async-Rust-needs-Await-and-'thread-for-Send-Future/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Kezhu Wang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Recording">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Async Rust needs Await and 'thread for `Send` `Future`
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: May 5 2024 17:37:31 / Modified: 18:56:20" itemprop="dateCreated datePublished" datetime="2024-05-05T17:37:31+08:00">May 5 2024</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Years ago, I wrote a <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust">client library</a> for <a target="_blank" rel="noopener" href="https://bookkeeper.apache.org/">Apache BookKeeper</a> and chose <code>Send</code>, <code>!Sync</code> and <code>Clone</code> for the client object initially.</p>
+<ol>
+<li><code>Clone</code> and <code>Send</code> so the client can be shared among concurrent tasks.</li>
+<li><code>!Sync</code> so the every clients can have their own data without cross thread synchronization.</li>
+</ol>
+<p>This way the client can batch simultaneous requests in single asynchronous task and serve parallel requests in multiple concurrent asynchronous tasks. But it failed due to <code>.await</code> requires <code>&amp;self</code> to be <code>Send</code> which is not possible <a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust/blob/008c21c9779fd1e3632d9fe908b8afc0c421b26c/library/core/src/marker.rs#L506-L509">by definition</a> if <code>Self</code> is <code>!Sync</code>.</p>
+<p>I <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust/blob/76f2fc88384966b1e367f3dc6f3538938214d214/README.md#send-sync-and-await">complained it a lot</a> with quotes from <a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/what-shall-sync-mean-across-an-await/12020">What shall Sync mean across an .await?</a>. Recently, in developing <a target="_blank" rel="noopener" href="https://github.com/kezhuw/spawns">spawns</a>, I found many async runtimes have <code>spawn_local</code> to spawn <code>!Send</code> tasks. It is boring. I said <a target="_blank" rel="noopener" href="https://github.com/kezhuw/bookkeeper-client-rust/blob/76f2fc88384966b1e367f3dc6f3538938214d214/README.md#send-sync-and-await">A future should be <code>Send</code> unless it captures <code>!Send</code></a> before. Currently, some <code>!Send</code> tasks should actually be <code>Send</code>. This time, I want to go further about what make a future <code>!Send</code> and how Rust could solve them.</p>
+<p>Before continue, I want to state two points.</p>
+<h2 id="Codes-before-await-happens-before-codes-after-await"><strong>Codes before <code>.await</code> happens before codes after <code>.await</code>.</strong></h2>
+<p>This is the ground truth in our mental, otherwise everything fucked up. It is same for codes in thread and process.</p>
+<p>Rust future is a combination of states and <code>Future::poll</code>. <code>.await</code> is the call site of <code>Future::poll</code> which advances states. Then above statement become: <code>Future::poll</code> observe data changes from last run. In single thread executor, <code>Future::poll</code> is invoked sequentially, so above statement hold. In multi-thread executor, thread which <code>acquire</code> the future will observe changes made in thread which <code>release</code> that future. Multi-thread executors are considered buggy if they can’t guarantee above statement.</p>
+<h2 id="Futures-are-self-contained-concurrent-execution-units-just-like-threads-to-multi-cores"><strong>Futures are self-contained concurrent execution units, just like threads to multi-cores.</strong></h2>
+<p>From above, we know that codes in future are executed sequentially, we fear no contention inside single future and we are capable to run multiple futures concurrently. Additionally, a <code>Future + Send + 'static</code> is self-contained, it contains nothing <code>!Send</code> or no static to outside. All those are same to what threads provide to us, self-contained sequential execution unit in itself but concurrent with each other. If we are able to use <code>!Send</code> after thread::sleep, we should be able to do the same after <code>.await</code>.</p>
+<p>Let’s dive in how future steps.</p>
+<h2 id="Decompose-future-state-machine-and-poll-step-by-step">Decompose future state machine and poll step by step</h2>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">thread_local! &#123;</span><br><span class="line">    <span class="keyword">static</span> THREAD_LOCAL_RC1: RefCell&lt;<span class="type">Option</span>&lt;Rc&lt;Cell&lt;<span class="type">u32</span>&gt;&gt;&gt;&gt; = RefCell::<span class="title function_ invoke__">new</span>(<span class="literal">None</span>);</span><br><span class="line">    <span class="keyword">static</span> THREAD_LOCAL_RC2: Rc&lt;Cell&lt;<span class="type">usize</span>&gt;&gt; = Rc::<span class="title function_ invoke__">new</span>(Cell::<span class="title function_ invoke__">new</span>(<span class="number">0</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Input</span> &#123;</span><br><span class="line">    <span class="comment">// rc0: Rc&lt;Cell&lt;u32&gt;&gt;,</span></span><br><span class="line">    data: Arc&lt;Mutex&lt;<span class="type">u32</span>&gt;&gt;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Output</span> &#123;</span><br><span class="line">    rc3: Rc&lt;Cell&lt;<span class="type">u32</span>&gt;&gt;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">fn</span> <span class="title function_">task0</span>(input: Input) <span class="punctuation">-&gt;</span> Output &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">rc1</span> = Rc::<span class="title function_ invoke__">new</span>(Cell::<span class="title function_ invoke__">new</span>(<span class="number">1</span>));</span><br><span class="line">    <span class="title function_ invoke__">task1</span>().<span class="keyword">await</span>;</span><br><span class="line">    THREAD_LOCAL_RC1.<span class="title function_ invoke__">set</span>(<span class="title function_ invoke__">Some</span>(rc1.<span class="title function_ invoke__">clone</span>()));</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">rc2</span> = THREAD_LOCAL_RC2.<span class="title function_ invoke__">with</span>(|rc| rc.<span class="title function_ invoke__">clone</span>());</span><br><span class="line">    <span class="title function_ invoke__">task2</span>().<span class="keyword">await</span>;</span><br><span class="line">    <span class="title function_ invoke__">drop</span>(rc1);</span><br><span class="line">    <span class="title function_ invoke__">drop</span>(rc2);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">lock_guard</span> = input.mutex.<span class="title function_ invoke__">lock</span>().<span class="title function_ invoke__">unwrap</span>();</span><br><span class="line">    <span class="title function_ invoke__">task3</span>().<span class="keyword">await</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">output</span> = Output &#123;</span><br><span class="line">        rc3: Rc::<span class="title function_ invoke__">new</span>(Cell::<span class="title function_ invoke__">new</span>(<span class="number">3</span>)),</span><br><span class="line">    &#125;;</span><br><span class="line">    output</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable">input</span> = Input::<span class="title function_ invoke__">new</span>();</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">future0</span> = <span class="title function_ invoke__">task0</span>(input);</span><br><span class="line"><span class="title function_ invoke__">spawn</span>(future0);</span><br></pre></td></tr></table></figure>
+<p>Given above code, let’s decomposes future created from <code>task0(input)</code>. It should be something similar to below.</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">Task0State</span> &#123;</span><br><span class="line">    <span class="title function_ invoke__">Initial</span>(Input),</span><br><span class="line">    <span class="title function_ invoke__">Step1</span>(Task0StateStep1),</span><br><span class="line">    <span class="title function_ invoke__">Step2</span>(Task0StateStep2),</span><br><span class="line">    <span class="title function_ invoke__">Step3</span>(Task0StateStep3),</span><br><span class="line">    <span class="title function_ invoke__">Finished</span>(()),</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Task0StateStep1</span> &#123;</span><br><span class="line">    rc1: Rc&lt;Cell&lt;<span class="type">u32</span>&gt;,</span><br><span class="line">    task1_state: Task1State,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Task0StateStep2</span> &#123;</span><br><span class="line">    rc1: Rc&lt;Cell&lt;<span class="type">u32</span>&gt;,</span><br><span class="line">    rc2: Rc&lt;Cell&lt;<span class="type">u32</span>&gt;,</span><br><span class="line">    task2_state: Task2State,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Task0StateStep3</span> &#123;</span><br><span class="line">    lock_guard: MutexGuard&lt;..&gt;,</span><br><span class="line">    task3_state: Task3State,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Task0Output</span>(Output);</span><br></pre></td></tr></table></figure>
+<p>All setup, let’s inspect the future state machine step by step.</p>
+<p>Initially, <code>future0</code> is constructed as <code>Task0State::Initial(Input)</code> with input data. If <code>Input</code> is <code>!Send</code>, then apparently <code>future0</code> should be <code>!Send</code>, otherwise it is possible that multiple execution units owns multiple clones of <code>!Send</code>. So, <code>Future</code> should be <code>!Send</code> if it captures <code>!Send</code>.</p>
+<p>Let’s assume <code>Input</code> contains is <code>Send</code> and continue.</p>
+<p>Let’s <code>Future::poll(future0)</code> to step to <code>Task0State::Step1(..)</code>. In this step, it creates <code>!Send</code> <code>Rc</code> for later usage. By definition, we are unable to send <code>rc1</code> to another thread in safe way, which means we owns <code>rc1</code>. This way, there will be no clones of <code>rc1</code> in another execution units (ignoring TLS for now), neither tasks nor threads. That is, <code>Future</code> could be <code>Send</code> if it owns <code>!Send</code>.</p>
+<p>Let’s poll in <code>thread1</code> to step to <code>Task0State::Step2</code>. This time, <code>future0</code> stores a clone of <code>rc1</code> to <code>thread1</code> TLS and loads a clone of <code>rc2</code> from <code>thread1</code> TLS. If <code>future0</code> is migrated to <code>thread2</code> in next <code>poll</code>, then both <code>thread1</code> and <code>thread2</code> have clones of <code>rc1</code> and <code>rc2</code>, which is apparently wrong. But, currently, Rust has no way to prevent futures from loading/storing <code>!Send</code> from/to TLS. It simply propagate <code>!Send</code> from <code>Task0StateStep2</code> to forbid migration of <code>future0</code>.</p>
+<p>Let’s ignore above issues and continue poll to step from <code>Task0State::Step2</code> to <code>Task0State::Step3</code>. Currently, Rust will make <code>future0</code> <code>!Send</code> as it captures <code>MutexGuard</code> which is <code>!Send</code>. But if another future, which requires the same mutex lock, is polled in the same thread, it results in deadlock.</p>
+<p>Now, let’s poll again to step to <code>Task0State::Finished</code>. This time, <code>future0</code> completed with its owning <code>!Send</code>. Transform a sole copy of <code>!Send</code> from one execution unit to another expose no problem.</p>
+<p>Let’s summary.</p>
+<ol>
+<li><strong><code>Future</code> should be <code>!Send</code> if it captures <code>!Send</code>.</strong></li>
+<li><strong><code>Future</code> could be <code>Send</code> if it owns <code>!Send</code>.</strong></li>
+<li><strong><code>Future</code> could be <code>Send</code> if it outputs owning <code>!Send</code>.</strong></li>
+<li><strong>Currently, Rust has no way to prevent futures from loading/storing <code>!Send</code> from/to TLS.</strong></li>
+<li><strong>Currently, <code>!Send</code> <code>Future</code> is vulnerable to deadlock in single thread executor.</strong></li>
+</ol>
+<p>All done, but what if all above state machine codes are handwritten ? I think it is prefectly ok for handwritten future to be <code>!Send</code> if it contains any <code>!Send</code>. This way, it could be really easy to detect the cause.</p>
+<h2 id="How-Rust-could-solve-them">How Rust could solve them ?</h2>
+<ol>
+<li>Rust behaves this way already.</li>
+<li>Rust should implement <code>Send</code> for these transition states if they contains only owning <code>!Send</code> but not thread local <code>!Send</code>.</li>
+<li>Same as above. But I havn’t seen much value of this.</li>
+<li>This is the hard part. How do we know a <code>!Send</code> is owned by future ? Let’s talk it separately.</li>
+<li>I think we could introduce <code>!Await</code> to forbid types from implemenet <code>Future</code>. <a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/how-often-do-you-want-non-send-futures/10360/15">This way we could avoid the deadlock in compile time.</a>. All thread level lock guards should implement <code>!Await</code>.</li>
+</ol>
+<h2 id="How-Rust-could-guard-future-from-access-thread-locals">How Rust could guard future from access thread locals ?</h2>
+<p>Continue from above, there are candidates for us.</p>
+<ol>
+<li>Document access of thread locals in async future as not safe. Just as how <a target="_blank" rel="noopener" href="https://github.com/Xudong-Huang/may/blob/master/docs/CLS_instead_of_TLS.md">stackful coroutine documents them</a>.</li>
+<li><a target="_blank" rel="noopener" href="https://users.rust-lang.org/t/controversial-opinion-keeping-rc-across-await-should-not-make-future-send-by-itself/100554/15">Restrict <code>!Send</code> operations in thread locals</a>. This is absolutely aggressive and unfriendly, but it is worth to try if we can work out in non breaking change way or ground new API.</li>
+<li><code>'thread</code> lifetime. It is the once for all solution. The challenge from my side is how to deal with <code>Clone</code> to <code>!Send</code> ? The lifetime should be capable to decorate types in addition to references, just like how <code>'static</code> applied to type. And any references to <code>'thread</code> will make the future <code>!Send</code> and also not <code>'static</code> by definition. I am positive to this, as lifetime in heart is compile time concept and we are dealing with compiler generation code.</li>
+</ol>
+<h2 id="Thoughts-in-community">Thoughts in community</h2>
+<p>In preparing and writing this article, I found may people have similar thoughts.</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/how-often-do-you-want-non-send-futures/10360">How often do you want non-send futures?</a></li>
+<li><a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/what-shall-sync-mean-across-an-await/12020/14">What shall Sync mean across an .await?</a></li>
+<li><a target="_blank" rel="noopener" href="https://blaz.is/blog/post/future-send-was-unavoidable/"><code>Future + Send</code> Was (Not) Unavoidable</a></li>
+<li><a target="_blank" rel="noopener" href="https://blaz.is/blog/post/lets-pretend-that-task-equals-thread/">What If We Pretended That a Task = Thread?</a></li>
+<li><a target="_blank" rel="noopener" href="https://users.rust-lang.org/t/controversial-opinion-keeping-rc-across-await-should-not-make-future-send-by-itself/100554">Controversial opinion: keeping <code>Rc</code> across <code>await</code> should not make future <code>!Send</code> by itself</a></li>
+<li><a target="_blank" rel="noopener" href="https://matklad.github.io/2023/12/10/nsfw.html">Non-Send Futures When?</a> The author constructed a <code>!Sync</code> which make resulting future <code>!Send</code>, just like I did before.</li>
+<li><a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/non-send-futures/20016/8">Non-Send Futures</a></li>
+</ul>
+<p>I am not the first having this thought, and I will not be the last. I would like to see <code>Future</code> be <code>!Send</code> if and only if it capture <code>!Send</code> or exchange <code>!Send</code> with thread locals.</p>
+<h2 id="References">References</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Xudong-Huang/may/blob/master/docs/CLS_instead_of_TLS.md">CLS_instead_of_TLS</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rfcs/pull/1705">RFC: 'thread lifetime</a></li>
+<li><a target="_blank" rel="noopener" href="https://internals.rust-lang.org/t/thread-lifetime-for-tls/13550">Thread lifetime for TLS</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust/issues/54366">#[thread_local] static mut is allowed to have 'static lifetime</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust/issues/29594">Tracking issue for thread_local stabilization</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust/issues/49682">Keeping references to #[thread_local] statics is allowed across yields</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Rust/" rel="tag"># Rust</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/08/18/Java-concurrency-traps-and-pitfalls/" rel="prev" title="Java concurrency traps and pitfalls 1/N">
+      <i class="fa fa-chevron-left"></i> Java concurrency traps and pitfalls 1/N
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  
+  <div class="comments">
+    <script src="https://giscus.app/client.js"
+        data-repo="kezhuw/kezhuw.github.io" 
+        data-repo-id="MDEwOlJlcG9zaXRvcnkyNDc4NDYyNA==" 
+        data-category="Comments"
+        data-category-id="DIC_kwDOAXou8M4CP8Ds"
+        data-mapping="pathname" 
+        data-reactions-enabled="1" 
+        data-emit-metadata="1" 
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        data-input-position="bottom"
+        data-loading="lazy"
+        async>
+    </script>
+  </div>
+  
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Codes-before-await-happens-before-codes-after-await"><span class="nav-number">1.</span> <span class="nav-text">Codes before .await happens before codes after .await.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Futures-are-self-contained-concurrent-execution-units-just-like-threads-to-multi-cores"><span class="nav-number">2.</span> <span class="nav-text">Futures are self-contained concurrent execution units, just like threads to multi-cores.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Decompose-future-state-machine-and-poll-step-by-step"><span class="nav-number">3.</span> <span class="nav-text">Decompose future state machine and poll step by step</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Rust-could-solve-them"><span class="nav-number">4.</span> <span class="nav-text">How Rust could solve them ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Rust-could-guard-future-from-access-thread-locals"><span class="nav-number">5.</span> <span class="nav-text">How Rust could guard future from access thread locals ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Thoughts-in-community"><span class="nav-number">6.</span> <span class="nav-text">Thoughts in community</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">7.</span> <span class="nav-text">References</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kezhu Wang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kezhuw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://book.douban.com/people/kezhuw/" title="Douban → https:&#x2F;&#x2F;book.douban.com&#x2F;people&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="book fa-fw"></i>Douban</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.linkedin.com/in/kezhuw/" title="LinkedIn → https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;kezhuw&#x2F;" rel="noopener" target="_blank"><i class="linkedin fa-fw"></i>LinkedIn</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kezhuw" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kezhuw" rel="noopener" target="_blank"><i class="twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2012 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kezhu Wang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
